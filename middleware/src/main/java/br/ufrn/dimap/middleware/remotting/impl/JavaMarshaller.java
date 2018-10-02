@@ -12,7 +12,7 @@ import br.ufrn.dimap.middleware.remotting.interfaces.MarshallerI;
  * Marshaller that simply serializes (marshal)
  * and deserializes (unmarshal) java objects.
  * 
- * @author carlosv
+ * @author carlosemv
  */
 public class JavaMarshaller implements MarshallerI {
 	/**
