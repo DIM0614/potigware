@@ -31,9 +31,10 @@ public class JavaMarshaller implements MarshallerI {
 	/**
 	 * Uses ObjectInputStream to deserialize a byte stream into an Object
 	 * 
-	 * @param byteStream a byte stream that represents a serialized instance of a known class 
+	 * @param byteStream a byte stream that represents a serialized instance of a known class
+	 * @param tgtClass is not used, result is cast to Object
 	 */
-	public Object unmarshal(ByteArrayInputStream byteStream) throws IOException, ClassNotFoundException {
+	public <T> Object unmarshal(ByteArrayInputStream byteStream, Class<T> tgtClass) throws IOException, ClassNotFoundException {
 		ObjectInputStream objectStream = new ObjectInputStream(byteStream);
 		Object obj = objectStream.readObject();
 		return obj;

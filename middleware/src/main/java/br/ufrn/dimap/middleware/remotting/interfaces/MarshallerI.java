@@ -28,7 +28,8 @@ public interface MarshallerI {
 	 * corresponding object.
 	 * 
 	 * @param inputStream	marshalled object as byte stream
+	 * @param tgtClass	class of object to be unmarshalled
 	 * @return 	object represented by inputStream
 	 */
-	public Object unmarshal(ByteArrayInputStream byteStream) throws IOException, ClassNotFoundException ;
+	public <T> Object unmarshal(ByteArrayInputStream inputStream, Class<T> tgtClass) throws IOException, ClassNotFoundException;
 }
