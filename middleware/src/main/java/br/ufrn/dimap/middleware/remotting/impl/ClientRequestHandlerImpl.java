@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
 import br.ufrn.dimap.middleware.remotting.interfaces.ClientProtocolPlugin;
+import br.ufrn.dimap.middleware.remotting.interfaces.ClientRequestHandler;
 
 /**
  * The Client Request Handle is responsible for sending data to the server.
@@ -11,12 +12,7 @@ import br.ufrn.dimap.middleware.remotting.interfaces.ClientProtocolPlugin;
  * 
  * @author victoragnez
  */
-public final class ClientRequestHandler {
-	
-	/**
-	 * default port 22334
-	 */
-	public static final int defaultPort = 22334;
+public final class ClientRequestHandlerImpl implements ClientRequestHandler {
 	
 	/**
 	 * port to be used
@@ -31,7 +27,7 @@ public final class ClientRequestHandler {
 	/**
 	 * Private constructor which sets default values
 	 */
-	private ClientRequestHandler() {
+	private ClientRequestHandlerImpl() {
 		setPort(defaultPort);
 		setProtocol(new DefaultClientProtocol());
 	}
@@ -48,10 +44,10 @@ public final class ClientRequestHandler {
 	public static ClientRequestHandler getInstance () {
 		Wrapper<ClientRequestHandler> w = wrapper;
         if (w == null) { // check 1
-        	synchronized (ClientRequestHandler.class) {
+        	synchronized (ClientRequestHandlerImpl.class) {
         		w = wrapper;
         		if (w == null) { // check 2
-        			w = new Wrapper<ClientRequestHandler>(new ClientRequestHandler());
+        			w = new Wrapper<ClientRequestHandler>(new ClientRequestHandlerImpl());
         			wrapper = w;
         		}
         	}
@@ -60,42 +56,36 @@ public final class ClientRequestHandler {
         return w.getInstance();
 	}
 	
-	/**
-	 * Function used by the requestor to send the data,
-	 * using the specific protocol
-	 *  
-	 * @param host the hostname to send the data
-	 * @param port the port to be used
-	 * @param msg the data to be sent
-	 * @return the server reply
+	/* (non-Javadoc)
+	 * @see br.ufrn.dimap.middleware.remotting.impl.ClientRequestHandler#send(java.lang.String, int, java.io.ByteArrayOutputStream)
 	 */
 	public ByteArrayInputStream send(String host, int port, ByteArrayOutputStream msg) throws RemoteError {
-		return protocol.send(host, port, msg);
+		return getProtocol().send(host, port, msg);
 	}
 
-	/**
-	 * @return the protocol
+	/* (non-Javadoc)
+	 * @see br.ufrn.dimap.middleware.remotting.impl.ClientRequestHandler#getProtocol()
 	 */
 	public ClientProtocolPlugin getProtocol() {
 		return protocol;
 	}
 
-	/**
-	 * @param protocol the protocol to set
+	/* (non-Javadoc)
+	 * @see br.ufrn.dimap.middleware.remotting.impl.ClientRequestHandler#setProtocol(br.ufrn.dimap.middleware.remotting.interfaces.ClientProtocolPlugin)
 	 */
 	public void setProtocol(ClientProtocolPlugin protocol) {
 		this.protocol = protocol;
 	}
 
-	/**
-	 * @return the port
+	/* (non-Javadoc)
+	 * @see br.ufrn.dimap.middleware.remotting.impl.ClientRequestHandler#getPort()
 	 */
 	public int getPort() {
 		return port;
 	}
 
-	/**
-	 * @param port the port to set
+	/* (non-Javadoc)
+	 * @see br.ufrn.dimap.middleware.remotting.impl.ClientRequestHandler#setPort(int)
 	 */
 	public void setPort(int port) {
 		this.port = port;
