@@ -1,5 +1,7 @@
 package identification;
 
+import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
+
 /**
  * Implements a Lookup Service as part of the distributed object middleware. 
  * This service provides an way to bind some name to an remote object absolute 
@@ -8,9 +10,10 @@ package identification;
  * @author Yuri Alessandro Martins 
  * @version 1.0
  * @see AbsoluteObjectReference
+ * @see RemoteError
  */
 public interface Lookup {
-	// TODO both methods must throws RemoteException (pending of implementation)
+	// TODO both methods must throws RemoteException
 	/**
 	 * Lets server applications register an reference to remote objects and 
 	 * associate them to a name.
@@ -20,7 +23,7 @@ public interface Lookup {
 	 * @param aor	The absolute object reference that must be binded with the 
 	 * 				given name (propertied).
 	 */
-	public void bind(String name, AbsoluteObjectReference aor);
+	public void bind(String name, AbsoluteObjectReference aor) throws RemoteError;
 	
 	/**
 	 * Allow clients to use lookup service to query for the ABSOLUTE OBJECT 
@@ -30,5 +33,5 @@ public interface Lookup {
 	 * 				previously binded with this same name.
 	 * @return		The absolute object reference binded with the given name.
 	 */
-	public AbsoluteObjectReference find(String name);
+	public AbsoluteObjectReference find(String name) throws RemoteError;;
 }
