@@ -57,7 +57,7 @@ public final class ClientRequestHandlerImpl implements ClientRequestHandler {
 	}
 	
 	/* (non-Javadoc)
-	 * @see br.ufrn.dimap.middleware.remotting.impl.ClientRequestHandler#send(java.lang.String, int, java.io.ByteArrayOutputStream)
+	 * @see br.ufrn.dimap.middleware.remotting.interfaces.ClientRequestHandler#send(java.lang.String, int, java.io.ByteArrayOutputStream)
 	 */
 	@Override
 	public ByteArrayInputStream send(String host, int port, ByteArrayOutputStream msg) throws RemoteError {
@@ -65,7 +65,7 @@ public final class ClientRequestHandlerImpl implements ClientRequestHandler {
 	}
 
 	/* (non-Javadoc)
-	 * @see br.ufrn.dimap.middleware.remotting.impl.ClientRequestHandler#getProtocol()
+	 * @see br.ufrn.dimap.middleware.remotting.interfaces.ClientRequestHandler#getProtocol()
 	 */
 	@Override
 	public ClientProtocolPlugin getProtocol() {
@@ -73,7 +73,7 @@ public final class ClientRequestHandlerImpl implements ClientRequestHandler {
 	}
 
 	/* (non-Javadoc)
-	 * @see br.ufrn.dimap.middleware.remotting.impl.ClientRequestHandler#setProtocol(br.ufrn.dimap.middleware.remotting.interfaces.ClientProtocolPlugin)
+	 * @see br.ufrn.dimap.middleware.remotting.interfaces.ClientRequestHandler#setProtocol(br.ufrn.dimap.middleware.remotting.interfaces.ClientProtocolPlugin)
 	 */
 	@Override
 	public void setProtocol(ClientProtocolPlugin protocol) {
@@ -81,7 +81,7 @@ public final class ClientRequestHandlerImpl implements ClientRequestHandler {
 	}
 
 	/* (non-Javadoc)
-	 * @see br.ufrn.dimap.middleware.remotting.impl.ClientRequestHandler#getPort()
+	 * @see br.ufrn.dimap.middleware.remotting.interfaces.ClientRequestHandler#getPort()
 	 */
 	@Override
 	public int getPort() {
@@ -89,7 +89,7 @@ public final class ClientRequestHandlerImpl implements ClientRequestHandler {
 	}
 
 	/* (non-Javadoc)
-	 * @see br.ufrn.dimap.middleware.remotting.impl.ClientRequestHandler#setPort(int)
+	 * @see br.ufrn.dimap.middleware.remotting.interfaces.ClientRequestHandler#setPort(int)
 	 */
 	@Override
 	public void setPort(int port) {
