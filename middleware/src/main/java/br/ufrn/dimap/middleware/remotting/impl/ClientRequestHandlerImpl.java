@@ -59,6 +59,7 @@ public final class ClientRequestHandlerImpl implements ClientRequestHandler {
 	/* (non-Javadoc)
 	 * @see br.ufrn.dimap.middleware.remotting.impl.ClientRequestHandler#send(java.lang.String, int, java.io.ByteArrayOutputStream)
 	 */
+	@Override
 	public ByteArrayInputStream send(String host, int port, ByteArrayOutputStream msg) throws RemoteError {
 		return getProtocol().send(host, port, msg);
 	}
@@ -66,6 +67,7 @@ public final class ClientRequestHandlerImpl implements ClientRequestHandler {
 	/* (non-Javadoc)
 	 * @see br.ufrn.dimap.middleware.remotting.impl.ClientRequestHandler#getProtocol()
 	 */
+	@Override
 	public ClientProtocolPlugin getProtocol() {
 		return protocol;
 	}
@@ -73,6 +75,7 @@ public final class ClientRequestHandlerImpl implements ClientRequestHandler {
 	/* (non-Javadoc)
 	 * @see br.ufrn.dimap.middleware.remotting.impl.ClientRequestHandler#setProtocol(br.ufrn.dimap.middleware.remotting.interfaces.ClientProtocolPlugin)
 	 */
+	@Override
 	public void setProtocol(ClientProtocolPlugin protocol) {
 		this.protocol = protocol;
 	}
@@ -80,6 +83,7 @@ public final class ClientRequestHandlerImpl implements ClientRequestHandler {
 	/* (non-Javadoc)
 	 * @see br.ufrn.dimap.middleware.remotting.impl.ClientRequestHandler#getPort()
 	 */
+	@Override
 	public int getPort() {
 		return port;
 	}
@@ -87,6 +91,7 @@ public final class ClientRequestHandlerImpl implements ClientRequestHandler {
 	/* (non-Javadoc)
 	 * @see br.ufrn.dimap.middleware.remotting.impl.ClientRequestHandler#setPort(int)
 	 */
+	@Override
 	public void setPort(int port) {
 		this.port = port;
 	}

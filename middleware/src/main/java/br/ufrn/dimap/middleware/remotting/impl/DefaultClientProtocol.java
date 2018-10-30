@@ -5,6 +5,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import br.ufrn.dimap.middleware.remotting.interfaces.ClientProtocolPlugin;
 
@@ -19,6 +22,11 @@ import br.ufrn.dimap.middleware.remotting.interfaces.ClientProtocolPlugin;
 public class DefaultClientProtocol implements ClientProtocolPlugin {
 	
 	/**
+	 * ExecutorService to limit number of threads connecting to server
+	 */
+	private final ExecutorService tasksExecutor;
+	
+	/**
 	 * Default constructor with maximum number of connections and threads set to 1000
 	 */
 	public DefaultClientProtocol() {
@@ -30,14 +38,19 @@ public class DefaultClientProtocol implements ClientProtocolPlugin {
 	 * @param maxConnections maximum number of sockets and connections alive
 	 */
 	public DefaultClientProtocol(int maxConnections) {
-		
+		tasksExecutor = Executors.newFixedThreadPool(maxConnections);
 	}
 	
 	/**
 	 * Sends the data using TCP protocol
 	 */
+	@Override
 	public ByteArrayInputStream send(String host, int port, ByteArrayOutputStream msg) throws RemoteError {
-		return null;
+		try {
+			return tasksExecutor.submit(() -> singleSocketSend(host, port, msg) ).get();
+		} catch (InterruptedException | ExecutionException e1) {
+			throw new RemoteError(e1);
+		}
 	}
 	
 	/**
