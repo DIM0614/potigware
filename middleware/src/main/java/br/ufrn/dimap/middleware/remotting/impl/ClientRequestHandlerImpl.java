@@ -15,12 +15,7 @@ import br.ufrn.dimap.middleware.remotting.interfaces.ClientRequestHandler;
 public final class ClientRequestHandlerImpl implements ClientRequestHandler {
 	
 	/**
-	 * port to be used
-	 */
-	private int port;
-	
-	/**
-	 * protocol of communication
+	 * Protocol of communication
 	 */
 	private ClientProtocolPlugin protocol;
 	
@@ -28,7 +23,6 @@ public final class ClientRequestHandlerImpl implements ClientRequestHandler {
 	 * Private constructor which sets default values
 	 */
 	private ClientRequestHandlerImpl() {
-		setPort(defaultPort);
 		setProtocol(new DefaultClientProtocol());
 	}
 	
@@ -78,22 +72,6 @@ public final class ClientRequestHandlerImpl implements ClientRequestHandler {
 	@Override
 	public void setProtocol(ClientProtocolPlugin protocol) {
 		this.protocol = protocol;
-	}
-
-	/* (non-Javadoc)
-	 * @see br.ufrn.dimap.middleware.remotting.interfaces.ClientRequestHandler#getPort()
-	 */
-	@Override
-	public int getPort() {
-		return port;
-	}
-
-	/* (non-Javadoc)
-	 * @see br.ufrn.dimap.middleware.remotting.interfaces.ClientRequestHandler#setPort(int)
-	 */
-	@Override
-	public void setPort(int port) {
-		this.port = port;
 	}
 	
 	/**

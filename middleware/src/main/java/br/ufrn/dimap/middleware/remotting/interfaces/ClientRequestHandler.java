@@ -33,14 +33,4 @@ public interface ClientRequestHandler {
 	 */
 	void setProtocol(ClientProtocolPlugin protocol);
 
-	/**
-	 * @return the port
-	 */
-	int getPort();
-
-	/**
-	 * @param port the port to set
-	 */
-	void setPort(int port);
-
 }
