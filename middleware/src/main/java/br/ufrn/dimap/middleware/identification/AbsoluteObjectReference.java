@@ -1,4 +1,4 @@
-package identification;
+package br.ufrn.dimap.middleware.identification;
 
 /**
  * This class describes a remote absolute reference that uniquely identifies a 

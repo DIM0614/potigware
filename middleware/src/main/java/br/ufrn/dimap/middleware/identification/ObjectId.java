@@ -1,5 +1,5 @@
 
-package identification;
+package br.ufrn.dimap.middleware.identification;
 
 import java.util.UUID;
 

@@ -1,5 +1,6 @@
-package identification;
+package br.ufrn.dimap.middleware.identification.lookup;
 
+import br.ufrn.dimap.middleware.identification.AbsoluteObjectReference;
 import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
 
 /**
@@ -12,7 +13,7 @@ import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
  * @see AbsoluteObjectReference
  * @see RemoteError
  */
-public interface Lookup {
+public interface ILookup {
 	// TODO both methods must throws RemoteException
 	/**
 	 * Lets server applications register an reference to remote objects and 
