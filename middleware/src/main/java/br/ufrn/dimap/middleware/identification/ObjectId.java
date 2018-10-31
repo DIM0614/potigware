@@ -12,7 +12,7 @@ import java.util.UUID;
  */
 public class ObjectId {
 	
-	public UUID objectId;
+	private UUID objectId;
 	
 	/**
 	 * Construct new ObjectId
@@ -36,26 +36,5 @@ public class ObjectId {
 	 */
 	public long getObjectId() {
 		return this.objectId.getLeastSignificantBits();
-	}
-	
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public boolean equals(Object obj) {
-		if (obj == null) {
-            return false;
-        }
-		
-		if (!ObjectId.class.isAssignableFrom(obj.getClass())) {
-			return false;
-		}
-		
-		final ObjectId param = (ObjectId) obj;
-		if(this.objectId.equals(param)) {
-			return true;
-		}else {
-			return false;
-		}
 	}
 }
