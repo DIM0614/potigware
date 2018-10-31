@@ -2,9 +2,9 @@ package br.ufrn.dimap.middleware.remotting.impl;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.Socket;
 import java.util.Map;
 import java.util.Queue;
@@ -33,11 +33,25 @@ public class DefaultClientProtocol implements ClientProtocolPlugin {
 	 */
 	private final ExecutorService tasksExecutor;
 	
+	/**
+	 * Maps the address to the available connections
+	 */
 	private final Map<String, Queue<Connection> > cache = new ConcurrentHashMap<String, Queue<Connection> >();
 	
-	private final Queue<Wrapper> oldConnections = new ConcurrentLinkedQueue<Wrapper>();
+	/**
+	 * Queue with available connections to close the old unused ones.
+	 */
+	private final Queue<WrappedConnection> oldConnections = new ConcurrentLinkedQueue<WrappedConnection>();
 	
+	/**
+	 * Maximum time a connection can be alive and not used
+	 */
 	private final long timeLimit;
+	
+	/**
+	 * Avoids racing when adding a new queue to the cache
+	 */
+	private final WrappedPut synchronizedPut = new WrappedPut();
 	
 	/**
 	 * Default constructor with maximum number of threads set to 1000
@@ -77,12 +91,13 @@ public class DefaultClientProtocol implements ClientProtocolPlugin {
 	 */
 	private void deleteOldConnections() {
 		while(true) {
-			Wrapper w = oldConnections.peek();
+			WrappedConnection w = oldConnections.peek();
 			if(w == null) {
 				try {
 					Thread.sleep(timeLimit);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
+					break;
 				}
 				continue;
 			}
@@ -92,6 +107,9 @@ public class DefaultClientProtocol implements ClientProtocolPlugin {
 				if(w != null) {
 					Connection con = w.getConnection();
 					if(!con.isUsed() && con.getCurrentDeathTime() < now) {
+						if(!con.use()) {
+							continue;
+						}
 						try {
 							con.close();
 						} catch (IOException e) {
@@ -104,6 +122,7 @@ public class DefaultClientProtocol implements ClientProtocolPlugin {
 					Thread.sleep(w.getDeathTime() - now);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
+					break;
 				}
 			}
 		}
@@ -121,37 +140,98 @@ public class DefaultClientProtocol implements ClientProtocolPlugin {
 		}
 	}
 	
+	/**
+	 * Sends the data using a cached connection if available, and caches after
+	 * sending and receiving the server reply
+	 * 
+	 * @param host the host to send the data
+	 * @param port the port to send the data
+	 * @param msg the message to be sent
+	 * @return the server reply
+	 * @throws RemoteError if any error occur
+	 */
 	private ByteArrayInputStream sendAndCache(String host, int port, ByteArrayOutputStream msg) throws RemoteError {
-		//TODO implement
-		return null;
+		Connection con = null;
+		String fullAddr = host + ":" + port;
+		
+		while(cache.get(fullAddr) != null && (con = cache.get(fullAddr).poll()) != null) {
+			if(!con.use()) {
+				con = null;
+				continue;
+			}
+		}
+		
+		if(con == null) {
+			con = new Connection(host, port);
+			con.use();
+		}
+		
+		DataOutputStream outToServer = con.getOutput();
+		DataInputStream inFromServer = con.getInput();
+		ByteArrayInputStream ret;
+		
+		byte[] byteMsg = msg.toByteArray();
+		
+		try {
+			outToServer.writeInt(byteMsg.length);
+			outToServer.write(byteMsg);
+			
+			int length = inFromServer.readInt();
+			byte[] byteAns = new byte[length];
+			
+			inFromServer.readFully(byteAns, 0, byteAns.length);
+			ret = new ByteArrayInputStream(byteAns);
+			
+		} catch (IOException e) {
+			throw new RemoteError(e);
+		}
+		
+		if(cache.get(fullAddr) == null)
+			synchronizedPut.put(fullAddr);
+		
+		long newDeathTime = System.currentTimeMillis() + timeLimit;
+
+		con.finish();
+		con.setCurrentDeathTime(newDeathTime);
+		cache.get(fullAddr).add(con);
+		
+		WrappedConnection w = new WrappedConnection(newDeathTime, con);
+		oldConnections.add(w);
+		
+		return ret;
 	}
 	
 	/**
 	 * Stop all threads and closes sockets
-	 * @throws IOException exception when trying to close some Socket
+	 * @throws RemoteError exception if any error occurs
 	 */
-	public void shutdown() throws IOException {
+	public void shutdown() throws RemoteError {
 		tasksExecutor.shutdownNow();
 		while(!oldConnections.isEmpty()) {
-			Wrapper current = oldConnections.poll();
-			if(current != null)
-				current.getConnection().close();
+			WrappedConnection current = oldConnections.poll();
+			if(current != null) {
+				try {
+					current.getConnection().close();
+				} catch (IOException e) {
+					throw new RemoteError(e);
+				}
+			}
 		}
 	}
 	
-	private static class Wrapper implements Comparable<Wrapper> {
+	/**
+	 * Wraps connections with deathTime
+	 * 
+	 * @author victoragnez
+	 *
+	 */
+	private static class WrappedConnection {
 		private final long deathTime;
 		private final Connection connection;
 		
-		public Wrapper(long deathTime, Connection connection) {
+		public WrappedConnection(long deathTime, Connection connection) {
 			this.deathTime = deathTime;
 			this.connection = connection;
-		}
-		
-		@Override
-		public int compareTo(Wrapper o) {
-			long dif = this.deathTime - o.getDeathTime(); 
-			return dif > 0 ? 1 : (dif < 0 ? -1 : 0);
 		}
 		
 		public long getDeathTime() {
@@ -160,6 +240,17 @@ public class DefaultClientProtocol implements ClientProtocolPlugin {
 		
 		public Connection getConnection() {
 			return connection;
+		}
+	}
+	
+	/**
+	 * Wraps the put method to be synchronized
+	 * @author victoragnez
+	 */
+	private class WrappedPut {
+		public synchronized void put(String key) {
+			if(cache.get(key) == null)
+				cache.put(key, new ConcurrentLinkedQueue<Connection>());
 		}
 	}
 	
@@ -179,16 +270,21 @@ public class DefaultClientProtocol implements ClientProtocolPlugin {
 
 		try {
 			Socket client;
-			OutputStream outToServer;
-			InputStream inFromServer;
+			DataOutputStream outToServer;
+			DataInputStream inFromServer;
 						
 			client = new Socket(host, port);
-			outToServer = client.getOutputStream();
-			inFromServer = client.getInputStream();
+			outToServer = new DataOutputStream(client.getOutputStream());
+			inFromServer = new DataInputStream(client.getInputStream());
 			
+			outToServer.writeInt(byteMsg.length);
 			outToServer.write(byteMsg);
 			
-			ByteArrayInputStream ret = new ByteArrayInputStream(inFromServer.readAllBytes());
+			int length = inFromServer.readInt();
+			byte[] byteAns = new byte[length];
+			
+			inFromServer.readFully(byteAns, 0, byteAns.length);
+			ByteArrayInputStream ret = new ByteArrayInputStream(byteAns);
 			
 			client.close();
 			
