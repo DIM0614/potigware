@@ -23,7 +23,7 @@ public final class ClientRequestHandlerImpl implements ClientRequestHandler {
 	 * Private constructor which sets default values
 	 */
 	private ClientRequestHandlerImpl() {
-		setProtocol(new DefaultClientProtocol());
+		this.protocol = new DefaultClientProtocol();
 	}
 	
 	/**
@@ -70,7 +70,10 @@ public final class ClientRequestHandlerImpl implements ClientRequestHandler {
 	 * @see br.ufrn.dimap.middleware.remotting.interfaces.ClientRequestHandler#setProtocol(br.ufrn.dimap.middleware.remotting.interfaces.ClientProtocolPlugin)
 	 */
 	@Override
-	public void setProtocol(ClientProtocolPlugin protocol) {
+	public void setProtocol(ClientProtocolPlugin protocol) throws RemoteError {
+		if(this.protocol != null) {
+			this.protocol.shutdown();
+		}
 		this.protocol = protocol;
 	}
 	
