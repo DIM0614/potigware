@@ -30,7 +30,8 @@ public interface ClientRequestHandler {
 
 	/**
 	 * @param protocol the protocol to set
+	 * @throws RemoteError if any error occurs
 	 */
-	void setProtocol(ClientProtocolPlugin protocol);
+	void setProtocol(ClientProtocolPlugin protocol) throws RemoteError;
 
 }

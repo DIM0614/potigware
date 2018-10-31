@@ -24,4 +24,10 @@ public interface ClientProtocolPlugin {
 	 * @return the server reply
 	 */
 	public ByteArrayInputStream send(String host, int port, ByteArrayOutputStream msg) throws RemoteError;
+	
+	/**
+	 * Shutdown the plug-in. Called when Client Request Handler changes the protocol plug-in
+	 * @throws RemoteError if any error occurs
+	 */
+	public void shutdown() throws RemoteError;
 }
