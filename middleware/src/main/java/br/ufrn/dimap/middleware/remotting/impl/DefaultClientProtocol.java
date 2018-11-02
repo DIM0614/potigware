@@ -10,9 +10,9 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import br.ufrn.dimap.middleware.remotting.interfaces.ClientProtocolPlugin;
 
@@ -31,42 +31,42 @@ public class DefaultClientProtocol implements ClientProtocolPlugin {
 	/**
 	 * ExecutorService to limit number of threads connecting to server
 	 */
-	private final ExecutorService tasksExecutor;
+	protected final ThreadPoolExecutor tasksExecutor;
 	
 	/**
 	 * Maps the address to the available connections
 	 */
-	private final Map<String, Queue<Connection> > cache = new ConcurrentHashMap<String, Queue<Connection> >();
+	protected final Map<String, Queue<Connection> > cache = new ConcurrentHashMap<String, Queue<Connection> >();
 	
 	/**
 	 * Queue with available connections to close the old unused ones.
 	 */
-	private final Queue<WrappedConnection> oldConnections = new ConcurrentLinkedQueue<WrappedConnection>();
+	protected final Queue<WrappedConnection> oldConnections = new ConcurrentLinkedQueue<WrappedConnection>();
 	
 	/**
 	 * Maximum time a connection can be alive and not used
 	 */
-	private final long timeLimit;
+	protected final long timeLimit;
 	
 	/**
 	 * Avoids racing when adding a new queue to the cache
 	 */
-	private final WrappedPut synchronizedPut = new WrappedPut();
+	protected final WrappedPut synchronizedPut = new WrappedPut();
 	
 	/**
 	 * Default constructor with maximum number of threads set to 1000
 	 */
 	public DefaultClientProtocol() {
-		this(1000);
+		this(3000);
 	}
 	
 	/**
 	 * Creates the client protocol with maximum number of threads and
-	 * sets time limit of caching connections to 10s
+	 * sets time limit of caching connections to 0.5s
 	 * @param maxConnections maximum number of threads
 	 */
 	public DefaultClientProtocol(int maxConnections) {
-		this(maxConnections, 10000000L);
+		this(maxConnections, 1000L);
 	}
 	
 	/**
@@ -81,7 +81,8 @@ public class DefaultClientProtocol implements ClientProtocolPlugin {
 		if(maxConnections <= 0) {
 			throw new IllegalArgumentException("maxConnections must be positive, got " + maxConnections);
 		}
-		tasksExecutor = Executors.newFixedThreadPool(maxConnections + 1);
+		tasksExecutor = new ThreadPoolExecutor(maxConnections + 1, maxConnections + 1,
+				timeLimit, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
 		tasksExecutor.submit(() -> deleteOldConnections());
 		this.timeLimit = timeLimit; 
 	}
@@ -89,14 +90,13 @@ public class DefaultClientProtocol implements ClientProtocolPlugin {
 	/*
 	 * Delete connections that have not been used after timeLimit milliseconds
 	 */
-	private void deleteOldConnections() {
-		while(true) {
+	protected void deleteOldConnections() {
+		while(!Thread.interrupted()) {
 			WrappedConnection w = oldConnections.peek();
 			if(w == null) {
 				try {
 					Thread.sleep(timeLimit);
 				} catch (InterruptedException e) {
-					e.printStackTrace();
 					break;
 				}
 				continue;
@@ -121,7 +121,6 @@ public class DefaultClientProtocol implements ClientProtocolPlugin {
 				try {
 					Thread.sleep(w.getDeathTime() - now);
 				} catch (InterruptedException e) {
-					e.printStackTrace();
 					break;
 				}
 			}
@@ -135,7 +134,7 @@ public class DefaultClientProtocol implements ClientProtocolPlugin {
 	public ByteArrayInputStream send(String host, int port, ByteArrayOutputStream msg) throws RemoteError {
 		try {
 			return tasksExecutor.submit(() -> sendAndCache(host, port, msg) ).get();
-		} catch (InterruptedException | ExecutionException e1) {
+		} catch (Exception e1) {
 			throw new RemoteError(e1);
 		}
 	}
@@ -150,7 +149,7 @@ public class DefaultClientProtocol implements ClientProtocolPlugin {
 	 * @return the server reply
 	 * @throws RemoteError if any error occur
 	 */
-	private ByteArrayInputStream sendAndCache(String host, int port, ByteArrayOutputStream msg) throws RemoteError {
+	protected ByteArrayInputStream sendAndCache(String host, int port, ByteArrayOutputStream msg) throws RemoteError {
 		Connection con = null;
 		String fullAddr = host + ":" + port;
 		
@@ -159,6 +158,7 @@ public class DefaultClientProtocol implements ClientProtocolPlugin {
 				con = null;
 				continue;
 			}
+			break;
 		}
 		
 		if(con == null) {
@@ -183,6 +183,9 @@ public class DefaultClientProtocol implements ClientProtocolPlugin {
 			ret = new ByteArrayInputStream(byteAns);
 			
 		} catch (IOException e) {
+			try {
+				con.close();
+			} catch(IOException e1) { }
 			throw new RemoteError(e);
 		}
 		
@@ -193,6 +196,7 @@ public class DefaultClientProtocol implements ClientProtocolPlugin {
 
 		con.finish();
 		con.setCurrentDeathTime(newDeathTime);
+		
 		cache.get(fullAddr).add(con);
 		
 		WrappedConnection w = new WrappedConnection(newDeathTime, con);
@@ -225,9 +229,9 @@ public class DefaultClientProtocol implements ClientProtocolPlugin {
 	 * @author victoragnez
 	 *
 	 */
-	private static class WrappedConnection {
-		private final long deathTime;
-		private final Connection connection;
+	protected static class WrappedConnection {
+		protected final long deathTime;
+		protected final Connection connection;
 		
 		public WrappedConnection(long deathTime, Connection connection) {
 			this.deathTime = deathTime;
@@ -247,10 +251,11 @@ public class DefaultClientProtocol implements ClientProtocolPlugin {
 	 * Wraps the put method to be synchronized
 	 * @author victoragnez
 	 */
-	private class WrappedPut {
+	protected class WrappedPut {
 		public synchronized void put(String key) {
-			if(cache.get(key) == null)
+			if(cache.get(key) == null) {
 				cache.put(key, new ConcurrentLinkedQueue<Connection>());
+			}
 		}
 	}
 	
