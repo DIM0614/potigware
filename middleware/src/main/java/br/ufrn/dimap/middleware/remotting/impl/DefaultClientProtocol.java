@@ -57,12 +57,12 @@ public class DefaultClientProtocol implements ClientProtocolPlugin {
 	 * Default constructor with maximum number of threads set to 1000
 	 */
 	public DefaultClientProtocol() {
-		this(3000);
+		this(1000);
 	}
 	
 	/**
 	 * Creates the client protocol with maximum number of threads and
-	 * sets time limit of caching connections to 0.5s
+	 * sets time limit of caching connections to 1s
 	 * @param maxConnections maximum number of threads
 	 */
 	public DefaultClientProtocol(int maxConnections) {
