@@ -1,13 +1,16 @@
 package br.ufrn.dimap.middleware.remotting.interfaces;
 
+import br.ufrn.dimap.middleware.identification.AbsoluteObjectReference;
+import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
+
 /**
  * Represents a Requestor, which abstracts
  * the network and interacts directly with
- * the request handlers.
+ * the request handlers and possibly the client.
  * 
  * @author vitorgreati
  */
-public interface RequestorI<T> {
+public interface Requestor<T> {
 
 	/**
 	 * Acquires the Absolute Object Reference via naming lookup,
@@ -16,6 +19,6 @@ public interface RequestorI<T> {
 	 * 
 	 * @return the return of the invoked operation
 	 */
-	public T invoke(String objectName, String operationName, Object ... parameters) throws Exception; 
+	T request(AbsoluteObjectReference aor, String operationName, Object ... parameters) throws RemoteError;
 	
 }
