@@ -13,7 +13,7 @@ import java.io.IOException;
  * 
  * @author carlosemv
  */
-public interface MarshallerI {
+public interface Marshaller {
 	/**
 	 * Generates byte stream that represents object.
 	 * 

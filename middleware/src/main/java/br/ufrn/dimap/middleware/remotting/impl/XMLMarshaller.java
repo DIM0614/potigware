@@ -10,12 +10,12 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.PropertyException;
 import javax.xml.bind.Unmarshaller;
 
-import br.ufrn.dimap.middleware.remotting.interfaces.MarshallerI;
+import br.ufrn.dimap.middleware.remotting.interfaces.Marshaller;
 
 /**
  * Marshaller that uses XML as marshalling format.
  */
-public class XMLMarshaller implements MarshallerI {
+public class XMLMarshaller implements Marshaller {
 
 	public ByteArrayOutputStream marshal(Object object) throws IOException {
 		ByteArrayOutputStream byteStream = new ByteArrayOutputStream();

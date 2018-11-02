@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-import br.ufrn.dimap.middleware.remotting.interfaces.MarshallerI;
+import br.ufrn.dimap.middleware.remotting.interfaces.Marshaller;
 
 /**
  * Marshaller that simply serializes (marshal)
@@ -14,7 +14,7 @@ import br.ufrn.dimap.middleware.remotting.interfaces.MarshallerI;
  * 
  * @author carlosemv
  */
-public class JavaMarshaller implements MarshallerI {
+public class JavaMarshaller implements Marshaller {
 	/**
 	 * Uses ObjectOutputStream to serialize an Object into a byte stream.
 	 * 
