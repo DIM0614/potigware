@@ -20,13 +20,17 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
 
     private Marshaller marshaller;
 
+    private ClientRequestHandler clientRequestHandler;
+
     public UnsyncRequestor() {
-        this.marshaller = new JavaMarshaller();
+    	this.marshaller = new JavaMarshaller();
+    	this.clientRequestHandler = ClientRequestHandlerImpl.getInstance();
     }
 
     public UnsyncRequestor(Marshaller marshaller) {
-        this.marshaller = marshaller;
-    }
+    	this.marshaller = marshaller;
+		this.clientRequestHandler = ClientRequestHandlerImpl.getInstance();
+	}
 
 	public Object request(AbsoluteObjectReference aor, String operationName, Object... parameters) throws RemoteError, IOException, ClassNotFoundException {
 
@@ -36,7 +40,7 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
 
 		ByteArrayOutputStream outputStream = this.marshaller.marshal(invocation);
 
-		ByteArrayInputStream inputStream = ClientRequestHandlerImpl.getInstance().send(aor.getHost(), aor.getPort(), outputStream);
+		ByteArrayInputStream inputStream = this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream);
 
 		Object returnValue = this.marshaller.unmarshal(inputStream, Object.class);
 
