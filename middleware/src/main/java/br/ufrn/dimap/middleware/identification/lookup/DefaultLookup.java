@@ -14,7 +14,7 @@ import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
  * 
  * @author thiagolucena
  */
-public class LookupImpl implements Lookup {
+public class DefaultLookup implements Lookup {
 	
 	/**
 	 * Wraps the instance
@@ -29,7 +29,7 @@ public class LookupImpl implements Lookup {
 	/**
 	 * Private constructor
 	 */
-	protected LookupImpl() {
+	protected DefaultLookup() {
 		this.lookupMapping = new HashMap<String, AbsoluteObjectReference>();
 	}
 
@@ -41,10 +41,10 @@ public class LookupImpl implements Lookup {
 	public static Lookup getInstance() {
 		Wrapper<Lookup> w = instanceWrapper;
         if (w == null) { // check 1
-        	synchronized (LookupImpl.class) {
+        	synchronized (DefaultLookup.class) {
         		w = instanceWrapper;
         		if (w == null) { // check 2
-        			w = new Wrapper<Lookup>(new LookupImpl());
+        			w = new Wrapper<Lookup>(new DefaultLookup());
         			instanceWrapper = w;
         		}
         	}
