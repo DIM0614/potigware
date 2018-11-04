@@ -16,6 +16,9 @@ import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
  */
 public class DefaultLookup implements Lookup {
 	
+	private String name;
+	private AbsoluteObjectReference aor;
+	
 	/**
 	 * Wraps the instance
 	 */
@@ -60,6 +63,8 @@ public class DefaultLookup implements Lookup {
 		if (lookupMapping.containsKey(name)) {
 			throw new RemoteError("Error on lookup binding! There already exists an absolute object reference for this name property.");
 		}
+		this.name = name;
+		this.aor = aor;
 		lookupMapping.put(name, aor);
 	}
 	
@@ -70,6 +75,8 @@ public class DefaultLookup implements Lookup {
 		if (!lookupMapping.containsKey(name)) {
 			throw new RemoteError("Error on lookup finding! No absolute object reference was registered with this name property.");
 		}
+		this.name = name;
+		this.aor = aor;
 		return lookupMapping.get(name);
 	}
 	

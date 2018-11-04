@@ -12,7 +12,7 @@ package br.ufrn.dimap.middleware.identification;
 public class AbsoluteObjectReference {
 	private ObjectId objectId;
 	private String host;
-	private int port;
+	private String port;
 	private int invokerId;
 	
 	/**
@@ -22,7 +22,7 @@ public class AbsoluteObjectReference {
 	 * @param port		Port of the network
 	 * @param invokerId	Invoker unique identification
 	 */
-	public AbsoluteObjectReference(ObjectId objectId, String host, int port,
+	public AbsoluteObjectReference(ObjectId objectId, String host, String port,
 								   int invokerId) {
 		this.objectId = objectId;
 		this.host = host;
@@ -50,7 +50,7 @@ public class AbsoluteObjectReference {
 	 * 
 	 * @return AOR network port
 	 */
-	public int getPort() {
+	public String getPort() {
 		return port;
 	}
 	
