@@ -106,16 +106,57 @@ public class MiddlewareConfig {
 		}
 	}
 	
+	/**
+	 * This nested class holds the information regarding the protocolPlugins of the framework
+	 * 
+	 * @author Gustavo Carvalho
+	 */
 	public static class ProtocolPlugins {
-			private static final Map<String, Object> protocolPlugins = new ConcurrentHashMap<String, Object>();
+			private static final Map<String, Object> clientProtocolPlugins = new ConcurrentHashMap<String, Object>();
+			private static final Map<String, Object> serverProtocolPlugins = new ConcurrentHashMap<String, Object>();
 
-			public static void addProtocolPlugin(String route, Object protocolPlugin) {
-				protocolPlugins.put(route, protocolPlugin);
+			/**
+			 * Registers a new protocol plugin to be used when requesting an
+			 * object using the specified route as a client 
+			 *
+			 * @param route the route identifier of the object
+			 * @param protocolPlugin the plugin to be registered
+			 */
+			public static void addClientProtocolPlugin(String route, Object protocolPlugin) {
+				clientProtocolPlugins.put(route, protocolPlugin);
 			}
 			
-			public static Object getProtocolplugin(String route) {
-				return protocolPlugins.get(route);
+			/**
+			 * Registers a new protocol plugin to be used when serving a
+			 * specified route as a server
+			 *
+			 * @param route the route identifier of the object
+			 * @param protocolPlugin the plugin to be registered
+			 */
+			public static void addServerProtocolPlugin(String route, Object protocolPlugin) {
+				serverProtocolPlugins.put(route, protocolPlugin);
 			}
 			
+			/**
+			 * Returns the protocol plugin to be used when acting as a client
+			 * for the object with the specified route 
+			 * 
+			 * @param route the route identifier of the object
+			 * @return the protocol plugin if registered, else null
+			 */
+			public static Object getClientProtocolPlugin(String route) {
+				return clientProtocolPlugins.get(route);
+			}
+			
+			/**
+			 * Returns the protocol plugin to be used when acting as a server
+			 * for the object with the specified route 
+			 * 
+			 * @param route the route identifier of the object
+			 * @return the protocol plugin if registered, else null
+			 */
+			public static Object getServerProtocolPlugin(String route) {
+				return serverProtocolPlugins.get(route);
+			}
 	}
 }
