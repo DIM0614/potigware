@@ -1,8 +1,8 @@
 package br.ufrn.dimap.middleware.extension.interfaces;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
-import br.ufrn.dimap.middleware.extension.interfaces.ResponseReceiverI;
 import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
 
 /**
@@ -17,12 +17,18 @@ import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
 public interface ProtocolPlugIn {
 	/**
 	 * Function used by the requestor and delegated by the client handler to send the data,
-	 * handling network communication. Any return value must be sent to the ResponseReceiver interface.
+	 * handling network communication.
 	 *  
 	 * @param host the hostname to send the data
 	 * @param port the port to be used
 	 * @param msg the data to be sent
-	 * @param responseReceiver hosts the callback for the received message
+	 * @return the server reply
 	 */
-	public abstract void send(String host, int port, ByteArrayOutputStream msg, ResponseReceiverI responseReceiver) throws RemoteError;
+	public ByteArrayInputStream send(String host, int port, ByteArrayOutputStream msg) throws RemoteError;
+	
+	/**
+	 * Shutdown the plug-in. Called when Client Request Handler changes the protocol plug-in
+	 * @throws RemoteError if any error occurs
+	 */
+	public void shutdown() throws RemoteError;
 }
