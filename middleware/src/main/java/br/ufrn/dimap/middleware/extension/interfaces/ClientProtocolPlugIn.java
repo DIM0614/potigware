@@ -6,7 +6,7 @@ import java.io.ByteArrayOutputStream;
 import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
 
 /**
-  * Abstract class for network plugins.
+  * Abstract class for client network plugins.
   * Defines the procedures to be used when sending and receiving data
   * from the network
   * 
@@ -14,7 +14,7 @@ import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
   * @author victoragnez
   */
 
-public interface ProtocolPlugIn {
+public interface ClientProtocolPlugIn {
 	/**
 	 * Function used by the requestor and delegated by the client handler to send the data,
 	 * handling network communication.
