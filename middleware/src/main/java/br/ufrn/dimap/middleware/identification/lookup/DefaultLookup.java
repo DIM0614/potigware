@@ -1,5 +1,6 @@
 package br.ufrn.dimap.middleware.identification.lookup;
 
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,10 +16,6 @@ import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
  * @author thiagolucena
  */
 public class DefaultLookup implements Lookup {
-	
-	private String name;
-	private AbsoluteObjectReference aor;
-	
 	/**
 	 * Wraps the instance
 	 */
@@ -33,7 +30,7 @@ public class DefaultLookup implements Lookup {
 	 * Private constructor
 	 */
 	protected DefaultLookup() {
-		this.lookupMapping = new HashMap<String, AbsoluteObjectReference>();
+		this.lookupMapping = new ConcurrentHashMap <String, AbsoluteObjectReference>();
 	}
 
 	/**
@@ -59,24 +56,22 @@ public class DefaultLookup implements Lookup {
 	/**
 	 * @see br.ufrn.dimap.middleware.identification.lookup.Lookup#bind(String, AbsoluteObjectReference)
 	 */
-	synchronized public void bind(String name, AbsoluteObjectReference aor) throws RemoteError {
+	public void bind(String name, AbsoluteObjectReference aor) throws RemoteError {
 		if (lookupMapping.containsKey(name)) {
 			throw new RemoteError("Error on lookup binding! There already exists an absolute object reference for this name property.");
 		}
-		this.name = name;
-		this.aor = aor;
+		
 		lookupMapping.put(name, aor);
 	}
 	
 	/**
 	 * @see br.ufrn.dimap.middleware.identification.lookup.Lookup#find(String)
 	 */
-	synchronized public AbsoluteObjectReference find(String name) throws RemoteError {
+	public AbsoluteObjectReference find(String name) throws RemoteError {
 		if (!lookupMapping.containsKey(name)) {
 			throw new RemoteError("Error on lookup finding! No absolute object reference was registered with this name property.");
 		}
-		this.name = name;
-		this.aor = aor;
+		
 		return lookupMapping.get(name);
 	}
 	
