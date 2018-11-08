@@ -5,6 +5,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.util.Map;
 import java.util.Queue;
@@ -17,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 import br.ufrn.dimap.middleware.remotting.interfaces.Callback;
 import br.ufrn.dimap.middleware.remotting.interfaces.ClientProtocolPlugin;
 import br.ufrn.dimap.middleware.remotting.interfaces.InvocationAsynchronyPattern;
+import br.ufrn.dimap.middleware.remotting.interfaces.Marshaller;
 import br.ufrn.dimap.middleware.remotting.interfaces.PollObject;
 
 import static br.ufrn.dimap.middleware.remotting.interfaces.InvocationAsynchronyPattern.*;
@@ -62,6 +66,11 @@ public class DefaultClientProtocol implements ClientProtocolPlugin {
 	 * Poll Object to store results when using the Poll Object pattern
 	 */
 	protected PollObject pollObject;
+	
+	/**
+	 * Marshaller to deserialize messages
+	 */
+	protected final Marshaller marshaller = new JavaMarshaller();
 	
 	/**
 	 * Default constructor with maximum number of threads set to 1000
@@ -145,9 +154,9 @@ public class DefaultClientProtocol implements ClientProtocolPlugin {
 	@Override
 	public ByteArrayInputStream send(String host, int port, ByteArrayOutputStream msg) throws RemoteError {
 		try {
-			return tasksExecutor.submit(() -> sendAndCache(host, port, msg) ).get();
-		} catch (Exception e1) {
-			throw new RemoteError(e1);
+			return tasksExecutor.submit(() -> sendAndCache(host, port, msg, true) ).get();
+		} catch (Exception e) {
+			throw new RemoteError(e);
 		}
 	}
 	
@@ -157,11 +166,7 @@ public class DefaultClientProtocol implements ClientProtocolPlugin {
 	 */
 	@Override
 	public void send(String host, int port, ByteArrayOutputStream msg, Callback callback) throws RemoteError {
-		try {
-			tasksExecutor.submit(() -> sendAndCallback(host, port, msg) );
-		} catch (Exception e) {
-			throw new RemoteError(e);
-		}
+		tasksExecutor.submit(() -> sendAndCallback(host, port, msg, callback) );
 	}
 
 	/*
@@ -172,7 +177,12 @@ public class DefaultClientProtocol implements ClientProtocolPlugin {
 	public void send(String host, int port, ByteArrayOutputStream msg, InvocationAsynchronyPattern pattern)
 			throws RemoteError {
 		if(pattern == SyncWithServer) {
-			tasksExecutor.submit(() -> sendAndConfirm(host, port, msg) );
+			try {
+				tasksExecutor.submit(() -> sendAndCache(host, port, msg, false) ).get();
+				return;
+			} catch (Exception e) {
+				throw new RemoteError(e);
+			}
 		} else if(pattern == PollObject) {
 			tasksExecutor.submit(() -> sendAndPollObject(host, port, msg) );
 		} else {
@@ -187,10 +197,11 @@ public class DefaultClientProtocol implements ClientProtocolPlugin {
 	 * @param host the host to send the data
 	 * @param port the port to send the data
 	 * @param msg the message to be sent
+	 * @param waitResponse should be true if it's expected to receive the server's response
 	 * @return the server reply
 	 * @throws RemoteError if any error occur
 	 */
-	protected ByteArrayInputStream sendAndCache(String host, int port, ByteArrayOutputStream msg) throws RemoteError {
+	protected ByteArrayInputStream sendAndCache(String host, int port, ByteArrayOutputStream msg, boolean waitResponse) throws RemoteError {
 		Connection con = null;
 		String fullAddr = host + ":" + port;
 		
@@ -217,11 +228,16 @@ public class DefaultClientProtocol implements ClientProtocolPlugin {
 			outToServer.writeInt(byteMsg.length);
 			outToServer.write(byteMsg);
 			
-			int length = inFromServer.readInt();
-			byte[] byteAns = new byte[length];
-			
-			inFromServer.readFully(byteAns, 0, byteAns.length);
-			ret = new ByteArrayInputStream(byteAns);
+			if(waitResponse) {
+				int length = inFromServer.readInt();
+				byte[] byteAns = new byte[length];
+				
+				inFromServer.readFully(byteAns, 0, byteAns.length);
+				ret = new ByteArrayInputStream(byteAns);
+			}
+			else {
+				ret = null;
+			}
 			
 		} catch (IOException e) {
 			try {
@@ -246,20 +262,54 @@ public class DefaultClientProtocol implements ClientProtocolPlugin {
 		return ret;
 	}
 	
-	private void sendAndCallback(String host, int port, ByteArrayOutputStream msg) {
-		// TODO Auto-generated method stub
+	/**
+	 * Sends the request and uses the response as input for callback method
+	 * @param host the host to send the data
+	 * @param port the port to send the data
+	 * @param msg the message to be sent
+	 * @param callback callback object whose method will be called after the request
+	 */
+	private void sendAndCallback(String host, int port, ByteArrayOutputStream msg, Callback callback) {
+		try {
+			ByteArrayInputStream inputStream = sendAndCache(host, port, msg, true);
+			Object returnValue = this.marshaller.unmarshal(inputStream, Object.class);
+			callback.run(returnValue);
+		} catch (RemoteError | ClassNotFoundException | IOException e) {
+			return;
+		}
 	}
 	
+	/**
+	 * Sends via UDP the message with no guarantee and does not throw any exception
+	 * @param host the host to send the data
+	 * @param port the port to send the data
+	 * @param msg the message to be sent
+	 */
 	private void sendUDP(String host, int port, ByteArrayOutputStream msg) {
-		// TODO Auto-generated method stub
+		try {
+			DatagramSocket UDPSocket = new DatagramSocket();
+			byte[] byteMsg = msg.toByteArray();
+			InetAddress IPAddress = InetAddress.getByName(host);
+			DatagramPacket packet = new DatagramPacket(byteMsg, byteMsg.length, IPAddress, 9876);
+			UDPSocket.send(packet);
+			UDPSocket.close();
+		} catch(Exception e) { }
 	}
 	
-	private void sendAndConfirm(String host, int port, ByteArrayOutputStream msg) {
-		// TODO Auto-generated method stub
-	}
-	
+	/**
+	 * Sends the request and stores the response in the pollObject
+	 * @param host the host to send the data
+	 * @param port the port to send the data
+	 * @param msg the message to be sent
+	 */
 	private void sendAndPollObject(String host, int port, ByteArrayOutputStream msg) {
-		// TODO Auto-generated method stub
+		try {
+			ByteArrayInputStream inputStream = sendAndCache(host, port, msg, true);
+			Object returnValue = this.marshaller.unmarshal(inputStream, Object.class);
+			pollObject.storeResult(returnValue);
+		} catch (RemoteError | ClassNotFoundException | IOException e) {
+			return;
+		}
 	}
 	
 	/*
