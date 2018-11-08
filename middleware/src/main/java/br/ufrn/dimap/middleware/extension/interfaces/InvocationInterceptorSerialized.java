@@ -6,7 +6,7 @@ import java.io.ByteArrayOutputStream;
 import br.ufrn.dimap.middleware.remotting.impl.InvocationData;
 import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
 
-/*
+/**
  * Represents an Invocation Interceptor for the CLIENT REQUEST HANDLER and
  * SERVER REQUEST HANDLER (Request Handling layer). 
  * Provide hooks in the invocation path, to plug in INVOCATION INTERCEPTORS. 
@@ -16,13 +16,9 @@ import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
  * @author giovannirosario
  */
 
-public interface InvocationInterceptorPreSerialization {
-	
-	void beforeInvocation (ByteArrayInputStream inputStream) throws RemoteError;
+public interface InvocationInterceptorSerialized {
 	
 	void beforeInvocation (ByteArrayInputStream inputStream, InvocationContext invocationContext) throws RemoteError;
-	
-	void afterInvocation (ByteArrayInputStream inputStream) throws RemoteError;
 	
 	void afterInvocation (ByteArrayInputStream inputStream, InvocationContext invocationContext) throws RemoteError;
 }
