@@ -2,9 +2,9 @@ package br.ufrn.dimap.middleware.remotting.impl;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.net.UnknownHostException;
 
-import br.ufrn.dimap.middleware.remotting.interfaces.ClientProtocolPlugin;
-import br.ufrn.dimap.middleware.remotting.interfaces.ClientRequestHandler;
+import br.ufrn.dimap.middleware.remotting.interfaces.*;
 
 /**
  * The Client Request Handle is responsible for sending data to the server.
@@ -55,27 +55,82 @@ public final class ClientRequestHandlerImpl implements ClientRequestHandler {
 	 */
 	@Override
 	public ByteArrayInputStream send(String host, int port, ByteArrayOutputStream msg) throws RemoteError {
-		return getProtocol().send(host, port, msg);
+		return getProtocol("").send(host, port, msg);
+	}
+
+	@Override
+	public void send(String host, int port, ByteArrayOutputStream msg, Callback callback) throws RemoteError {
+
+	}
+
+	@Override
+	public void send(String host, int port, ByteArrayOutputStream msg, InvocationAsynchronyPattern pattern) throws RemoteError {
+
+	}
+
+	@Override
+	public PollObject getPollObject() {
+		return null;
+	}
+
+	@Override
+	public void setPollObject(PollObject pollObject) {
+
+	}
+
+	@Override
+	public ClientProtocolPlugin getDefaultProtocol() {
+		return null;
+	}
+
+	@Override
+	public void setDefaultProtocol(ClientProtocolPlugin protocol) throws RemoteError {
+
+	}
+
+	@Override
+	public ClientProtocolPlugin getProtocol(String host) {
+		return null;
+	}
+
+	@Override
+	public void setProtocol(String host, ClientProtocolPlugin protocol) throws RemoteError, UnknownHostException {
+
+	}
+
+	@Override
+	public ClientProtocolPlugin getProtocol(String host, int port) {
+		return null;
+	}
+
+	@Override
+	public void setProtocol(String host, int port, ClientProtocolPlugin protocol) throws RemoteError, UnknownHostException {
+
+	}
+
+	@Override
+	public void shutdown() {
+
 	}
 
 	/* (non-Javadoc)
 	 * @see br.ufrn.dimap.middleware.remotting.interfaces.ClientRequestHandler#getProtocol()
 	 */
-	@Override
+/*	@Override
 	public ClientProtocolPlugin getProtocol() {
 		return protocol;
 	}
 
-	/* (non-Javadoc)
+	*//* (non-Javadoc)
 	 * @see br.ufrn.dimap.middleware.remotting.interfaces.ClientRequestHandler#setProtocol(br.ufrn.dimap.middleware.remotting.interfaces.ClientProtocolPlugin)
-	 */
+	 *//*
 	@Override
 	public void setProtocol(ClientProtocolPlugin protocol) throws RemoteError {
 		if(this.protocol != null) {
 			this.protocol.shutdown();
 		}
 		this.protocol = protocol;
-	}
+	}*/
 	
 	/**
 	 * 
