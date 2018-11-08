@@ -17,8 +17,9 @@ import java.util.concurrent.TimeUnit;
 import br.ufrn.dimap.middleware.remotting.interfaces.Callback;
 import br.ufrn.dimap.middleware.remotting.interfaces.ClientProtocolPlugin;
 import br.ufrn.dimap.middleware.remotting.interfaces.InvocationAsynchronyPattern;
-import static br.ufrn.dimap.middleware.remotting.interfaces.InvocationAsynchronyPattern.*;
 import br.ufrn.dimap.middleware.remotting.interfaces.PollObject;
+
+import static br.ufrn.dimap.middleware.remotting.interfaces.InvocationAsynchronyPattern.*;
 
 /**
  * Represents the default protocol to the Client Request Handler,
@@ -94,7 +95,7 @@ public class DefaultClientProtocol implements ClientProtocolPlugin {
 				timeLimit, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
 		tasksExecutor.submit(() -> deleteOldConnections());
 		this.timeLimit = timeLimit; 
-		
+		this.pollObject = new DefaultPollObject();
 	}
 	
 	/*

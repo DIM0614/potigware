@@ -28,8 +28,9 @@ public interface PollObject {
 	 * Function to get the first received and not taken result
 	 * If there's no result available, waits until a result is stored
 	 * @return the result
+	 * @throws InterruptedException if interrupted while waiting
 	 */
-	public Object getBlockingResult();
+	public Object getBlockingResult() throws InterruptedException;
 	
 	/**
 	 * Function used by the client request handler to store a result object
