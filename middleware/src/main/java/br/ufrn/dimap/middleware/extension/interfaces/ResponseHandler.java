@@ -11,7 +11,7 @@ import java.io.ByteArrayOutputStream;
  * @author Gustavo Carvalho
  */
 
-public interface ResponseHandlerI {
+public interface ResponseHandler {
 	
 	/**
 	 * Handles the incoming message and returns the message that must be sent
