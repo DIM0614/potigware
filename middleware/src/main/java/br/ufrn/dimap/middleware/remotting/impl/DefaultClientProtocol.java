@@ -14,7 +14,11 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import br.ufrn.dimap.middleware.remotting.interfaces.Callback;
 import br.ufrn.dimap.middleware.remotting.interfaces.ClientProtocolPlugin;
+import br.ufrn.dimap.middleware.remotting.interfaces.InvocationAsynchronyPattern;
+import static br.ufrn.dimap.middleware.remotting.interfaces.InvocationAsynchronyPattern.*;
+import br.ufrn.dimap.middleware.remotting.interfaces.PollObject;
 
 /**
  * Represents the default protocol to the Client Request Handler,
@@ -54,6 +58,11 @@ public class DefaultClientProtocol implements ClientProtocolPlugin {
 	protected final WrappedPut synchronizedPut = new WrappedPut();
 	
 	/**
+	 * Poll Object to store results when using the Poll Object pattern
+	 */
+	protected PollObject pollObject;
+	
+	/**
 	 * Default constructor with maximum number of threads set to 1000
 	 */
 	public DefaultClientProtocol() {
@@ -85,6 +94,7 @@ public class DefaultClientProtocol implements ClientProtocolPlugin {
 				timeLimit, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
 		tasksExecutor.submit(() -> deleteOldConnections());
 		this.timeLimit = timeLimit; 
+		
 	}
 	
 	/*
@@ -127,8 +137,9 @@ public class DefaultClientProtocol implements ClientProtocolPlugin {
 		}
 	}
 
-	/**
-	 * Sends the data using TCP protocol
+	/*
+	 * (non-Javadoc)
+	 * @see br.ufrn.dimap.middleware.remotting.interfaces.ClientProtocolPlugin#send(java.lang.String, int, java.io.ByteArrayOutputStream)
 	 */
 	@Override
 	public ByteArrayInputStream send(String host, int port, ByteArrayOutputStream msg) throws RemoteError {
@@ -139,6 +150,35 @@ public class DefaultClientProtocol implements ClientProtocolPlugin {
 		}
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * @see br.ufrn.dimap.middleware.remotting.interfaces.ClientProtocolPlugin#send(java.lang.String, int, java.io.ByteArrayOutputStream, br.ufrn.dimap.middleware.remotting.interfaces.Callback)
+	 */
+	@Override
+	public void send(String host, int port, ByteArrayOutputStream msg, Callback callback) throws RemoteError {
+		try {
+			tasksExecutor.submit(() -> sendAndCallback(host, port, msg) );
+		} catch (Exception e) {
+			throw new RemoteError(e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see br.ufrn.dimap.middleware.remotting.interfaces.ClientProtocolPlugin#send(java.lang.String, int, java.io.ByteArrayOutputStream, br.ufrn.dimap.middleware.remotting.interfaces.InvocationAsynchronyPattern)
+	 */
+	@Override
+	public void send(String host, int port, ByteArrayOutputStream msg, InvocationAsynchronyPattern pattern)
+			throws RemoteError {
+		if(pattern == SyncWithServer) {
+			tasksExecutor.submit(() -> sendAndConfirm(host, port, msg) );
+		} else if(pattern == PollObject) {
+			tasksExecutor.submit(() -> sendAndPollObject(host, port, msg) );
+		} else {
+			tasksExecutor.submit(() -> sendUDP(host, port, msg) );
+		}
+	}
+
 	/**
 	 * Sends the data using a cached connection if available, and caches after
 	 * sending and receiving the server reply
@@ -203,6 +243,40 @@ public class DefaultClientProtocol implements ClientProtocolPlugin {
 		oldConnections.add(w);
 		
 		return ret;
+	}
+	
+	private void sendAndCallback(String host, int port, ByteArrayOutputStream msg) {
+		// TODO Auto-generated method stub
+	}
+	
+	private void sendUDP(String host, int port, ByteArrayOutputStream msg) {
+		// TODO Auto-generated method stub
+	}
+	
+	private void sendAndConfirm(String host, int port, ByteArrayOutputStream msg) {
+		// TODO Auto-generated method stub
+	}
+	
+	private void sendAndPollObject(String host, int port, ByteArrayOutputStream msg) {
+		// TODO Auto-generated method stub
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see br.ufrn.dimap.middleware.remotting.interfaces.ClientRequestHandler#getPollObject()
+	 */
+	@Override
+	public PollObject getPollObject() {
+		return pollObject;
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see br.ufrn.dimap.middleware.remotting.interfaces.ClientRequestHandler#setPollObject(br.ufrn.dimap.middleware.remotting.interfaces.PollObject)
+	 */
+	@Override
+	public void setPollObject(PollObject pollObject) {
+		this.pollObject = pollObject;
 	}
 	
 	/**
@@ -299,4 +373,5 @@ public class DefaultClientProtocol implements ClientProtocolPlugin {
 			throw new RemoteError(e1);
 		}
 	}
+
 }
