@@ -39,7 +39,7 @@ public interface ClientRequestHandler {
 	 * @throws RemoteError if any error occurs
 	 */
 
-	public void sendWithCallback(String host, int port, ByteArrayOutputStream msg, Callback callback) throws RemoteError;
+	public void send(String host, int port, ByteArrayOutputStream msg, Callback callback) throws RemoteError;
 	
 	/**
 	 * Function used by the requestor to send the data asynchronously
@@ -48,11 +48,10 @@ public interface ClientRequestHandler {
 	 * @param host the host name to send the data
 	 * @param port the port to be used
 	 * @param msg the data to be sent
-	 * @param callback the callback object to be called after
 	 * @return the server reply
 	 * @throws RemoteError if pattern is SyncWithServer or PollObject and any error occurs when trying to connect to server
 	 */
-	public void sendAsync(String host, int port, ByteArrayOutputStream msg, InvocationAsynchronyPattern pattern) throws RemoteError;
+	public void send(String host, int port, ByteArrayOutputStream msg, InvocationAsynchronyPattern pattern) throws RemoteError;
 
 	/**
 	 * @return the poll object
