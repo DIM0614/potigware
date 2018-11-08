@@ -52,16 +52,6 @@ public interface ClientRequestHandler {
 	 * @throws RemoteError if pattern is SyncWithServer or PollObject and any error occurs when trying to connect to server
 	 */
 	public void send(String host, int port, ByteArrayOutputStream msg, InvocationAsynchronyPattern pattern) throws RemoteError;
-
-	/**
-	 * @return the poll object
-	 */
-	public PollObject getPollObject();
-
-	/**
-	 * @param pollObject the pollObject to set
-	 */
-	public void setPollObject(PollObject pollObject);
 	
 	/**
 	 * @return the default protocol
