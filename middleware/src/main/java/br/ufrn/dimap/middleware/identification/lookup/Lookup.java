@@ -23,9 +23,12 @@ public interface Lookup {
 	 * 				reference.
 	 * @param aor	The absolute object reference that must be binded with the 
 	 * 				given name (propertied).
+	 * @param host Server connection host.
+	 * @param port Server connection port.
 	 * @throws RemoteError
 	 */
-	public void bind(String name, Object remoteObject) throws RemoteError;
+	public void bind(String name, Object remoteObject, String host, int port) 
+			throws RemoteError;
 	
 	/**
 	 * Allow clients to use lookup service to query for the ABSOLUTE OBJECT 
