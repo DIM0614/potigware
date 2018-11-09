@@ -19,11 +19,8 @@ import java.util.concurrent.TimeUnit;
 
 import br.ufrn.dimap.middleware.remotting.interfaces.Callback;
 import br.ufrn.dimap.middleware.remotting.interfaces.ClientProtocolPlugin;
-import br.ufrn.dimap.middleware.remotting.interfaces.InvocationAsynchronyPattern;
 import br.ufrn.dimap.middleware.remotting.interfaces.Marshaller;
 import br.ufrn.dimap.middleware.remotting.interfaces.PollObject;
-
-import static br.ufrn.dimap.middleware.remotting.interfaces.InvocationAsynchronyPattern.*;
 
 /**
  * Represents the default protocol to the Client Request Handler,
@@ -63,11 +60,6 @@ public class DefaultClientProtocol implements ClientProtocolPlugin {
 	protected final WrappedPut synchronizedPut = new WrappedPut();
 	
 	/**
-	 * Poll Object to store results when using the Poll Object pattern
-	 */
-	protected PollObject pollObject;
-	
-	/**
 	 * Marshaller to deserialize messages
 	 */
 	protected final Marshaller marshaller = new JavaMarshaller();
@@ -104,7 +96,6 @@ public class DefaultClientProtocol implements ClientProtocolPlugin {
 				timeLimit, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
 		tasksExecutor.submit(() -> deleteOldConnections());
 		this.timeLimit = timeLimit; 
-		this.pollObject = new DefaultPollObject();
 	}
 	
 	/*
@@ -169,25 +160,26 @@ public class DefaultClientProtocol implements ClientProtocolPlugin {
 		tasksExecutor.submit(() -> sendAndCallback(host, port, msg, callback) );
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see br.ufrn.dimap.middleware.remotting.interfaces.ClientProtocolPlugin#send(java.lang.String, int, java.io.ByteArrayOutputStream, br.ufrn.dimap.middleware.remotting.interfaces.InvocationAsynchronyPattern)
-	 */
+	
 	@Override
-	public void send(String host, int port, ByteArrayOutputStream msg, InvocationAsynchronyPattern pattern)
+	public void send(String host, int port, ByteArrayOutputStream msg, boolean waitConfirmation)
 			throws RemoteError {
-		if(pattern == SyncWithServer) {
+		if(waitConfirmation) {
 			try {
 				tasksExecutor.submit(() -> sendAndCache(host, port, msg, false) ).get();
 				return;
 			} catch (Exception e) {
 				throw new RemoteError(e);
 			}
-		} else if(pattern == PollObject) {
-			tasksExecutor.submit(() -> sendAndPollObject(host, port, msg) );
 		} else {
 			tasksExecutor.submit(() -> sendUDP(host, port, msg) );
 		}
+	}
+	
+	@Override
+	public void send(String host, int port, ByteArrayOutputStream msg, PollObject pollObject)
+			throws RemoteError {
+		tasksExecutor.submit(() -> sendAndPollObject(host, port, msg, pollObject) );
 	}
 
 	/**
@@ -273,9 +265,11 @@ public class DefaultClientProtocol implements ClientProtocolPlugin {
 		try {
 			ByteArrayInputStream inputStream = sendAndCache(host, port, msg, true);
 			Object returnValue = this.marshaller.unmarshal(inputStream, Object.class);
-			callback.run(returnValue);
-		} catch (RemoteError | ClassNotFoundException | IOException e) {
-			return;
+			callback.onResult(returnValue);
+		} catch (ClassNotFoundException | IOException e) {
+			callback.onError(new RemoteError(e));
+		} catch (RemoteError e) {
+			callback.onError(e);
 		}
 	}
 	
@@ -301,8 +295,9 @@ public class DefaultClientProtocol implements ClientProtocolPlugin {
 	 * @param host the host to send the data
 	 * @param port the port to send the data
 	 * @param msg the message to be sent
+	 * @param pollObject the pollObject to store the response
 	 */
-	private void sendAndPollObject(String host, int port, ByteArrayOutputStream msg) {
+	private void sendAndPollObject(String host, int port, ByteArrayOutputStream msg, PollObject pollObject) {
 		try {
 			ByteArrayInputStream inputStream = sendAndCache(host, port, msg, true);
 			Object returnValue = this.marshaller.unmarshal(inputStream, Object.class);
@@ -310,24 +305,6 @@ public class DefaultClientProtocol implements ClientProtocolPlugin {
 		} catch (RemoteError | ClassNotFoundException | IOException e) {
 			return;
 		}
-	}
-	
-	/*
-	 * (non-Javadoc)
-	 * @see br.ufrn.dimap.middleware.remotting.interfaces.ClientRequestHandler#getPollObject()
-	 */
-	@Override
-	public PollObject getPollObject() {
-		return pollObject;
-	}
-	
-	/*
-	 * (non-Javadoc)
-	 * @see br.ufrn.dimap.middleware.remotting.interfaces.ClientRequestHandler#setPollObject(br.ufrn.dimap.middleware.remotting.interfaces.PollObject)
-	 */
-	@Override
-	public void setPollObject(PollObject pollObject) {
-		this.pollObject = pollObject;
 	}
 	
 	/**
