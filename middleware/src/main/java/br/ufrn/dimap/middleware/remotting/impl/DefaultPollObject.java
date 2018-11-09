@@ -1,7 +1,7 @@
 package br.ufrn.dimap.middleware.remotting.impl;
 
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
 import br.ufrn.dimap.middleware.remotting.interfaces.PollObject;
 
@@ -13,9 +13,30 @@ import br.ufrn.dimap.middleware.remotting.interfaces.PollObject;
 public class DefaultPollObject implements PollObject {
 	
 	/*
-	 * Queue of server responses
+	 * result from server
 	 */
-	private final BlockingQueue<Object> queue = new LinkedBlockingQueue<Object>();
+	private Object result;
+	
+	/**
+	 * Error if occurred
+	 */
+	private RemoteError error;
+	
+	/**
+	 * true if no error occurred
+	 * false if a error occurred
+	 */
+	private Boolean receivedResult;
+	
+	/**
+	 * Lock held by getBlockingResult
+	 */
+	private final ReentrantLock lock = new ReentrantLock();
+	
+	/*
+	 * Condition to signal when receive a result
+	 */
+	private final Condition receive = lock.newCondition();
 	
 	/*
 	 * (non-Javadoc)
@@ -23,7 +44,7 @@ public class DefaultPollObject implements PollObject {
 	 */
 	@Override
 	public boolean resultAvailable() {
-		return !queue.isEmpty();
+		return (receivedResult != null);
 	}
 	
 	/*
@@ -31,8 +52,18 @@ public class DefaultPollObject implements PollObject {
 	 * @see br.ufrn.dimap.middleware.remotting.interfaces.PollObject#getResult()
 	 */
 	@Override
-	public Object getResult() {
-		return queue.poll();
+	public synchronized Object getResult() throws RemoteError {
+		if(resultAvailable()) {
+			if(receivedResult) {
+				return result;
+			}
+			else {
+				throw error;
+			}
+		}
+		else {
+			return null;
+		}
 	}
 	
 	/*
@@ -40,8 +71,17 @@ public class DefaultPollObject implements PollObject {
 	 * @see br.ufrn.dimap.middleware.remotting.interfaces.PollObject#getBlockingResult()
 	 */
 	@Override
-	public Object getBlockingResult() throws InterruptedException {
-		return queue.take();
+	public Object getBlockingResult() throws InterruptedException, RemoteError {
+		final ReentrantLock lock = this.lock;
+		lock.lockInterruptibly();
+		try {
+            while(!resultAvailable()) {
+                receive.await();
+            }
+            return getResult();
+        } finally {
+            lock.unlock();
+        }
 	}
 	
 	/*
@@ -49,8 +89,38 @@ public class DefaultPollObject implements PollObject {
 	 * @see br.ufrn.dimap.middleware.remotting.interfaces.PollObject#storeResult(java.lang.Object)
 	 */
 	@Override
-	public void storeResult(Object obj) {
-		queue.add(obj);
+	public synchronized void storeResult(Object result) {
+		if(receivedResult != null) {
+			return;
+		}
+		receivedResult = true;
+		this.result = result;
+		final ReentrantLock lock = this.lock;
+		lock.lock();
+		try {
+			receive.signalAll();
+		} finally {
+			lock.unlock();
+		}
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see br.ufrn.dimap.middleware.remotting.interfaces.PollObject#onError(br.ufrn.dimap.middleware.remotting.impl.RemoteError)
+	 */
+	public synchronized void onError(RemoteError error) {
+		if(receivedResult != null) {
+			return;
+		}
+		receivedResult = false;
+		this.error = error;
+		final ReentrantLock lock = this.lock;
+		lock.lock();
+		try {
+			receive.signalAll();
+		} finally {
+			lock.unlock();
+		}
 	}
 
 }
