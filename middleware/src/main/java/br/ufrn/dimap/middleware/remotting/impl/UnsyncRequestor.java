@@ -1,10 +1,7 @@
 package br.ufrn.dimap.middleware.remotting.impl;
 
 import br.ufrn.dimap.middleware.identification.AbsoluteObjectReference;
-import br.ufrn.dimap.middleware.remotting.interfaces.Callback;
-import br.ufrn.dimap.middleware.remotting.interfaces.ClientRequestHandler;
-import br.ufrn.dimap.middleware.remotting.interfaces.InvocationAsynchronyPattern;
-import br.ufrn.dimap.middleware.remotting.interfaces.Marshaller;
+import br.ufrn.dimap.middleware.remotting.interfaces.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -52,11 +49,24 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
 		this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream, callback);
     }
 
-	public void request(AbsoluteObjectReference aor, String operationName, InvocationAsynchronyPattern invocationAsyncPattern, Object... parameters) throws RemoteError, IOException {
+	public Object request(AbsoluteObjectReference aor, String operationName, InvocationAsynchronyPattern invocationAsyncPattern, Object... parameters) throws RemoteError, IOException {
 
 		ByteArrayOutputStream outputStream = prepareInvocation(aor, operationName, parameters);
 
-		this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream, invocationAsyncPattern);
+		switch (invocationAsyncPattern) {
+			case FIRE_AND_FORGET:
+			    this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream, false);
+				return null;
+			case SYNC_WITH_SERVER:
+                this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream, true);
+                return null;
+			case POLL_OBJECT:
+                PollObject pollObject = new DefaultPollObject();
+                this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream, pollObject);
+                return pollObject;
+		}
+
+		throw new RemoteError("Failed to performe the request");
 	}
 
 	private ByteArrayOutputStream prepareInvocation(AbsoluteObjectReference aor, String operationName, Object... parameters) throws IOException {
