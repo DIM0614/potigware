@@ -6,8 +6,6 @@ import java.io.IOException;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.PropertyException;
 import javax.xml.bind.Unmarshaller;
 
 import br.ufrn.dimap.middleware.remotting.interfaces.Marshaller;
@@ -22,7 +20,7 @@ public class XMLMarshaller implements Marshaller {
 		
 		try {
 			JAXBContext jc = JAXBContext.newInstance(object.getClass());
-			Marshaller marshaller = jc.createMarshaller();
+			javax.xml.bind.Marshaller marshaller = jc.createMarshaller();
 			marshaller.marshal(object, byteStream);
 		} catch (JAXBException e) {
 			e.printStackTrace();
