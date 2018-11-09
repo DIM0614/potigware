@@ -56,9 +56,7 @@ public class Generator {
                     .returns(getType(methodReturn))
                     .addParameters(parameters)
                     .addJavadoc(methodDescription)
-                    .addException(ClassName.get("", "br.ufrn.dimap.middleware.remotting.impl.RemoteError")) // change the real package name of class exception.RemoteError
-                    .addException(IOException.class)
-                    .addException(ClassNotFoundException.class)
+                    .addException(ClassName.get("", "br.ufrn.dimap.middleware.remotting.impl.RemoteError"))
                     .build();
             ((ArrayList<MethodSpec>) methods).add(ms);
         }
@@ -75,7 +73,7 @@ public class Generator {
         javaFile.writeTo(path);
     }
 
-    public void generateClass(JSONObject file, Path path, String packageName) throws IOException {
+    public void generateProxy(JSONObject file, Path path, String packageName) throws IOException {
         String className = (String )file.get("name");
         String classDescription = (String )file.get("description");
 
@@ -115,8 +113,6 @@ public class Generator {
                     .addStatement("return " + getCastType(methodReturn) + " r.request(aor,\"" + methodName + "\"," + stringParams + ")")
                     .addJavadoc(methodDescription)
                     .addException(ClassName.get("", "br.ufrn.dimap.middleware.remotting.impl.RemoteError"))
-                    .addException(IOException.class)
-                    .addException(ClassNotFoundException.class)
                     .build();
 
             MethodSpec msCallback = MethodSpec.methodBuilder(methodName)
@@ -127,20 +123,16 @@ public class Generator {
                     .addStatement("r.request(aor,\"" + methodName + "\",callback," + stringParams + ")")
                     .addJavadoc(methodDescription)
                     .addException(ClassName.get("", "br.ufrn.dimap.middleware.remotting.impl.RemoteError"))
-                    .addException(IOException.class)
-                    .addException(ClassNotFoundException.class)
                     .build();
 
             MethodSpec msAsync = MethodSpec.methodBuilder(methodName)
                     .addModifiers(Modifier.PUBLIC)
-                    .returns(getType("void"))
+                    .returns(Object.class)
                     .addParameters(parameters)
                     .addParameter(InvocationAsynchronyPattern.class, "invocationAsyncPattern")
-                    .addStatement("r.request(aor,\"" + methodName + "\",invocationAsyncPattern," + stringParams + ")")
+                    .addStatement("return r.request(aor,\"" + methodName + "\",invocationAsyncPattern," + stringParams + ")")
                     .addJavadoc(methodDescription)
                     .addException(ClassName.get("", "br.ufrn.dimap.middleware.remotting.impl.RemoteError"))
-                    .addException(IOException.class)
-                    .addException(ClassNotFoundException.class)
                     .build();
 
             ((ArrayList<MethodSpec>) methods).add(ms);
