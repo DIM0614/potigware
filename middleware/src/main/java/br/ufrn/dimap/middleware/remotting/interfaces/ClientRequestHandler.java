@@ -43,25 +43,35 @@ public interface ClientRequestHandler {
 	
 	/**
 	 * Function used by the requestor to send the data asynchronously
-	 * using the specified invocation asynchrony pattern
+	 * and not to receive the response.
+	 *
+	 * If waitConfirmation is false, uses the Fire and Forget pattern
+	 * 
+	 * Otherwise, uses the Sync with Server pattern, that confirms the
+	 * data was sent
 	 *  
 	 * @param host the host name to send the data
 	 * @param port the port to be used
 	 * @param msg the data to be sent
+	 * @param waitConfirmation true to guarantee the data was sent
 	 * @return the server reply
-	 * @throws RemoteError if pattern is SyncWithServer or PollObject and any error occurs when trying to connect to server
+	 * @throws RemoteError if waitConfirmation is true and an error occurs when connecting to the server
 	 */
-	public void send(String host, int port, ByteArrayOutputStream msg, InvocationAsynchronyPattern pattern) throws RemoteError;
-
+	public void send(String host, int port, ByteArrayOutputStream msg, boolean waitConfirmation) throws RemoteError;
+	
 	/**
-	 * @return the poll object
+	 * Function used by the requestor to send the data asynchronously
+	 * using the Poll Object pattern
+	 *  
+	 * @param host the host name to send the data
+	 * @param port the port to be used
+	 * @param msg the data to be sent
+	 * @param pollObject the pollObject to store the response from server
+	 * @return the server reply
+	 * @throws RemoteError if pattern is SyncWithServer and any error occurs when trying to connect to server
 	 */
-	public PollObject getPollObject();
+	public void send(String host, int port, ByteArrayOutputStream msg, PollObject pollObject) throws RemoteError;
 
-	/**
-	 * @param pollObject the pollObject to set
-	 */
-	public void setPollObject(PollObject pollObject);
 	
 	/**
 	 * @return the default protocol
@@ -110,7 +120,8 @@ public interface ClientRequestHandler {
 	
 	/**
 	 * Shutdowns all the plug-ins
+	 * @throws RemoteError if any error occurs when shutdown
 	 */
-	public void shutdown();
+	public void shutdown() throws RemoteError;
 
 }
