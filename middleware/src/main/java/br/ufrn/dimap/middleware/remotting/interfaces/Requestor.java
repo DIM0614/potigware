@@ -22,7 +22,7 @@ public interface Requestor {
 	 * @return the return of the invoked operation
 	 */
 	Object request(AbsoluteObjectReference aor, String operationName, Object ... parameters)
-			throws RemoteError, IOException, ClassNotFoundException;
+			throws RemoteError;
 
 
 	/**
@@ -34,7 +34,7 @@ public interface Requestor {
 	 * @return the return of the invoked operation
 	 */
 	void request(AbsoluteObjectReference aor, String operationName, Callback callback, Object ... parameters)
-			throws RemoteError, IOException, ClassNotFoundException;
+			throws RemoteError;
 
 	/**
 	 * Acquires the Absolute Object Reference via naming lookup,
@@ -46,5 +46,5 @@ public interface Requestor {
 	 * @return null unless the invocationAsyncPattern is defined to be by poll object
 	 */
 	Object request(AbsoluteObjectReference aor, String operationName, InvocationAsynchronyPattern invocationAsyncPattern, Object ... parameters)
-			throws RemoteError, IOException, ClassNotFoundException;
+			throws RemoteError;
 }
