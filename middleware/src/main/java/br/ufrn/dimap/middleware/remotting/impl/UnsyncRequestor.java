@@ -1,14 +1,12 @@
 package br.ufrn.dimap.middleware.remotting.impl;
 
 import br.ufrn.dimap.middleware.identification.AbsoluteObjectReference;
-import br.ufrn.dimap.middleware.remotting.interfaces.Callback;
-import br.ufrn.dimap.middleware.remotting.interfaces.ClientRequestHandler;
-import br.ufrn.dimap.middleware.remotting.interfaces.InvocationAsynchronyPattern;
-import br.ufrn.dimap.middleware.remotting.interfaces.Marshaller;
+import br.ufrn.dimap.middleware.remotting.interfaces.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.rmi.Remote;
 
 /**
  * Unsynchronized requestor to be used for
@@ -34,29 +32,63 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
 		this.clientRequestHandler = ClientRequestHandlerImpl.getInstance();
 	}
 
-	public Object request(AbsoluteObjectReference aor, String operationName, Object... parameters) throws RemoteError, IOException, ClassNotFoundException {
+	public Object request(AbsoluteObjectReference aor, String operationName, Object... parameters) throws RemoteError {
 
-		ByteArrayOutputStream outputStream = prepareInvocation(aor, operationName, parameters);
+        ByteArrayOutputStream outputStream = null;
+        try {
 
-		ByteArrayInputStream inputStream = this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream);
+            outputStream = prepareInvocation(aor, operationName, parameters);
 
-		Object returnValue = this.marshaller.unmarshal(inputStream, Object.class);
+            ByteArrayInputStream inputStream = this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream);
 
-		return returnValue;
-	}
+            Object returnValue = this.marshaller.unmarshal(inputStream, Object.class);
 
-	public void request(AbsoluteObjectReference aor, String operationName, Callback callback, Object... parameters) throws RemoteError, IOException {
+            return returnValue;
 
-    	ByteArrayOutputStream outputStream = prepareInvocation(aor, operationName, parameters);
-
-		this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream, callback);
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RemoteError(e);
+        }
     }
 
-	public void request(AbsoluteObjectReference aor, String operationName, InvocationAsynchronyPattern invocationAsyncPattern, Object... parameters) throws RemoteError, IOException {
+	public void request(AbsoluteObjectReference aor, String operationName, Callback callback, Object... parameters) throws RemoteError {
 
-		ByteArrayOutputStream outputStream = prepareInvocation(aor, operationName, parameters);
+        ByteArrayOutputStream outputStream = null;
 
-		this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream, invocationAsyncPattern);
+        try {
+
+            outputStream = prepareInvocation(aor, operationName, parameters);
+
+            this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream, callback);
+
+        } catch (IOException e) {
+            throw new RemoteError(e);
+        }
+
+    }
+
+	public Object request(AbsoluteObjectReference aor, String operationName, InvocationAsynchronyPattern invocationAsyncPattern, Object... parameters) throws RemoteError {
+
+        ByteArrayOutputStream outputStream = null;
+        try {
+            outputStream = prepareInvocation(aor, operationName, parameters);
+        } catch (IOException e) {
+            throw new RemoteError(e);
+        }
+
+        switch (invocationAsyncPattern) {
+			case FIRE_AND_FORGET:
+			    this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream, false);
+				return null;
+			case SYNC_WITH_SERVER:
+                this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream, true);
+                return null;
+			case POLL_OBJECT:
+                PollObject pollObject = new DefaultPollObject();
+                this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream, pollObject);
+                return pollObject;
+		}
+
+		throw new RemoteError("Failed to performe the request");
 	}
 
 	private ByteArrayOutputStream prepareInvocation(AbsoluteObjectReference aor, String operationName, Object... parameters) throws IOException {

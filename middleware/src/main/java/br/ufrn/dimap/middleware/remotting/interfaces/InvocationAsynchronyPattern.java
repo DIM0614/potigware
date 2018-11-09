@@ -8,5 +8,7 @@ package br.ufrn.dimap.middleware.remotting.interfaces;
  *
  */
 public enum InvocationAsynchronyPattern {
-	FireAndForget, SyncWithServer, PollObject
+	FIRE_AND_FORGET,
+	SYNC_WITH_SERVER,
+	POLL_OBJECT
 }
