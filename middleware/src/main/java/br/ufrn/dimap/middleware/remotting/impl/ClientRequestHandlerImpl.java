@@ -28,6 +28,11 @@ public final class ClientRequestHandlerImpl implements ClientRequestHandler {
 	private final Map<String, ClientProtocolPlugin> alternativePlugins;
 	
 	/**
+	 * Locks when replacing alternative plug-ins
+	 */
+	private final Object lock = new Object();
+	
+	/**
 	 * Private constructor which sets default values
 	 */
 	private ClientRequestHandlerImpl() {
@@ -80,12 +85,22 @@ public final class ClientRequestHandlerImpl implements ClientRequestHandler {
 
 	/*
 	 * (non-Javadoc)
-	 * @see br.ufrn.dimap.middleware.remotting.interfaces.ClientRequestHandler#send(java.lang.String, int, java.io.ByteArrayOutputStream, br.ufrn.dimap.middleware.remotting.interfaces.InvocationAsynchronyPattern)
+	 * @see br.ufrn.dimap.middleware.remotting.interfaces.ClientRequestHandler#send(java.lang.String, int, java.io.ByteArrayOutputStream, boolean)
 	 */
 	@Override
-	public void send(String host, int port, ByteArrayOutputStream msg, InvocationAsynchronyPattern pattern) throws RemoteError {
+	public void send(String host, int port, ByteArrayOutputStream msg, boolean waitConfirmation) throws RemoteError {
 		ClientProtocolPlugin protocol = findProtocol(host, port);
-		protocol.send(host, port, msg, pattern);
+		protocol.send(host, port, msg, waitConfirmation);
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see br.ufrn.dimap.middleware.remotting.interfaces.ClientRequestHandler#send(java.lang.String, int, java.io.ByteArrayOutputStream, br.ufrn.dimap.middleware.remotting.interfaces.PollObject)
+	 */
+	@Override
+	public void send(String host, int port, ByteArrayOutputStream msg, PollObject pollObject) throws RemoteError {
+		ClientProtocolPlugin protocol = findProtocol(host, port);
+		protocol.send(host, port, msg, pollObject);
 	}
 	
 	/**
@@ -96,7 +111,7 @@ public final class ClientRequestHandlerImpl implements ClientRequestHandler {
 	 * @throws RemoteError
 	 */
 	private ClientProtocolPlugin findProtocol(String host, Integer port) throws RemoteError {
-		InetAddress addr;
+		final InetAddress addr;
 		
 		try {
 			addr = InetAddress.getByName(host);
@@ -147,7 +162,23 @@ public final class ClientRequestHandlerImpl implements ClientRequestHandler {
 	 */
 	@Override
 	public ClientProtocolPlugin getProtocol(String host) {
-		return null;
+		final InetAddress addr;
+		
+		try {
+			addr = InetAddress.getByName(host);
+		} catch (UnknownHostException e) {
+			return null;
+		}
+		
+		String key = addr.getHostAddress();
+		ClientProtocolPlugin ret;
+		
+		ret = alternativePlugins.get(key);
+
+		if(ret == null) {
+			ret = defaultProtocol;
+		}
+		return ret;
 	}
 
 	/*
@@ -156,7 +187,18 @@ public final class ClientRequestHandlerImpl implements ClientRequestHandler {
 	 */
 	@Override
 	public void setProtocol(String host, ClientProtocolPlugin protocol) throws RemoteError, UnknownHostException {
-
+		final InetAddress addr = InetAddress.getByName(host);;
+		String key = addr.getHostAddress();
+		ClientProtocolPlugin old;
+		
+		synchronized(lock) {
+			old = alternativePlugins.remove(key);
+			alternativePlugins.put(key, protocol);
+		}
+		
+		if(old != null) {
+			old.shutdown();
+		}
 	}
 
 	/*
@@ -165,7 +207,27 @@ public final class ClientRequestHandlerImpl implements ClientRequestHandler {
 	 */
 	@Override
 	public ClientProtocolPlugin getProtocol(String host, int port) {
-		return null;
+		final InetAddress addr;
+		
+		try {
+			addr = InetAddress.getByName(host);
+		} catch (UnknownHostException e) {
+			return null;
+		}
+		
+		String key = addr.getHostAddress();
+		ClientProtocolPlugin ret;
+		
+		ret = alternativePlugins.get(key + ":" + port);
+		
+		if(ret == null) {
+			ret = alternativePlugins.get(key);
+		}
+		
+		if(ret == null) {
+			ret = defaultProtocol;
+		}
+		return ret;
 	}
 	
 	/*
@@ -174,7 +236,18 @@ public final class ClientRequestHandlerImpl implements ClientRequestHandler {
 	 */
 	@Override
 	public void setProtocol(String host, int port, ClientProtocolPlugin protocol) throws RemoteError, UnknownHostException {
-
+		final InetAddress addr = InetAddress.getByName(host);;
+		String key = addr.getHostAddress() + ":" + port;
+		ClientProtocolPlugin old;
+		
+		synchronized(lock) {
+			old = alternativePlugins.remove(key);
+			alternativePlugins.put(key, protocol);
+		}
+		
+		if(old != null) {
+			old.shutdown();
+		}
 	}
 	
 	/*
@@ -182,8 +255,11 @@ public final class ClientRequestHandlerImpl implements ClientRequestHandler {
 	 * @see br.ufrn.dimap.middleware.remotting.interfaces.ClientRequestHandler#shutdown()
 	 */
 	@Override
-	public void shutdown() {
-
+	public void shutdown() throws RemoteError {
+		defaultProtocol.shutdown();
+		for(ClientProtocolPlugin plugin : alternativePlugins.values()) {
+			plugin.shutdown();
+		}
 	}
 	
 	/**
