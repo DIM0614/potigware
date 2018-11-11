@@ -13,7 +13,6 @@ public class AbsoluteObjectReference {
 	private ObjectId objectId;
 	private String host;
 	private int port;
-	private int invokerId;
 	
 	/**
 	 * Creates the unique identifier for remote objects: AOR
@@ -22,12 +21,10 @@ public class AbsoluteObjectReference {
 	 * @param port		Port of the network
 	 * @param invokerId	Invoker unique identification
 	 */
-	public AbsoluteObjectReference(ObjectId objectId, String host, int port,
-								   int invokerId) {
+	public AbsoluteObjectReference(ObjectId objectId, String host, int port) {
 		this.objectId = objectId;
 		this.host = host;
 		this.port = port;
-		this.invokerId = invokerId;
 	}
 	
 	/**
@@ -52,14 +49,6 @@ public class AbsoluteObjectReference {
 	 */
 	public int getPort() {
 		return port;
-	}
-	
-	/**
-	 * 
-	 * @return	AOR invoker identification
-	 */
-	public int getInvokerId() {
-		return invokerId;
 	}
 	
 }
