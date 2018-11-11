@@ -14,7 +14,7 @@ import java.lang.reflect.InvocationTargetException;
  */
 public class ProxyCreator {
 
-    private static Lookup lookup;
+    private final Lookup lookup;
 
     private static Wrapper<ProxyCreator> wrapper;
 
