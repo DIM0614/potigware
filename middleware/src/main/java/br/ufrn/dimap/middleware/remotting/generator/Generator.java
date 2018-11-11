@@ -1,6 +1,7 @@
 package br.ufrn.dimap.middleware.remotting.generator;
 
 import br.ufrn.dimap.middleware.identification.AbsoluteObjectReference;
+import br.ufrn.dimap.middleware.remotting.impl.ClientProxy;
 import br.ufrn.dimap.middleware.remotting.impl.UnsyncRequestor;
 import br.ufrn.dimap.middleware.remotting.interfaces.Callback;
 import br.ufrn.dimap.middleware.remotting.interfaces.InvocationAsynchronyPattern;
@@ -85,6 +86,8 @@ public class Generator {
             String methodDescription = (String) method.get("description");
             String methodReturn = (String) method.get("return");
 
+            String methodDescriptionParam = "";
+
             JSONArray params = (JSONArray) method.get("params");
             Iterable<ParameterSpec> parameters = new ArrayList<ParameterSpec>();
             String stringParams = "";
@@ -94,7 +97,7 @@ public class Generator {
                 String paramType = (String) param.get("type");
                 String paramDescription = (String) param.get("description");
 
-                methodDescription += "\n@param " + paramName + " " + paramDescription;
+                methodDescriptionParam += "\n@param " + paramName + " " + paramDescription;
 
                 ParameterSpec ps = ParameterSpec.builder(getType(paramType), paramName).build();
                 ((ArrayList<ParameterSpec>) parameters).add(ps);
@@ -104,7 +107,9 @@ public class Generator {
                     stringParams += ",";
             }
 
-            methodDescription += "\n@return " + methodReturn;
+            String methodDescriptionCallback = methodDescription + "\n@param callback" + methodDescriptionParam;
+            String methodDescriptionAsync = methodDescription + "\n@param invocationAsyncPattern" + methodDescriptionParam + "\n@return Object";
+            methodDescription += methodDescriptionParam + "\n@return " + methodReturn;
 
             MethodSpec ms = MethodSpec.methodBuilder(methodName)
                     .addModifiers(Modifier.PUBLIC)
@@ -121,7 +126,7 @@ public class Generator {
                     .addParameters(parameters)
                     .addParameter(Callback.class, "callback")
                     .addStatement("r.request(aor,\"" + methodName + "\",callback," + stringParams + ")")
-                    .addJavadoc(methodDescription)
+                    .addJavadoc(methodDescriptionCallback)
                     .addException(ClassName.get("", "br.ufrn.dimap.middleware.remotting.impl.RemoteError"))
                     .build();
 
@@ -131,7 +136,7 @@ public class Generator {
                     .addParameters(parameters)
                     .addParameter(InvocationAsynchronyPattern.class, "invocationAsyncPattern")
                     .addStatement("return r.request(aor,\"" + methodName + "\",invocationAsyncPattern," + stringParams + ")")
-                    .addJavadoc(methodDescription)
+                    .addJavadoc(methodDescriptionAsync)
                     .addException(ClassName.get("", "br.ufrn.dimap.middleware.remotting.impl.RemoteError"))
                     .build();
 
@@ -152,7 +157,7 @@ public class Generator {
         MethodSpec constructor = MethodSpec.constructorBuilder()
                 .addModifiers(Modifier.PUBLIC)
                 .addParameter(AbsoluteObjectReference.class, "aor")
-                .addStatement("this.aor = aor")
+                .addStatement("super(aor)")
                 .addStatement("this.r = new $T()", UnsyncRequestor.class)
                 .build();
 
@@ -163,6 +168,7 @@ public class Generator {
                 .addMethod(constructor)
                 .addMethods(methods)
                 .addJavadoc(classDescription)
+                .superclass(ClientProxy.class)
                 .addSuperinterface(ClassName.get("", className))
                 .build();
 
