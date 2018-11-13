@@ -8,6 +8,11 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import br.ufrn.dimap.middleware.extension.interfaces.ClientProtocolPlugIn;
+import br.ufrn.dimap.middleware.extension.interfaces.InvocationInterceptorSerialized;
+import br.ufrn.dimap.middleware.extension.interfaces.InvocationInterceptorUnserialized;
+import br.ufrn.dimap.middleware.extension.interfaces.ServerProtocolPlugin;
+
 /**
  * This static class serves as a facade for the configuration of the
  * middleware. Interceptors, plugins and other features are registered
@@ -24,10 +29,10 @@ public class MiddlewareConfig {
 	 * @author Gustavo Carvalho
 	 */
 	public static class Interceptors {
-		private static final Collection<Object> clientInvocationInteceptors = new ConcurrentLinkedQueue<>();
-		private static final Collection<Object> serverInvocationInteceptors = new ConcurrentLinkedQueue<>();
-		private static final Collection<Object> clientRequestInteceptors = new ConcurrentLinkedQueue<>();
-		private static final Collection<Object> serverRequestInteceptors = new ConcurrentLinkedQueue<>();
+		private static final Collection<InvocationInterceptorUnserialized> clientInvocationInteceptors = new ConcurrentLinkedQueue<>();
+		private static final Collection<InvocationInterceptorUnserialized> serverInvocationInteceptors = new ConcurrentLinkedQueue<>();
+		private static final Collection<InvocationInterceptorSerialized> clientRequestInteceptors = new ConcurrentLinkedQueue<>();
+		private static final Collection<InvocationInterceptorSerialized> serverRequestInteceptors = new ConcurrentLinkedQueue<>();
 		
 		/**
 		 * Registers an interceptor to be executed by the client on an
@@ -35,7 +40,7 @@ public class MiddlewareConfig {
 		 * 
 		 * @param interceptor interceptor to be registered
 		 */
-		public static void registerClientInvocationInterceptor(Object interceptor) {
+		public static void registerClientInvocationInterceptor(InvocationInterceptorUnserialized interceptor) {
 			clientInvocationInteceptors.add(interceptor);
 		}
 		
@@ -45,7 +50,7 @@ public class MiddlewareConfig {
 		 * 
 		 * @param interceptor interceptor to be registered
 		 */
-		public static void registerServerInvocationInterceptor(Object interceptor) {
+		public static void registerServerInvocationInterceptor(InvocationInterceptorUnserialized interceptor) {
 			serverInvocationInteceptors.add(interceptor);
 		}
 		
@@ -55,7 +60,7 @@ public class MiddlewareConfig {
 		 * 
 		 * @param interceptor interceptor to be registered
 		 */
-		public static void registerClientRequestInterceptor(Object interceptor) {
+		public static void registerClientRequestInterceptor(InvocationInterceptorSerialized interceptor) {
 			clientRequestInteceptors.add(interceptor);
 		}
 	
@@ -65,7 +70,7 @@ public class MiddlewareConfig {
 		 * 
 		 * @param interceptor interceptor to be registered
 		 */
-		public static void registerServerRequestInterceptor(Object interceptor) {
+		public static void registerServerRequestInterceptor(InvocationInterceptorSerialized interceptor) {
 			serverRequestInteceptors.add(interceptor);
 		}
 
@@ -74,7 +79,7 @@ public class MiddlewareConfig {
 		 * they must be applied
 		 * @return the interceptor collection
 		 */
-		public static Collection<Object> getClientinvocationinteceptors() {
+		public static Collection<InvocationInterceptorUnserialized> getClientinvocationinteceptors() {
 			return clientInvocationInteceptors;
 		}
 
@@ -83,7 +88,7 @@ public class MiddlewareConfig {
 		 * they must be applied
 		 * @return the interceptor collection
 		 */
-		public static Collection<Object> getServerinvocationinteceptors() {
+		public static Collection<InvocationInterceptorUnserialized> getServerinvocationinteceptors() {
 			return serverInvocationInteceptors;
 		}
 
@@ -92,7 +97,7 @@ public class MiddlewareConfig {
 		 * they must be applied
 		 * @return the interceptor collection
 		 */
-		public static Collection<Object> getClientrequestinteceptors() {
+		public static Collection<InvocationInterceptorSerialized> getClientrequestinteceptors() {
 			return clientRequestInteceptors;
 		}
 
@@ -101,7 +106,7 @@ public class MiddlewareConfig {
 		 * they must be applied
 		 * @return the interceptor collection
 		 */
-		public static Collection<Object> getServerrequestinteceptors() {
+		public static Collection<InvocationInterceptorSerialized> getServerrequestinteceptors() {
 			return serverRequestInteceptors;
 		}
 	}
@@ -112,8 +117,8 @@ public class MiddlewareConfig {
 	 * @author Gustavo Carvalho
 	 */
 	public static class ProtocolPlugins {
-			private static final Map<String, Object> clientProtocolPlugins = new ConcurrentHashMap<String, Object>();
-			private static final Map<String, Object> serverProtocolPlugins = new ConcurrentHashMap<String, Object>();
+			private static final Map<String, ClientProtocolPlugIn> clientProtocolPlugins = new ConcurrentHashMap<String, ClientProtocolPlugIn>();
+			private static final Collection<ServerProtocolPlugin> serverProtocolPlugins = new ConcurrentLinkedQueue<>();
 
 			/**
 			 * Registers a new protocol plugin to be used when requesting an
@@ -122,19 +127,17 @@ public class MiddlewareConfig {
 			 * @param route the route identifier of the object
 			 * @param protocolPlugin the plugin to be registered
 			 */
-			public static void addClientProtocolPlugin(String route, Object protocolPlugin) {
+			public static void addClientProtocolPlugin(String route, ClientProtocolPlugIn protocolPlugin) {
 				clientProtocolPlugins.put(route, protocolPlugin);
 			}
 			
 			/**
-			 * Registers a new protocol plugin to be used when serving a
-			 * specified route as a server
+			 * Registers a new protocol plugin to be used when serving by the server
 			 *
-			 * @param route the route identifier of the object
 			 * @param protocolPlugin the plugin to be registered
 			 */
-			public static void addServerProtocolPlugin(String route, Object protocolPlugin) {
-				serverProtocolPlugins.put(route, protocolPlugin);
+			public static void addServerProtocolPlugin(ServerProtocolPlugin protocolPlugin) {
+				serverProtocolPlugins.add(protocolPlugin);
 			}
 			
 			/**
@@ -144,19 +147,17 @@ public class MiddlewareConfig {
 			 * @param route the route identifier of the object
 			 * @return the protocol plugin if registered, else null
 			 */
-			public static Object getClientProtocolPlugin(String route) {
+			public static ClientProtocolPlugIn getClientProtocolPlugin(String route) {
 				return clientProtocolPlugins.get(route);
 			}
 			
 			/**
-			 * Returns the protocol plugin to be used when acting as a server
-			 * for the object with the specified route 
+			 * Returns the protocol plugins to be used when acting as a server 
 			 * 
-			 * @param route the route identifier of the object
-			 * @return the protocol plugin if registered, else null
+			 * @return the protocol plugins
 			 */
-			public static Object getServerProtocolPlugin(String route) {
-				return serverProtocolPlugins.get(route);
+			public static Collection<ServerProtocolPlugin> getServerProtocolPlugins() {
+				return serverProtocolPlugins;
 			}
 	}
 }
