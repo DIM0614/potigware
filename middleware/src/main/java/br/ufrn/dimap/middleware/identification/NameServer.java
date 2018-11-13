@@ -13,8 +13,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
 
 public class NameServer {
-
+	
+	/**
+	 * The lookup data structure used to register absolute object references along with their name properties.
+	 */
 	private Map<String, AbsoluteObjectReference> nameMap;
+	
+	/**
+	 * The lookup data structure used to register object IDs along with their referred objects.
+	 */
 	private Map<ObjectId, RemoteObject> remoteMap;
 	private int port;
 	
