@@ -1,7 +1,10 @@
 package br.ufrn.dimap.middleware.identification.lookup;
 
 import java.util.concurrent.ConcurrentHashMap;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -91,22 +94,26 @@ public class DefaultLookup implements Lookup {
 		
 	}
 
-	public AbsoluteObjectReference find(String name) throws RemoteError, UnknownHostException, IOException {
-		ObjectOutputStream output = new ObjectOutputStream(createClient().getOutputStream());
+	public AbsoluteObjectReference find(String name) throws RemoteError, UnknownHostException, IOException, ClassNotFoundException {
+		Socket client = createClient();
+		ObjectOutputStream output = new ObjectOutputStream(client.getOutputStream());
+		ObjectInputStream input = new ObjectInputStream(client.getInputStream());
 		String data  = "find " + name;
 		output.writeObject(data);
 		output.flush();
 		output.close();
-		return null;
+		return (AbsoluteObjectReference) input.readObject();
 	}
 
-	public Object findById(ObjectId ObjectId) throws RemoteError, UnknownHostException, IOException {
-		ObjectOutputStream output = new ObjectOutputStream(createClient().getOutputStream());
+	public Object findById(ObjectId ObjectId) throws RemoteError, UnknownHostException, IOException, ClassNotFoundException {
+		Socket client = createClient();
+		ObjectOutputStream output = new ObjectOutputStream(client.getOutputStream());
+		ObjectInputStream input = new ObjectInputStream(client.getInputStream());
 		String data  = "findById " + ObjectId;
 		output.writeObject(data);
 		output.flush();
 		output.close();
-		return null;
+		return input.readObject();
 	}
 
 }

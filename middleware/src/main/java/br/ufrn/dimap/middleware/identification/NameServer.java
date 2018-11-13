@@ -3,6 +3,7 @@ package br.ufrn.dimap.middleware.identification;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.rmi.server.RemoteObject;
@@ -30,14 +31,19 @@ public class NameServer {
 			Socket client = server.accept();
 			BufferedReader msg = new BufferedReader(new InputStreamReader(client.getInputStream()));
 			Object[] data = msg.toString().trim().split(";");
-			
+			ObjectOutputStream output = new ObjectOutputStream(client.getOutputStream());
 			if (data[0].equals("bind")) {
 				bind((String)data[1], (RemoteObject) data[2], (String) data[3], (Integer) data[4]);
 			}else if (data[0].equals("find")) {
-				find((String) data[1]);
+				output.writeObject(find((String) data[1]));
+				output.flush();
+				output.close();
 			}else if (data[0].equals("findById")) {
-				findById((ObjectId) data[1]);
+				output.writeObject(findById((ObjectId) data[1]));
+				output.flush();
+				output.close();
 			}
+			
 		}
 			
 	}

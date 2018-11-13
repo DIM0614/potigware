@@ -37,8 +37,9 @@ public interface Lookup {
 	 * @return		The absolute object reference binded with the given name.
 	 * @throws IOException 
 	 * @throws UnknownHostException 
+	 * @throws ClassNotFoundException 
 	 */
-	public AbsoluteObjectReference find(String name) throws RemoteError, UnknownHostException, IOException;
+	public AbsoluteObjectReference find(String name) throws RemoteError, UnknownHostException, IOException, ClassNotFoundException;
 	
 	/**
 	 * Allow clients to use lookup service to query for the ABSOLUTE OBJECT 
@@ -49,6 +50,7 @@ public interface Lookup {
 	 * @return		The absolute object reference binded with the given the ObjectId.
 	 * @throws IOException 
 	 * @throws UnknownHostException 
+	 * @throws ClassNotFoundException 
 	 */
-	public Object findById(ObjectId ObjectId) throws RemoteError, UnknownHostException, IOException;;
+	public Object findById(ObjectId ObjectId) throws RemoteError, UnknownHostException, IOException, ClassNotFoundException;;
 }
