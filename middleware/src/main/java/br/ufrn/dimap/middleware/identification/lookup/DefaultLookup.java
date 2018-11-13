@@ -25,7 +25,7 @@ public class DefaultLookup implements Lookup {
 	 * The lookup data structure used to register absolute object references along with their name properties.
 	 */
 	
-	public void bind(String name, Object remoteObject, String host, String port) throws RemoteError {
+	public void bind(String name, Object remoteObject, String host, int port) throws RemoteError {
 		nameServer.bind(name, remoteObject, host, port);
 		
 	}
@@ -34,9 +34,8 @@ public class DefaultLookup implements Lookup {
 		return nameServer.find(name);
 	}
 
-	public AbsoluteObjectReference findById(ObjectId ObjectId) throws RemoteError {
+	public Object findById(ObjectId ObjectId) throws RemoteError {
 		return nameServer.findById(ObjectId);
 	}
-	
 
 }

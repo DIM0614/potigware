@@ -22,7 +22,7 @@ public interface Lookup {
 	 * @param host	host where is the resource
 	 * @param port	port that localizate the resource
 	 */
-	public void bind(String name, Object remoteObject, String host, String port) throws RemoteError;
+	public void bind(String name, Object remoteObject, String host, int port) throws RemoteError;
 	
 	/**
 	 * Allow clients to use lookup service to query for the ABSOLUTE OBJECT 
@@ -42,5 +42,5 @@ public interface Lookup {
 	 * 				previously binded with this same ObjectId.
 	 * @return		The absolute object reference binded with the given the ObjectId.
 	 */
-	public AbsoluteObjectReference findById(ObjectId ObjectId) throws RemoteError;;
+	public Object findById(ObjectId ObjectId) throws RemoteError;;
 }
