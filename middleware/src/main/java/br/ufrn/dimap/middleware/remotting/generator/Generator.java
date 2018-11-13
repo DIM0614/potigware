@@ -6,6 +6,7 @@ import br.ufrn.dimap.middleware.remotting.interfaces.Callback;
 import br.ufrn.dimap.middleware.remotting.interfaces.InvocationAsynchronyPattern;
 import br.ufrn.dimap.middleware.remotting.interfaces.Requestor;
 import br.ufrn.dimap.middleware.remotting.impl.Invocation;
+import br.ufrn.dimap.middleware.remotting.interfaces.Invoker;
 
 import com.squareup.javapoet.*;
 import com.squareup.javapoet.MethodSpec.Builder;
@@ -23,6 +24,7 @@ import java.util.ArrayList;
  * This class generate interfaces, client proxies and invokers.
  *
  * @author Vinícius Campos
+ * @author Artur Curinga
  */
 
 public class Generator {
@@ -184,9 +186,7 @@ public class Generator {
         		.returns(Object.class)
     		   	.addModifiers(Modifier.PUBLIC)
     		   	.addParameter(Invocation.class, "invocation")
-                .addException(ClassName.get("", "exception.RemoteError"))
-                .addException(IOException.class)
-                .addException(ClassNotFoundException.class)
+                .addException(ClassName.get("", "br.ufrn.dimap.middleware.remotting.impl.RemoteError"))
         		.addStatement("Object[] params = invocation.getInvocationData().getActualParams()");
         
         JSONArray operations = (JSONArray) file.get("operations");
@@ -231,9 +231,7 @@ public class Generator {
                     .returns(getType(methodReturn))
                     .addParameters(parameters)
                     .addJavadoc(methodDescription)
-                    .addException(ClassName.get("", "exception.RemoteError")) // change the real package name of class exception.RemoteError
-                    .addException(IOException.class)
-                    .addException(ClassNotFoundException.class)
+                    .addException(ClassName.get("", "br.ufrn.dimap.middleware.remotting.impl.RemoteError")) // change the real package name of class exception.RemoteError
                     .build();
             ((ArrayList<MethodSpec>) methods).add(ms);
         }
@@ -264,7 +262,7 @@ public class Generator {
 	             .addStatement("this.id =  id")
 	             .build();
 
-        TypeSpec classType = TypeSpec.classBuilder("Invoker")
+        TypeSpec classType = TypeSpec.classBuilder(className + "Invoker")
                 .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
                 .addField(id)
                 .addMethod(constructor)
@@ -274,6 +272,7 @@ public class Generator {
                 .addMethod(invoke.build())
                 .addJavadoc(classDescription)
                 .addSuperinterface(ClassName.get("", className))
+                .addSuperinterface(Invoker.class)
                 .build();
 
         JavaFile javaFile = JavaFile.builder(packageName, classType)
