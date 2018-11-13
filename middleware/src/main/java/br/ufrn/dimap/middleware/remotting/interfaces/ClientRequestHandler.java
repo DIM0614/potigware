@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.net.UnknownHostException;
 
+import br.ufrn.dimap.middleware.extension.interfaces.ClientProtocolPlugIn;
 import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
 
 /**
@@ -76,20 +77,20 @@ public interface ClientRequestHandler {
 	/**
 	 * @return the default protocol
 	 */
-	public ClientProtocolPlugin getDefaultProtocol();
+	public ClientProtocolPlugIn getDefaultProtocol();
 
 	/**
 	 * @param protocol the default protocol to set
 	 * @throws RemoteError if any error occurs when changing the Protocol
 	 */
-	public void setDefaultProtocol(ClientProtocolPlugin protocol) throws RemoteError;
+	public void setDefaultProtocol(ClientProtocolPlugIn protocol) throws RemoteError;
 
 	/**
 	 * Gets protocol to be used to communicate with the specific host
 	 * @param host the host
 	 * @return the protocol
 	 */
-	public ClientProtocolPlugin getProtocol(String host);
+	public ClientProtocolPlugIn getProtocol(String host);
 
 	/**
 	 * Sets the protocol to be used when communicating to a specific host 
@@ -98,7 +99,7 @@ public interface ClientRequestHandler {
 	 * @throws RemoteError if any error occurs when changing the protocol
 	 * @throws UnknownHostException if it didn't find the specified host
 	 */
-	public void setProtocol(String host, ClientProtocolPlugin protocol) throws RemoteError, UnknownHostException;
+	public void setProtocol(String host, ClientProtocolPlugIn protocol) throws RemoteError, UnknownHostException;
 
 	/**
 	 * Gets protocol to be used to communicate with the specified host
@@ -106,7 +107,7 @@ public interface ClientRequestHandler {
 	 * @param host the host
 	 * @return the protocol
 	 */
-	public ClientProtocolPlugin getProtocol(String host, int port);
+	public ClientProtocolPlugIn getProtocol(String host, int port);
 
 	/**
 	 * Sets the protocol to be used when communicating to a
@@ -116,7 +117,7 @@ public interface ClientRequestHandler {
 	 * @throws RemoteError if any error occurs when changing the protocol
 	 * @throws UnknownHostException if it didn't find the specified host
 	 */
-	public void setProtocol(String host, int port, ClientProtocolPlugin protocol) throws RemoteError, UnknownHostException;
+	public void setProtocol(String host, int port, ClientProtocolPlugIn protocol) throws RemoteError, UnknownHostException;
 	
 	/**
 	 * Shutdowns all the plug-ins
