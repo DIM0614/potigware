@@ -46,7 +46,7 @@ public class AbsoluteObjectReference {
 	 * 
 	 * @return AOR network port
 	 */
-	public String getPort() {
+	public int getPort() {
 		return port;
 	}
 }
