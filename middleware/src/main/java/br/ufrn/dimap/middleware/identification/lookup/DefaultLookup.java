@@ -1,13 +1,23 @@
 package br.ufrn.dimap.middleware.identification.lookup;
 
 import java.util.concurrent.ConcurrentHashMap;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
+import java.net.UnknownHostException;
+import java.util.HashMap;
 import java.util.Map;
 
 import br.ufrn.dimap.middleware.identification.AbsoluteObjectReference;
+import br.ufrn.dimap.middleware.identification.NameServer;
 import br.ufrn.dimap.middleware.identification.ObjectId;
 import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
 
 /**
+
  * The DefaultLookup class allows clients to bind name properties 
  * to implicitly constructed absolute object references (AORs), 
  * made up of a object instances along with host and port information 
@@ -18,37 +28,25 @@ import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
  * according to their respective object IDs as well.
  * The singleton pattern is used to implement this class.
  * 
- * @author thiagolucena
+ * @author ireneginani thiagolucena
  */
 public class DefaultLookup implements Lookup {
+	
+	private NameServer nameServer;
+	private String host;
+	private int port;
+  
 	/**
 	 * Wraps the instance
 	 */
 	private static Wrapper<Lookup> instanceWrapper;
 
 	/**
-	 * The lookup data structure used to register absolute object references along with their name properties.
-	 */
-	private Map<String, AbsoluteObjectReference> lookupMapping;
-	
-	/**
-	 * The lookup data structure used to register object IDs along with their referred objects.
-	 */
-	private Map<ObjectId, Object> objectMapping;
-	
-	/**
-	 * Private constructor
-	 */
-	protected DefaultLookup() {
-		this.lookupMapping = new ConcurrentHashMap <String, AbsoluteObjectReference>();
-		this.objectMapping = new ConcurrentHashMap <ObjectId, Object>();
-	}
-
-	/**
 	 * Returns single instance of the lookup class, creating instance if needed
 	 * 
 	 * @author victoragnez
 	 */
+  
 	public static Lookup getInstance() {
 		Wrapper<Lookup> w = instanceWrapper;
         if (w == null) { // check 1
@@ -62,38 +60,6 @@ public class DefaultLookup implements Lookup {
         }
         
         return w.getInstance();
-	}
-	
-	/**
-	 * @see br.ufrn.dimap.middleware.identification.lookup.Lookup#bind(String, Object, String, int)
-	 */
-	public void bind(String name, Object remoteObject, String host, int port) throws RemoteError {
-		ObjectId objectId = new ObjectId();
-		AbsoluteObjectReference aor = new AbsoluteObjectReference(objectId, host, port);
-		this.lookupMapping.put(name, aor);
-		this.objectMapping.put(objectId, remoteObject);
-	}
-	
-	/**
-	 * @see br.ufrn.dimap.middleware.identification.lookup.Lookup#find(String)
-	 */
-	public AbsoluteObjectReference find(String name) throws RemoteError {
-		if (!lookupMapping.containsKey(name)) {
-			throw new RemoteError("Error on lookup find by name! No absolute object reference was registered with this name property.");
-		}
-		
-		return lookupMapping.get(name);
-	}
-	
-	/**
-	 * @see br.ufrn.dimap.middleware.identification.lookup.Lookup#findById(ObjectId)
-	 */	
-	public Object findById(ObjectId objectId) throws RemoteError {
-		if (!objectMapping.containsKey(objectId)) {
-			throw new RemoteError("Error on lookup find by ID! No object was registered with this object ID.");
-		}
-		
-		return objectMapping.get(objectId);
 	}
 	
 	/**
@@ -112,6 +78,51 @@ public class DefaultLookup implements Lookup {
 	    public T getInstance() {
 	        return instance;
 	    }
+	}
+	
+	protected Socket createClient() throws UnknownHostException, IOException {
+		Socket client = new Socket(host, port);
+		return client;
+	}
+	
+	/**
+	 * @see br.ufrn.dimap.middleware.identification.lookup.Lookup#bind(String, Object, String, int)
+	 */
+	public void bind(String name, Object remoteObject, String host, int port) throws RemoteError, IOException {
+		ObjectOutputStream output = new ObjectOutputStream(createClient().getOutputStream());
+		String data  = "bind " + remoteObject +" "+ host +" "+ port;
+		output.writeObject(data);
+		output.flush();
+		output.close();
+		
+	}
+  
+  /**
+	 * @see br.ufrn.dimap.middleware.identification.lookup.Lookup#find(String)
+	 */
+	public AbsoluteObjectReference find(String name) throws RemoteError, UnknownHostException, IOException, ClassNotFoundException {
+		Socket client = createClient();
+		ObjectOutputStream output = new ObjectOutputStream(client.getOutputStream());
+		ObjectInputStream input = new ObjectInputStream(client.getInputStream());
+		String data  = "find " + name;
+		output.writeObject(data);
+		output.flush();
+		output.close();
+		return (AbsoluteObjectReference) input.readObject();
+	}
+  
+  /**
+	 * @see br.ufrn.dimap.middleware.identification.lookup.Lookup#findById(ObjectId)
+	 */	
+	public Object findById(ObjectId ObjectId) throws RemoteError, UnknownHostException, IOException, ClassNotFoundException {
+		Socket client = createClient();
+		ObjectOutputStream output = new ObjectOutputStream(client.getOutputStream());
+		ObjectInputStream input = new ObjectInputStream(client.getInputStream());
+		String data  = "findById " + ObjectId;
+		output.writeObject(data);
+		output.flush();
+		output.close();
+		return input.readObject();
 	}
 
 }
