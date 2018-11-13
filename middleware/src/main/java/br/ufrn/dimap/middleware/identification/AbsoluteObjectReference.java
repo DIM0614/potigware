@@ -19,7 +19,6 @@ public class AbsoluteObjectReference {
 	 * @param objectId	The remote object's object id
 	 * @param host		Host of the network
 	 * @param port		Port of the network
-	 * @param invokerId	Invoker unique identification
 	 */
 	public AbsoluteObjectReference(ObjectId objectId, String host, int port) {
 		this.objectId = objectId;
@@ -50,5 +49,4 @@ public class AbsoluteObjectReference {
 	public int getPort() {
 		return port;
 	}
-	
 }

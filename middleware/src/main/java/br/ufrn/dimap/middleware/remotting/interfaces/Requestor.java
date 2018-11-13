@@ -21,6 +21,30 @@ public interface Requestor {
 	 * 
 	 * @return the return of the invoked operation
 	 */
-	Object request(AbsoluteObjectReference aor, String operationName, Object ... parameters) throws RemoteError, IOException, ClassNotFoundException;
-	
+	Object request(AbsoluteObjectReference aor, String operationName, Object ... parameters)
+			throws RemoteError;
+
+
+	/**
+	 * Acquires the Absolute Object Reference via naming lookup,
+	 * invokes the Marshaller and sends the bytes
+	 * via the Client Request Handler. Accepts
+	 * a callback to be invoked after the result returns.
+	 *
+	 * @return the return of the invoked operation
+	 */
+	void request(AbsoluteObjectReference aor, String operationName, Callback callback, Object ... parameters)
+			throws RemoteError;
+
+	/**
+	 * Acquires the Absolute Object Reference via naming lookup,
+	 * invokes the Marshaller and sends the bytes
+	 * via the Client Request Handler. Used for
+	 * some asynchronous communication modes.
+	 *
+	 *
+	 * @return null unless the invocationAsyncPattern is defined to be by poll object
+	 */
+	Object request(AbsoluteObjectReference aor, String operationName, InvocationAsynchronyPattern invocationAsyncPattern, Object ... parameters)
+			throws RemoteError;
 }
