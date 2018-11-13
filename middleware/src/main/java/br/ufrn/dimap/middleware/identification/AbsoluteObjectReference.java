@@ -1,5 +1,8 @@
 package br.ufrn.dimap.middleware.identification;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+
 /**
  * This class describes a remote absolute reference that uniquely identifies a 
  * remote object, holding information such as its id, INVOKATOR identifier, and 
@@ -9,6 +12,7 @@ package br.ufrn.dimap.middleware.identification;
  * @version 1.0
  * @see ObjectId
  */
+@XmlAccessorType(XmlAccessType.FIELD)
 public class AbsoluteObjectReference {
 	private ObjectId objectId;
 	private String host;

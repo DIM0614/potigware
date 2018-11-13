@@ -3,12 +3,15 @@ package br.ufrn.dimap.middleware.remotting.impl;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
 /**
  * Represents an invocation, including invocation data (aor, method,
  * parameters) and invocation context.
  *
  * @author vitorgreati
  */
+@XmlRootElement(name = "Invocation")
 public class Invocation {
 
     private InvocationData invocationData;
