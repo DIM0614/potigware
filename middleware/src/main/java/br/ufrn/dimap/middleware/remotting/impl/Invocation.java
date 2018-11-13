@@ -16,7 +16,11 @@ public class Invocation {
 
     private InvocationData invocationData;
 
-    private Map<String, Object> context;
+    public Invocation() {
+		super();
+	}
+
+	private Map<String, Object> context;
 
     public Invocation(InvocationData invocationData) {
         this.invocationData = invocationData;

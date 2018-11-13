@@ -14,9 +14,14 @@ import javax.xml.bind.annotation.XmlAccessorType;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 public class AbsoluteObjectReference {
+	
 	private ObjectId objectId;
 	private String host;
 	private int port;
+	
+	public AbsoluteObjectReference() {
+		super();
+	}
 	
 	/**
 	 * Creates the unique identifier for remote objects: AOR

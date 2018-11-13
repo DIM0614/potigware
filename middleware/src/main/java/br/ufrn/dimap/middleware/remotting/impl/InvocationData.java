@@ -15,7 +15,11 @@ public class InvocationData {
 
     private Object[] actualParams;
 
-    public InvocationData(AbsoluteObjectReference aor, String operationName, Object ... actualParams) {
+    public InvocationData() {
+		super();
+	}
+
+	public InvocationData(AbsoluteObjectReference aor, String operationName, Object ... actualParams) {
         this.aor = aor;
         this.operationName = operationName;
         this.actualParams = actualParams;
