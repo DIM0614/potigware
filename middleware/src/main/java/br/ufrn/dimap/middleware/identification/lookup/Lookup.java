@@ -1,6 +1,7 @@
 package br.ufrn.dimap.middleware.identification.lookup;
 
 import br.ufrn.dimap.middleware.identification.AbsoluteObjectReference;
+import br.ufrn.dimap.middleware.identification.ObjectId;
 import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
 
 /**
@@ -22,8 +23,12 @@ public interface Lookup {
 	 * 				reference.
 	 * @param aor	The absolute object reference that must be binded with the 
 	 * 				given name (propertied).
+	 * @param host Server connection host.
+	 * @param port Server connection port.
+	 * @throws RemoteError
 	 */
-	public void bind(String name, AbsoluteObjectReference aor) throws RemoteError;
+	public void bind(String name, Object remoteObject, String host, int port) 
+			throws RemoteError;
 	
 	/**
 	 * Allow clients to use lookup service to query for the ABSOLUTE OBJECT 
@@ -32,6 +37,17 @@ public interface Lookup {
 	 * @param name	Name that'll be used to find the absolute object reference, 
 	 * 				previously binded with this same name.
 	 * @return		The absolute object reference binded with the given name.
+	 * @throws RemoteError
 	 */
-	public AbsoluteObjectReference find(String name) throws RemoteError;;
+	public AbsoluteObjectReference find(String name) throws RemoteError;
+	
+	/**
+	 * Allow the server requestor find the remote object reference given an 
+	 * object id.
+	 * 
+	 * @param objectId Unique identifier of remote object.
+	 * @return Correspondent of this object id.
+	 * @throws RemoteError
+	 */
+	public Object findById(ObjectId objectId) throws RemoteError;
 }

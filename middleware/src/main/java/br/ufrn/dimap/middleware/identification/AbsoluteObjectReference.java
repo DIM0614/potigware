@@ -12,22 +12,18 @@ package br.ufrn.dimap.middleware.identification;
 public class AbsoluteObjectReference {
 	private ObjectId objectId;
 	private String host;
-	private String port;
-	private int invokerId;
+	private int port;
 	
 	/**
 	 * Creates the unique identifier for remote objects: AOR
 	 * @param objectId	The remote object's object id
 	 * @param host		Host of the network
 	 * @param port		Port of the network
-	 * @param invokerId	Invoker unique identification
 	 */
-	public AbsoluteObjectReference(ObjectId objectId, String host, String port,
-								   int invokerId) {
+	public AbsoluteObjectReference(ObjectId objectId, String host, int port) {
 		this.objectId = objectId;
 		this.host = host;
 		this.port = port;
-		this.invokerId = invokerId;
 	}
 	
 	/**
@@ -53,13 +49,4 @@ public class AbsoluteObjectReference {
 	public String getPort() {
 		return port;
 	}
-	
-	/**
-	 * 
-	 * @return	AOR invoker identification
-	 */
-	public int getInvokerId() {
-		return invokerId;
-	}
-	
 }
