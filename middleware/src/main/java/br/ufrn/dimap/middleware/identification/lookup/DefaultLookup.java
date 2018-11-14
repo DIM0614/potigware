@@ -1,18 +1,16 @@
 package br.ufrn.dimap.middleware.identification.lookup;
 
-import java.util.concurrent.ConcurrentHashMap;
-import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.ObjectInput;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.HashMap;
-import java.util.Map;
 
 import br.ufrn.dimap.middleware.identification.AbsoluteObjectReference;
-import br.ufrn.dimap.middleware.identification.NameServer;
 import br.ufrn.dimap.middleware.identification.ObjectId;
 import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
 
@@ -32,9 +30,9 @@ import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
  */
 public class DefaultLookup implements Lookup {
 	
-	private NameServer nameServer;
-	private String host;
-	private int port;
+	private Socket socket;
+	private DataOutputStream outToServer;
+	private DataInputStream inFromServer;
   
 	/**
 	 * Wraps the instance
@@ -80,20 +78,31 @@ public class DefaultLookup implements Lookup {
 	    }
 	}
 	
-	protected Socket createClient() throws UnknownHostException, IOException {
-		Socket client = new Socket(host, port);
-		return client;
-	}
 	
 	/**
 	 * @see br.ufrn.dimap.middleware.identification.lookup.Lookup#bind(String, Object, String, int)
 	 */
+	
+	public void Connection(String host, int port) throws RemoteError {
+		try {
+			this.socket = new Socket(host, port);
+			this.outToServer = new DataOutputStream(socket.getOutputStream());
+			this.inFromServer = new DataInputStream(socket.getInputStream());
+		} catch (IOException e) {
+			throw new RemoteError(e);
+		}
+	}
+	
+	
 	public void bind(String name, Object remoteObject, String host, int port) throws RemoteError, IOException {
-		ObjectOutputStream output = new ObjectOutputStream(createClient().getOutputStream());
-		String data  = "bind " + remoteObject +" "+ host +" "+ port;
-		output.writeObject(data);
-		output.flush();
-		output.close();
+		Object data [] = new Object[5];
+		data[0] = "bind";
+		data[1] = name;
+		data[2] = remoteObject;
+		data[3] = host;
+		data[4] = port;
+		((ObjectOutput) outToServer).writeObject(data);
+		outToServer.flush();
 		
 	}
   
@@ -101,28 +110,22 @@ public class DefaultLookup implements Lookup {
 	 * @see br.ufrn.dimap.middleware.identification.lookup.Lookup#find(String)
 	 */
 	public AbsoluteObjectReference find(String name) throws RemoteError, UnknownHostException, IOException, ClassNotFoundException {
-		Socket client = createClient();
-		ObjectOutputStream output = new ObjectOutputStream(client.getOutputStream());
-		ObjectInputStream input = new ObjectInputStream(client.getInputStream());
 		String data  = "find " + name;
-		output.writeObject(data);
-		output.flush();
-		output.close();
-		return (AbsoluteObjectReference) input.readObject();
+		outToServer.writeChars(data);
+		outToServer.flush();
+		return (AbsoluteObjectReference) ((ObjectInput) inFromServer).readObject();
 	}
   
   /**
 	 * @see br.ufrn.dimap.middleware.identification.lookup.Lookup#findById(ObjectId)
 	 */	
 	public Object findById(ObjectId ObjectId) throws RemoteError, UnknownHostException, IOException, ClassNotFoundException {
-		Socket client = createClient();
-		ObjectOutputStream output = new ObjectOutputStream(client.getOutputStream());
-		ObjectInputStream input = new ObjectInputStream(client.getInputStream());
-		String data  = "findById " + ObjectId;
-		output.writeObject(data);
-		output.flush();
-		output.close();
-		return input.readObject();
+		Object data [] = new Object[2];
+		data[0] = "bind";
+		data[1] = ObjectId;
+		((ObjectOutput) outToServer).writeObject(data);
+		outToServer.flush();
+		return ((ObjectInput) inFromServer).readObject();
 	}
 
 }
