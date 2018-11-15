@@ -28,7 +28,7 @@ public interface Lookup {
 	 * @throws RemoteError 
    * @throws IOException 
 	 */
-	public void bind(String name, Object remoteObject, String host, int port) throws RemoteError, IOException;	
+	public void bind (String name, Class<? extends Invoker> remoteObject, String host, int port) throws RemoteError, IOException;	
   
 	/**
 	 * Allow clients to use lookup service to query for the ABSOLUTE OBJECT 

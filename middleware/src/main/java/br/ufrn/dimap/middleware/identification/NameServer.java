@@ -26,7 +26,7 @@ public class NameServer {
 	
 	protected NameServer() {
 		this.nameMap = new ConcurrentHashMap <String, AbsoluteObjectReference>();
-		this.remoteMap = new ConcurrentHashMap <ObjectId, RemoteObject>();
+		this.remoteMap = new ConcurrentHashMap <ObjectId, Invoker>();
 	}
 	
 	private void startServer() throws IOException, RemoteError {
@@ -60,7 +60,7 @@ public class NameServer {
 			
 	}
 	
-	public void bind(String name, Object remoteObject, String host, int port) throws RemoteError {
+	public void bind (String name, Class<? extends Invoker> remoteObject, String host, int port) throws RemoteError {
 		
 		ObjectId objectId = new ObjectId();
 		AbsoluteObjectReference aor = new AbsoluteObjectReference(objectId, host, port);
@@ -69,7 +69,7 @@ public class NameServer {
 			throw new RemoteError("Error on lookup binding! There already exists an absolute object reference for this name property.");
 		}
 		
-		remoteMap.put(objectId, (RemoteObject) remoteObject);
+		remoteMap.put(objectId, (Invoker) remoteObject);
 		nameMap.put(name, aor);
 		
 		
