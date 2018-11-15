@@ -1,11 +1,20 @@
-package br.ufrn.dimap.middleware.async;
+package br.ufrn.dimap.middleware.remotting.async;
 
-import br.ufrn.middleware.async.interfaces.OnErrorCallback;
-import br.ufrn.middleware.async.interfaces.OnResultCallback;
-
+/**
+ * Builder class for the default callback implementation.
+ *
+ * @author Daniel Smith
+ */
 public class CallbackBuilder{
-	
+
+	/**
+	 * The functional interface to be called after the result reatrieval.
+	 */
 	private OnResultCallback onResult;
+
+	/**
+	 * The functional interface to be called if an error occurs.
+	 */
 	private OnErrorCallback onError;
 
 	public CallbackBuilder onResult(OnResultCallback onResultCallback) {
