@@ -5,6 +5,8 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -20,6 +22,7 @@ import br.ufrn.dimap.middleware.remotting.interfaces.ServerProtocolPlugin;
 public class DefaultServerProtocolTCP implements ServerProtocolPlugin {
 
 	private final ThreadPoolExecutor tasksExecutor;
+	private final Set<Socket> activeSockets = ConcurrentHashMap.newKeySet();
 	private Thread listenThread;
 	private ServerSocket server;
 	
@@ -78,9 +81,10 @@ public class DefaultServerProtocolTCP implements ServerProtocolPlugin {
 	 */
 	private void handleConnection(Socket client) {
 		try {
+			activeSockets.add(client);
 			DataInputStream in = new DataInputStream(client.getInputStream());
 			DataOutputStream out = new DataOutputStream(client.getOutputStream());
-			while(true) {
+			while(!Thread.interrupted()) {
 				int len = in.readInt();
 				byte[] b = new byte[len];
 				
@@ -90,9 +94,12 @@ public class DefaultServerProtocolTCP implements ServerProtocolPlugin {
 				//out.write(c);
 			}
 		} catch(Exception e) {
+			
+		} finally {
 			try {
 				client.close();
-			} catch(Exception e1) { }
+			} catch(Exception e) { }
+			activeSockets.remove(client);
 		}
 	}
 
@@ -101,11 +108,17 @@ public class DefaultServerProtocolTCP implements ServerProtocolPlugin {
 	 * @see br.ufrn.dimap.middleware.remotting.interfaces.ServerProtocolPlugin#shutdown()
 	 */
 	@Override
-	public void shutdown() {
+	public synchronized void shutdown() {
 		tasksExecutor.shutdownNow();
 		try {
 			server.close();
 		} catch (Exception e) { }
+		for(Socket s : activeSockets) {
+			try {
+				s.close();
+			} catch (Exception e) { }
+		}
+		activeSockets.clear();
 	}
 
 }
