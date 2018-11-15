@@ -5,9 +5,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.rmi.server.RemoteObject;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
 
 import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
 
@@ -21,12 +21,12 @@ public class NameServer {
 	/**
 	 * The lookup data structure used to register object IDs along with their referred objects.
 	 */
-	private Map<ObjectId, RemoteObject> remoteMap;
+	private Map<ObjectId, Class<? extends Invoker>> remoteMap;
 	private int port;
 	
 	protected NameServer() {
 		this.nameMap = new ConcurrentHashMap <String, AbsoluteObjectReference>();
-		this.remoteMap = new ConcurrentHashMap <ObjectId, Invoker>();
+		this.remoteMap = new ConcurrentHashMap <ObjectId, Class<? extends Invoker>>();
 	}
 	
 	private void startServer() throws IOException, RemoteError {
@@ -41,7 +41,7 @@ public class NameServer {
 				data = (Object[]) msg.readObject();
 				ObjectOutputStream output = new ObjectOutputStream(client.getOutputStream());
 				if (data[0].equals("bind")) {
-					bind((String)data[1], (RemoteObject) data[2], (String) data[3], (Integer) data[4]);
+					bind((String)data[1], (Class<? extends Invoker>) data[2], (String) data[3], (Integer) data[4]);
 				}else if (data[0].equals("find")) {
 					output.writeObject(find((String) data[1]));
 					output.flush();
@@ -69,7 +69,7 @@ public class NameServer {
 			throw new RemoteError("Error on lookup binding! There already exists an absolute object reference for this name property.");
 		}
 		
-		remoteMap.put(objectId, (Invoker) remoteObject);
+		remoteMap.put(objectId, remoteObject);
 		nameMap.put(name, aor);
 		
 		
