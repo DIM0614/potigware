@@ -3,6 +3,7 @@ package br.ufrn.dimap.middleware.extension.interfaces;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
+import br.ufrn.dimap.middleware.extension.impl.InvocationContext;
 import br.ufrn.dimap.middleware.remotting.impl.InvocationData;
 import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
 
