@@ -1,6 +1,6 @@
 package br.ufrn.dimap.middleware.infrastructure.lifecycleManager.interfaces;
 
-public interface IStaticRegistry
+public interface StaticRegistry
 {
-	public Object getObj(ObjectId id);
+	public Invoker getObj(ObjectId id);
 }

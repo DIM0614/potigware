@@ -1,14 +1,14 @@
-package br.ufrn.dimap.middleware.infrastructure.lifecycleManagement;
+package br.ufrn.dimap.middleware.infrastructure.lifecycleManager.impl;
 
-import br.ufrn.dimap.middleware.infrastructure.lifecycleManager.interfaces.IStaticRegistry;
+import br.ufrn.dimap.middleware.infrastructure.lifecycleManager.interfaces.StaticRegistry;
 
-public class StaticRegistry implements IStaticRegistry
+public class StaticRegistryImpl implements StaticRegistry
 {
 	HashMap<ObjectId, Invoker> staticRegistry;
 	
-	public Object getObj(ObjectId id)
+	public Invoker getObj(ObjectId id)
 	{
-		Object obj = staticRegistry.get(id);
+		Invoker obj = staticRegistry.get(id);
 		
 		if( obj == null )
 		{
@@ -24,6 +24,9 @@ public class StaticRegistry implements IStaticRegistry
 		Invoker obj = new ObjectType();
 		
 		staticRegistry.put(id, obj);
+		
+		
+		return obj;
 	}
 
 }

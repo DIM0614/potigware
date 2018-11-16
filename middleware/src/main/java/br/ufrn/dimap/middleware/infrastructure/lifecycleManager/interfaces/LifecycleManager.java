@@ -7,11 +7,11 @@ package br.ufrn.dimap.middleware.infrastructure.lifecycleManager.interfaces;
  * 
  * @author
  * @version 1.0
- * @see LifecycleManagement Interface
+ * @see LifecycleManagerImpl Interface
  */
-public interface ILifecycleManagement {
+public interface LifecycleManager {
 
-	public Object getInvoker( AbsoluteObjectReference aor);
-	public void invocationDone( Object obj);
+	public Invoker getInvoker( AbsoluteObjectReference aor) throws Exception;
+	public void invocationDone( AbsoluteObjectReference aor,  Invoker obj);
 	
 }

@@ -1,8 +1,7 @@
-package br.ufrn.dimap.middleware.infrastructure.lifecycleManagement;
+package br.ufrn.dimap.middleware.infrastructure.lifecycleManager.impl;
 
 
-import br.ufrn.dimap.middleware.infrastructure.lifecycleManager.interfaces.AbsoluteObjectReference;
-import br.ufrn.dimap.middleware.infrastructure.lifecycleManager.interfaces.ILifecycleManagement;
+import br.ufrn.dimap.middleware.infrastructure.lifecycleManager.interfaces.LifecycleManager;
 
 /**
  * The Class LifecycleManagement.
@@ -11,19 +10,19 @@ import br.ufrn.dimap.middleware.infrastructure.lifecycleManager.interfaces.ILife
  * @version 1.0
  * @see Lifecycle Management
  */
-public class LifecycleManagement implements ILifecycleManagement {
+public class LifecycleManagerImpl implements LifecycleManager {
 
-	StaticRegistry staticRegistry;
+	StaticRegistryImpl staticRegistry;
 	PerRequestLifeCycle perRequestLifeCycle;
 	/*
 	 * Instantiates a new lifecycle management.
 	 */
-	public LifecycleManagement() {
-		staticRegistry = new StaticRegistry();
+	public LifecycleManagerImpl() {
+		staticRegistry = new StaticRegistryImpl();
 		perRequestLifeCycle = new PerRequestLifeCycle();
 	}
 
-	public Object getInvoker(AbsoluteObjectReference aor) throws Exception // Change to specific Exception.
+	public Invoker getInvoker(AbsoluteObjectReference aor) throws Exception // Change to specific Exception.
 	{		
 		// Verify type of object requested (Static or Per-Request)
 		boolean isStatic, isPerRequest;
@@ -34,7 +33,7 @@ public class LifecycleManagement implements ILifecycleManagement {
 		
 			DefaultLookup defaultLookup = getContext().getDefaultLookup(); // How get a defaultLookup ?
 			
-			Object obj = defaultLookup.findByID(objectId); // Return a .class */
+			Invoker obj = defaultLookup.findByID(objectId); // Return a .class */
 			
 			if( obj != null )
 			{
@@ -61,7 +60,7 @@ public class LifecycleManagement implements ILifecycleManagement {
 		return obj;
 	}
 
-	public void invocationDone(Object obj)
+	public void invocationDone( AbsoluteObjectReference aor,  Invoker obj)
 	{
 		boolean isStatic, isPerRequest;
 		
@@ -70,5 +69,5 @@ public class LifecycleManagement implements ILifecycleManagement {
 			 perRequestLifeCycle.invocationDone(obj);
 		}
 	}
-
+	
 }
