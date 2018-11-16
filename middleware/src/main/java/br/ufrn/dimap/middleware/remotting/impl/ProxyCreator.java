@@ -2,12 +2,11 @@ package br.ufrn.dimap.middleware.remotting.impl;
 
 import br.ufrn.dimap.middleware.identification.AbsoluteObjectReference;
 import br.ufrn.dimap.middleware.identification.lookup.Lookup;
-import com.sun.xml.internal.ws.assembler.jaxws.TerminalTubeFactory;
 
 import java.lang.reflect.InvocationTargetException;
 
 /**
- * Singleton used by clients to ease the intantiation of
+ * Singleton used by clients to ease the instantiation of
  * client proxies.
  *
  * @author vitorgreati
