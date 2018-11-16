@@ -1,7 +1,11 @@
+package br.ufrn.dimap.middleware.infrastructure.qos;
+
 import java.util.NavigableSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListSet;
+
+import br.ufrn.dimap.middleware.remotting.impl.Invocation;
 
 public class QoSObserver implements Observer {
 	

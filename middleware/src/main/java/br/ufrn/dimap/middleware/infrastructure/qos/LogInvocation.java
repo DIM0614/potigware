@@ -1,5 +1,10 @@
+package br.ufrn.dimap.middleware.infrastructure.qos;
+
 import java.time.Duration;
 import java.time.LocalTime;
+
+import br.ufrn.dimap.middleware.remotting.impl.Invocation;
+import br.ufrn.dimap.middleware.remotting.impl.InvocationData;
 
 public class LogInvocation {
 	

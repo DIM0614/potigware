@@ -1,3 +1,5 @@
+package br.ufrn.dimap.middleware.infrastructure.qos;
+
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
