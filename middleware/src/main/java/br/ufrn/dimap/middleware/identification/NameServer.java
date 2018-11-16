@@ -24,18 +24,19 @@ public class NameServer {
 	private int port;
 	ServerSocket server;
 	
-	protected NameServer() {
+	protected NameServer(int port) {
+		this.port = port;
 		this.nameMap = new ConcurrentHashMap <String, AbsoluteObjectReference>();
 		this.remoteMap = new ConcurrentHashMap <ObjectId, Object>();
 	}
 	
-	private void startServer() throws IOException, RemoteError {
+	public void startServer() throws IOException, RemoteError {
 		
 		server = new ServerSocket(port);
 	
 	}
 	
-	private synchronized void receiveMessage() throws IOException {
+	public synchronized void receiveMessage() throws IOException {
 		
 		while(true) {
 			Socket client = server.accept();
