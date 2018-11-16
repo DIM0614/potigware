@@ -121,7 +121,7 @@ public class DefaultLookup implements Lookup {
 	 */	
 	public Object findById(ObjectId ObjectId) throws RemoteError, UnknownHostException, IOException, ClassNotFoundException {
 		Object data [] = new Object[2];
-		data[0] = "bind";
+		data[0] = "findById";
 		data[1] = ObjectId;
 		((ObjectOutput) outToServer).writeObject(data);
 		outToServer.flush();

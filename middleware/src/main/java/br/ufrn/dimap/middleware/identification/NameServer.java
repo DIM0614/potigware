@@ -8,7 +8,6 @@ import java.net.Socket;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-
 import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
 
 public class NameServer {
@@ -23,6 +22,7 @@ public class NameServer {
 	 */
 	private Map<ObjectId, Class<? extends Invoker>> remoteMap;
 	private int port;
+	ServerSocket server;
 	
 	protected NameServer() {
 		this.nameMap = new ConcurrentHashMap <String, AbsoluteObjectReference>();
@@ -31,7 +31,11 @@ public class NameServer {
 	
 	private void startServer() throws IOException, RemoteError {
 		
-		ServerSocket server = new ServerSocket(port);
+		server = new ServerSocket(port);
+	
+	}
+	
+	private synchronized void receiveMessage() throws IOException {
 		
 		while(true) {
 			Socket client = server.accept();
@@ -52,6 +56,14 @@ public class NameServer {
 					output.close();
 				}
 			} catch (ClassNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				
+			} catch (RemoteError e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
