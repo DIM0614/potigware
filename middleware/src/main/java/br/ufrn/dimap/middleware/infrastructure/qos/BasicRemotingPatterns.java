@@ -1,6 +1,6 @@
 
 public enum BasicRemotingPatterns {
-	LifecyvleManager,
+	LifecycleManager,
 	ClientRequestHandler,
 	ServerRequestHandler
 }

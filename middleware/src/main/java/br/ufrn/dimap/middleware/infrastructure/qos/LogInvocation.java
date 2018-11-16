@@ -6,8 +6,6 @@ public class LogInvocation {
 	private String method; 
 	private Object[] parameters;
 	private BasicRemotingPatterns pattern;
-	@SuppressWarnings("unused")
-	private static LocalTime localTime;
 	private LocalTime startTime;
 	private LocalTime endTime;
 	private long size;

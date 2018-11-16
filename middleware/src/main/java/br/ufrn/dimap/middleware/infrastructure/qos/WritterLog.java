@@ -2,16 +2,16 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.time.Instant;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.NavigableSet;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 
 public class WritterLog extends Thread {
 	private static final String FILENAME = "log-potigware-";
-	private Set<LogInvocation> logs;
+	private NavigableSet<LogInvocation> logs;
 	
-	public WritterLog(Set<LogInvocation> logs){
-		this.logs = new HashSet<LogInvocation>(logs);
+	public WritterLog(NavigableSet<LogInvocation> logs){
+		this.logs = new ConcurrentSkipListSet<LogInvocation>(logs);
 	}
 	
 	public void run(){

@@ -1,40 +1,35 @@
-import java.lang.instrument.Instrumentation;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.NavigableSet;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 public class QoSObserver implements Observer {
 	
-	private static Instrumentation instrumentation;  
 	private static final int maxSizeSet = 1000;
-	private Map<Invocation, LogInvocation> map;
-	private Set<LogInvocation> set;
+	private ConcurrentMap<Invocation, LogInvocation> map;
+	private NavigableSet<LogInvocation> set;
 	
 	public QoSObserver(){
-		map = new HashMap<Invocation, LogInvocation>();
-		set = new HashSet<LogInvocation>();
+		this.map = new ConcurrentHashMap<Invocation, LogInvocation>();
+		this.set = new ConcurrentSkipListSet<LogInvocation>();
 	}
 	
 	@Override
 	public synchronized void started(Invocation invocation, BasicRemotingPatterns pattern) {
-		long size = instrumentation.getObjectSize(invocation);
+		long size = ObjectSizeFetcher.getObjectSize(invocation);
 		LogInvocation log = new LogInvocation(invocation, pattern, size);
 		map.put(invocation, log);	
 	}
 
 	@Override
-	public synchronized void done(Invocation invocation) throws RuntimeException{
+	public synchronized void done(Invocation invocation){
 		LogInvocation log = map.get(invocation);
 		if(log.isAlive()){
 			log.done();
 			set.add(log);
 			map.remove(invocation);
 		}
-		else{
-			throw new RuntimeException("Invocation cannot finish an object that is already dead.");
-		}
-		
+	
 		if(set.size() == maxSizeSet){
 			writeLogs();
 			set.clear();
