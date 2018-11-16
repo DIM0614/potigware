@@ -1,14 +1,17 @@
 package br.ufrn.dimap.middleware.infrastructure.lifecycleManager.impl;
 
 
+import br.ufrn.dimap.middleware.identification.AbsoluteObjectReference;
+import br.ufrn.dimap.middleware.identification.ObjectId;
 import br.ufrn.dimap.middleware.infrastructure.lifecycleManager.interfaces.LifecycleManager;
+import br.ufrn.dimap.middleware.remotting.interfaces.Invoker;
 
 /**
- * The Class LifecycleManagement.
+ * The Class LifecycleManagerImpl.
  * 
  * @author
  * @version 1.0
- * @see Lifecycle Management
+ * @see Lifecycle Manager
  */
 public class LifecycleManagerImpl implements LifecycleManager {
 
