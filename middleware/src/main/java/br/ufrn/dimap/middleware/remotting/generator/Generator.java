@@ -297,22 +297,40 @@ public class Generator {
             return void.class;
 
         String parts[] = type.split("\\[", 2);
-        for(String s : parts){
-            System.out.println(s);
-        }
         if(parts.length == 1)
-            return Class.forName("java.lang." + type);
+            return Class.forName("java.lang." + getObjectType(type));
         else{
+            String base = getObjectType(parts[0]);
             int count = parts[1].length() - parts[1].replace("]",  "").length();
             String squares = "";
             for(int i = 0; i < count; ++i)
                 squares += "[";
-            return Class.forName(squares + "Ljava.lang." + parts[0] + ";");
+            return Class.forName(squares + "Ljava.lang." + base + ";");
         }
     }
 
     private static String getCastType(String type){
-        return "(" + type + ")";
+        String parts[] = type.split("\\[", 2);
+        if(parts.length == 1)
+            return "(" + getObjectType(type) + ")";
+        else{
+            return "(" + getObjectType(parts[0]) + "[" + parts[1] + ")";
+        }
+    }
+
+    private static String getObjectType(String baseType){
+        switch (baseType){
+            case "int":
+                return "Integer";
+            case "float":
+                return "Float";
+            case "bool":
+                return "Boolean";
+            case "char":
+                return "Character";
+            default:
+                return "String";
+        }
     }
 
     /**
