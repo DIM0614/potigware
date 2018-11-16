@@ -1,6 +1,7 @@
 package br.ufrn.dimap.middleware.infrastructure.lifecycleManagement;
 
 
+import br.ufrn.dimap.middleware.infrastructure.lifecycleManagement.modelo.AbsoluteObjectReference;
 import br.ufrn.dimap.middleware.infrastructure.lifecycleManagement.modelo.ILifecycleManagement;
 
 /**
@@ -12,24 +13,62 @@ import br.ufrn.dimap.middleware.infrastructure.lifecycleManagement.modelo.ILifec
  */
 public class LifecycleManagement implements ILifecycleManagement {
 
+	StaticRegistry staticRegistry;
+	PerRequestLifeCycle perRequestLifeCycle;
 	/*
 	 * Instantiates a new lifecycle management.
 	 */
 	public LifecycleManagement() {
-		
+		staticRegistry = new StaticRegistry();
+		perRequestLifeCycle = new PerRequestLifeCycle();
 	}
 
-	public Object getInvoker(Object id) {
+	public Object getInvoker(AbsoluteObjectReference aor) throws Exception // Change to specific Exception.
+	{		
+		// Verify type of object requested (Static or Per-Request)
+		boolean isStatic, isPerRequest;
 		
-		/* defaultLookup.findByID(ObjectId objectId); // Return a .class */
-		/* return lifeCycleStatic.getObj(class.id); */
+		try
+		{
+			ObjectId objectId = aor.getObjectId();
 		
-		return null;
+			DefaultLookup defaultLookup = getContext().getDefaultLookup(); // How get a defaultLookup ?
+			
+			Object obj = defaultLookup.findByID(objectId); // Return a .class */
+			
+			if( obj != null )
+			{
+				if( isStatic )
+				{
+					obj = staticRegistry.getObj(id);
+				}
+				else if( isPerRequest )
+				{
+					obj = perRequestLifeCycle.getObj();
+				}
+			}
+			else
+				throw new Exception();
+			
+			/* return lifeCycleStatic.getObj(class.id); */
+		}
+		catch(Exception e)
+		{
+			throw e;
+		}
+		
+		
+		return obj;
 	}
 
-	
-	public void invocationDone(int id) {
-		/* lifeCycleStatic.getObj(int id); // Return invoker */
+	public void invocationDone(Object obj)
+	{
+		boolean isStatic, isPerRequest;
+		
+		if( isPerRequest )
+		{
+			 perRequestLifeCycle.invocationDone(obj);
+		}
 	}
 
 }

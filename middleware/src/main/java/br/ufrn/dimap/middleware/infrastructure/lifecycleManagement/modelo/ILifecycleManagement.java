@@ -11,7 +11,7 @@ package br.ufrn.dimap.middleware.infrastructure.lifecycleManagement.modelo;
  */
 public interface ILifecycleManagement {
 
-	public Object getInvoker( AbsoluteObjectReference id);
-	public void invocationDone( AbsoluteObjectReference id);
+	public Object getInvoker( AbsoluteObjectReference aor);
+	public void invocationDone( Object obj);
 	
 }
