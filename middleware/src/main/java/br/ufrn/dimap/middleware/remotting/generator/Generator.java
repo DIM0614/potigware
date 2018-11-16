@@ -12,13 +12,18 @@ import br.ufrn.dimap.middleware.remotting.interfaces.Invoker;
 import com.squareup.javapoet.*;
 import com.squareup.javapoet.MethodSpec.Builder;
 
+import com.sun.xml.internal.ws.util.StringUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import javax.lang.model.element.Modifier;
+import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 
 /**
@@ -30,7 +35,7 @@ import java.util.ArrayList;
 
 public class Generator {
 
-    public void generateInterface(JSONObject file, Path path, String packageName) throws IOException {
+    private static void generateInterface(JSONObject file, Path path, String packageName) throws IOException, ClassNotFoundException {
         String interfaceName = (String )file.get("name");
         String interfaceDescription = (String )file.get("description");
 
@@ -80,7 +85,7 @@ public class Generator {
         javaFile.writeTo(path);
     }
 
-    public void generateProxy(JSONObject file, Path path, String packageName) throws IOException {
+    private static void generateProxy(JSONObject file, Path path, String packageName) throws IOException, ClassNotFoundException {
         String className = (String )file.get("name");
         String classDescription = (String )file.get("description");
 
@@ -184,7 +189,7 @@ public class Generator {
         javaFile.writeTo(path);
     }
     
-    public void generateInvoker(JSONObject file, Path path, String packageName)throws IOException {
+    private static void generateInvoker(JSONObject file, Path path, String packageName) throws IOException, ClassNotFoundException {
     	String className = (String )file.get("name");
         String classDescription = (String )file.get("description");
 
@@ -287,36 +292,49 @@ public class Generator {
         javaFile.writeTo(path);
     }
     
-    private Type getType(String type){
-        if(type.equals("int")){
-            return Integer.class;
-        }else if(type.equals("float")){
-            return Float.class;
-        }else if(type.equals("boolean")){
-            return Boolean.class;
-        }else if(type.equals("string")){
-            return String.class;
-        }else if(type.equals("char")){
-            return Character.class;
-        }
+    private static Type getType(String type) throws ClassNotFoundException {
+        if(type.equals("void"))
+            return void.class;
 
-        return void.class;
+        String parts[] = type.split("\\[", 2);
+        for(String s : parts){
+            System.out.println(s);
+        }
+        if(parts.length == 1)
+            return Class.forName("java.lang." + type);
+        else{
+            int count = parts[1].length() - parts[1].replace("]",  "").length();
+            String squares = "";
+            for(int i = 0; i < count; ++i)
+                squares += "[";
+            return Class.forName(squares + "Ljava.lang." + parts[0] + ";");
+        }
     }
 
-    private String getCastType(String type){
-        if(type.equals("int")){
-            return "(Integer)";
-        }else if(type.equals("float")){
-            return "(Float)";
-        }else if(type.equals("boolean")){
-            return "(Boolean)";
-        }else if(type.equals("string")){
-            return "(String)";
-        }else if(type.equals("char")){
-            return "(Character)";
-        }
+    private static String getCastType(String type){
+        return "(" + type + ")";
+    }
 
-        return "(Void)";
+    /**
+     * Method to generate the interface, client proxy and invoker for a specific description interface
+     * @param interfaceDescriptionURL the path of interface description
+     * @param pathToSave path to save the files
+     * @param packageName package of files
+     * @throws IOException
+     * @throws ParseException
+     */
+    public static void generateFiles(String interfaceDescriptionURL, String pathToSave, String packageName) throws IOException, ParseException, ClassNotFoundException {
+        JSONParser parser = new JSONParser();
+        Object obj = parser.parse(new FileReader(interfaceDescriptionURL));
+        JSONObject jsonObject = (JSONObject) obj;
+        Path path = Paths.get(pathToSave);
+        generateInterface(jsonObject, path, packageName);
+        generateProxy(jsonObject, path, packageName);
+        generateInvoker(jsonObject, path, packageName);
+    }
+
+    public Integer value(){
+        return 0;
     }
 
 }
