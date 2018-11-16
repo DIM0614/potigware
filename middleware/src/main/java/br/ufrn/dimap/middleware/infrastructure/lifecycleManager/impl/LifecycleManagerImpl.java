@@ -1,8 +1,8 @@
 package br.ufrn.dimap.middleware.infrastructure.lifecycleManagement;
 
 
-import br.ufrn.dimap.middleware.infrastructure.lifecycleManagement.modelo.AbsoluteObjectReference;
-import br.ufrn.dimap.middleware.infrastructure.lifecycleManagement.modelo.ILifecycleManagement;
+import br.ufrn.dimap.middleware.infrastructure.lifecycleManager.interfaces.AbsoluteObjectReference;
+import br.ufrn.dimap.middleware.infrastructure.lifecycleManager.interfaces.ILifecycleManagement;
 
 /**
  * The Class LifecycleManagement.

@@ -1,6 +1,6 @@
 package br.ufrn.dimap.middleware.infrastructure.lifecycleManagement;
 
-import br.ufrn.dimap.middleware.infrastructure.lifecycleManagement.modelo.IStaticRegistry;
+import br.ufrn.dimap.middleware.infrastructure.lifecycleManager.interfaces.IStaticRegistry;
 
 public class StaticRegistry implements IStaticRegistry
 {

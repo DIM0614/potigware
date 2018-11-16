@@ -1,4 +1,4 @@
-package br.ufrn.dimap.middleware.infrastructure.lifecycleManagement.modelo;
+package br.ufrn.dimap.middleware.infrastructure.lifecycleManager.interfaces;
 
 public interface IStaticRegistry
 {
