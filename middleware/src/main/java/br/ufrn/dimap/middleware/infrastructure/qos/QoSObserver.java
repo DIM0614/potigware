@@ -15,8 +15,8 @@ public class QoSObserver implements Observer {
 	}
 	
 	@Override
-	public synchronized void started(Invocation invocation, BasicRemotingPatterns pattern) {
-		long size = ObjectSizeFetcher.getObjectSize(invocation);
+	public synchronized void started(Invocation invocation, long sizeInvocation, BasicRemotingPatterns pattern) {
+		long size = sizeInvocation;
 		LogInvocation log = new LogInvocation(invocation, pattern, size);
 		map.put(invocation, log);	
 	}
