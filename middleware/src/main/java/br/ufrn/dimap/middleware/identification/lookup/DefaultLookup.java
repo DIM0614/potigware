@@ -94,7 +94,7 @@ public class DefaultLookup implements Lookup {
 	}
 	
 	
-	public void bind (String name, Class<? extends Invoker> remoteObject, String host, int port) throws RemoteError, IOException {
+	public void bind (String name, Object remoteObject, String host, int port) throws RemoteError, IOException {
 		Object data [] = new Object[5];
 		data[0] = "bind";
 		data[1] = name;

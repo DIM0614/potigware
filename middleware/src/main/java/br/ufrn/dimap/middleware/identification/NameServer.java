@@ -20,13 +20,13 @@ public class NameServer {
 	/**
 	 * The lookup data structure used to register object IDs along with their referred objects.
 	 */
-	private Map<ObjectId, Class<? extends Invoker>> remoteMap;
+	private Map<ObjectId, Object> remoteMap;
 	private int port;
 	ServerSocket server;
 	
 	protected NameServer() {
 		this.nameMap = new ConcurrentHashMap <String, AbsoluteObjectReference>();
-		this.remoteMap = new ConcurrentHashMap <ObjectId, Class<? extends Invoker>>();
+		this.remoteMap = new ConcurrentHashMap <ObjectId, Object>();
 	}
 	
 	private void startServer() throws IOException, RemoteError {
@@ -45,7 +45,7 @@ public class NameServer {
 				data = (Object[]) msg.readObject();
 				ObjectOutputStream output = new ObjectOutputStream(client.getOutputStream());
 				if (data[0].equals("bind")) {
-					bind((String)data[1], (Class<? extends Invoker>) data[2], (String) data[3], (Integer) data[4]);
+					bind((String)data[1], data[2], (String) data[3], (Integer) data[4]);
 				}else if (data[0].equals("find")) {
 					output.writeObject(find((String) data[1]));
 					output.flush();
@@ -72,7 +72,7 @@ public class NameServer {
 			
 	}
 	
-	public void bind (String name, Class<? extends Invoker> remoteObject, String host, int port) throws RemoteError {
+	public void bind (String name, Object remoteObject, String host, int port) throws RemoteError {
 		
 		ObjectId objectId = new ObjectId();
 		AbsoluteObjectReference aor = new AbsoluteObjectReference(objectId, host, port);
