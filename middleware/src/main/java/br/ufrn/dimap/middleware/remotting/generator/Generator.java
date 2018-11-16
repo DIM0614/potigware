@@ -6,7 +6,12 @@ import br.ufrn.dimap.middleware.remotting.impl.UnsyncRequestor;
 import br.ufrn.dimap.middleware.remotting.interfaces.Callback;
 import br.ufrn.dimap.middleware.remotting.interfaces.InvocationAsynchronyPattern;
 import br.ufrn.dimap.middleware.remotting.interfaces.Requestor;
+import br.ufrn.dimap.middleware.remotting.impl.Invocation;
+import br.ufrn.dimap.middleware.remotting.interfaces.Invoker;
+
 import com.squareup.javapoet.*;
+import com.squareup.javapoet.MethodSpec.Builder;
+
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -20,6 +25,7 @@ import java.util.ArrayList;
  * This class generate interfaces, client proxies and invokers.
  *
  * @author Vinícius Campos
+ * @author Artur Curinga
  */
 
 public class Generator {
@@ -177,7 +183,110 @@ public class Generator {
 
         javaFile.writeTo(path);
     }
+    
+    public void generateInvoker(JSONObject file, Path path, String packageName)throws IOException {
+    	String className = (String )file.get("name");
+        String classDescription = (String )file.get("description");
 
+        Builder invoke = MethodSpec.methodBuilder("invoke")
+        		.returns(Object.class)
+    		   	.addModifiers(Modifier.PUBLIC)
+    		   	.addParameter(Invocation.class, "invocation")
+                .addException(ClassName.get("", "br.ufrn.dimap.middleware.remotting.impl.RemoteError"))
+        		.addStatement("Object[] params = invocation.getInvocationData().getActualParams()");
+        
+        JSONArray operations = (JSONArray) file.get("operations");
+        Iterable<MethodSpec> methods = new ArrayList<MethodSpec>();
+        for(int i = 0; i < operations.size(); ++i){
+            JSONObject method        = (JSONObject) operations.get(i);
+            String methodName        = (String) method.get("name");
+            String methodDescription = (String) method.get("description");
+            String methodReturn      = (String) method.get("return");
+            
+            String methodInReturn    = "return " + methodName + "(";
+            
+            invoke.beginControlFlow("if (invocation.getInvocationData().getOperationName().equals( \"" + methodName + "\" ))" );
+            	  
+            JSONArray params = (JSONArray) method.get("params");
+            Iterable<ParameterSpec> parameters = new ArrayList<ParameterSpec>();
+            for (int j = 0; j < params.size(); j++) {
+                JSONObject param        = (JSONObject) params.get(j);
+                String paramName        = (String) param.get("name");
+                String paramType        = (String) param.get("type");
+                String paramDescription = (String) param.get("description");            
+               
+                if(j != params.size() -1)
+                	methodInReturn += " (" + paramType + ") params[" + j + "], ";
+                else
+                	methodInReturn += " (" + paramType + ") params[" + j + "] ";
+                methodDescription += "\n@param " + paramName + " " + paramDescription;
+
+                ParameterSpec ps = ParameterSpec.builder(getType(paramType), paramName).build();
+                ((ArrayList<ParameterSpec>) parameters).add(ps);
+                
+                
+            }
+            	methodInReturn += ")";
+            invoke.addStatement(methodInReturn)
+                  .endControlFlow();
+
+            methodDescription += "\n@return " + methodReturn;
+
+            MethodSpec ms = MethodSpec.methodBuilder(methodName)
+                    .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                    .returns(getType(methodReturn))
+                    .addParameters(parameters)
+                    .addJavadoc(methodDescription)
+                    .addException(ClassName.get("", "br.ufrn.dimap.middleware.remotting.impl.RemoteError")) // change the real package name of class exception.RemoteError
+                    .build();
+            ((ArrayList<MethodSpec>) methods).add(ms);
+        }
+
+        invoke.addStatement("return null");
+        
+        // Creating fields of aor and requestor
+        FieldSpec id = FieldSpec.builder(Integer.class, "id")
+                .addModifiers(Modifier.PRIVATE)
+                .build();
+
+        // Defining constructor of class
+        MethodSpec constructor = MethodSpec.constructorBuilder()
+                .addModifiers(Modifier.PUBLIC)
+                .addParameter(Integer.class, "id")
+                .addStatement("this.id = id")
+                .build();
+        
+        MethodSpec getId = MethodSpec.methodBuilder("getId")
+        				             .addModifiers(Modifier.PUBLIC)
+        				             .returns(Integer.class)
+        				             .addStatement("return id")
+        				             .build();
+        
+        MethodSpec setId = MethodSpec.methodBuilder("setId")
+	             .addModifiers(Modifier.PUBLIC)
+	             .addParameter(Integer.class, "id")
+	             .addStatement("this.id =  id")
+	             .build();
+
+        TypeSpec classType = TypeSpec.classBuilder(className + "Invoker")
+                .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                .addField(id)
+                .addMethod(constructor)
+                .addMethod(getId)
+                .addMethod(setId)
+                .addMethods(methods)
+                .addMethod(invoke.build())
+                .addJavadoc(classDescription)
+                .addSuperinterface(ClassName.get("", className))
+                .addSuperinterface(Invoker.class)
+                .build();
+
+        JavaFile javaFile = JavaFile.builder(packageName, classType)
+                .build();
+
+        javaFile.writeTo(path);
+    }
+    
     private Type getType(String type){
         if(type.equals("int")){
             return Integer.class;

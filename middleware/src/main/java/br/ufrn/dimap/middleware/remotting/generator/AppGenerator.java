@@ -23,7 +23,8 @@ public class AppGenerator {
             JSONObject jsonObject = (JSONObject) obj;
             Path path = Paths.get(interfaceURL);
             generator.generateInterface(jsonObject, path, "br.ufrn.dimap.middleware.remotting.generator");
-            generator.generateProxy(jsonObject, path, "br.ufrn.dimap.middleware.remotting.generator");
+            generator.generateProxy(jsonObject, path,  "br.ufrn.dimap.middleware.remotting.generator");
+            generator.generateInvoker(jsonObject, path, "br.ufrn.dimap.middleware.remotting.generator" );
         } catch (IOException | ParseException e) {
             e.printStackTrace();
         }
