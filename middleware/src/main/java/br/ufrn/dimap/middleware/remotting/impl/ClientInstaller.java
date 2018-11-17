@@ -29,25 +29,25 @@ public class ClientInstaller {
      */
     public Class<? extends  ClientProxy> install(final String objName, final String idlPath) throws ParseException, IOException, ClassNotFoundException, RemoteError, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
 
-        String targetDir = System.getProperty("user.dir") + "/src/main/java/";
+        String targetDir = String.format("%s/src/main/java/", System.getProperty("user.dir"));
         String targetPackage = "generated";
-        String classPath = targetDir + "/" + targetPackage + "/";
+        String classPath = String.format("%s/%s/", targetDir, targetPackage);
 
         if (targetDir != null) {
             // generate java files
             Generator.GeneratedFilesInfo filesInfo = Generator.generateFiles(idlPath, targetDir, targetPackage);
             // compile java files, generating thus the .class files
-            compile(targetDir, targetPackage + "/" + filesInfo.getInterfName()+".java");
-            compile(targetDir, targetPackage + "/" + filesInfo.getInvokerName()+".java");
-            compile(targetDir, targetPackage + "/" + filesInfo.getProxyName()+".java");
+            compile(targetDir, String.format("%s/%s.java", targetPackage, filesInfo.getInterfName()));
+            compile(targetDir, String.format("%s/%s.java", targetPackage, filesInfo.getInvokerName()));
+            compile(targetDir, String.format("%s/%s.java", targetPackage, filesInfo.getProxyName()));
             // load classes from the generated .class
-            DynamicClassLoader.getDynamicClassLoader().loadClassFromFile(targetPackage + "." + filesInfo.getInterfName(), targetDir + filesInfo.getInterfName() + ".class");
-            DynamicClassLoader.getDynamicClassLoader().loadClassFromFile(targetPackage + "." + filesInfo.getInvokerName(), targetDir + filesInfo.getInvokerName() + ".class");
-            Class client = DynamicClassLoader.getDynamicClassLoader().loadClassFromFile(targetPackage + "." + filesInfo.getProxyName(), targetDir + filesInfo.getProxyName() + ".class");
+            DynamicClassLoader.getDynamicClassLoader().loadClassFromFile(targetPackage + "." + filesInfo.getInterfName(), String.format("file:%s/%s/%s.class", targetDir, targetPackage, filesInfo.getInterfName()));
+            DynamicClassLoader.getDynamicClassLoader().loadClassFromFile(targetPackage + "." + filesInfo.getInvokerName(), String.format("file:%s/%s/%s.class", targetDir, targetPackage, filesInfo.getInvokerName()));
+            Class client = DynamicClassLoader.getDynamicClassLoader().loadClassFromFile(targetPackage + "." + filesInfo.getProxyName(), String.format("file:%s/%s/%s.class", targetDir, targetPackage, filesInfo.getProxyName()));
             // send classes over the network
             NamingInstaller lookup = (NamingInstaller) DefaultLookup.getInstance();
-            lookup.install(objName, new File(classPath + filesInfo.getInterfName()+".class"),
-                    new File(classPath + filesInfo.getInvokerName()+".class"));
+            lookup.install(objName, new File(String.format("%s%s.class", classPath, filesInfo.getInterfName())),
+                    new File(String.format("%s%s.class", classPath, filesInfo.getInvokerName())));
             return client;
         }
 
