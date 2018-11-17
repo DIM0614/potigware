@@ -1,6 +1,7 @@
 package br.ufrn.dimap.middleware.infrastructure.lifecycleManager.interfaces;
 
-
+import br.ufrn.dimap.middleware.identification.AbsoluteObjectReference;
+import br.ufrn.dimap.middleware.remotting.interfaces.Invoker;
 
 /**
  * The Interface ILifecycleManagement.
