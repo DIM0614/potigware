@@ -91,13 +91,10 @@ public class ClientInstaller {
         Generator.GeneratedFilesInfo filesInfo = Generator.generateFiles(idlPath, targetDir, DEFAULT_COMPLILER_TARGET_PACKAGE);
         // compile java files, generating thus the .class files
         String interfaceFile = String.format("%s/%s.java", DEFAULT_COMPLILER_TARGET_PACKAGE, filesInfo.getInterfName());
-        JavaCompilerUtils.compile(targetDir, interfaceFile);
-
         String invokerFile = String.format("%s/%s.java", DEFAULT_COMPLILER_TARGET_PACKAGE, filesInfo.getInvokerName());
-        JavaCompilerUtils.compile(targetDir, invokerFile);
-
         String proxyFile = String.format("%s/%s.java", DEFAULT_COMPLILER_TARGET_PACKAGE, filesInfo.getProxyName());
-        JavaCompilerUtils.compile(targetDir, proxyFile);
+
+        JavaCompilerUtils.compile(targetDir, interfaceFile, invokerFile, proxyFile);
 
         // load classes from the generated .class
         DynamicClassLoader dynamicClassLoader = DynamicClassLoader.getDynamicClassLoader();
@@ -106,9 +103,9 @@ public class ClientInstaller {
                 String.format("file:%s/%s/%s.class", targetDir, DEFAULT_COMPLILER_TARGET_PACKAGE, filesInfo.getInterfName()));
         dynamicClassLoader.loadClassFromFile(String.format("%s.%s", DEFAULT_COMPLILER_TARGET_PACKAGE, filesInfo.getInvokerName()),
                 String.format("file:%s/%s/%s.class", targetDir, DEFAULT_COMPLILER_TARGET_PACKAGE, filesInfo.getInvokerName()));
-
         Class client = dynamicClassLoader.loadClassFromFile(String.format("%s.%s", DEFAULT_COMPLILER_TARGET_PACKAGE, filesInfo.getProxyName()),
                 String.format("file:%s/%s/%s.class", targetDir, DEFAULT_COMPLILER_TARGET_PACKAGE, filesInfo.getProxyName()));
+
         // send classes over the network
         NamingInstaller lookup = (NamingInstaller) DefaultLookup.getInstance();
         lookup.install(objName, new File(String.format("%s%s.class", classPath, filesInfo.getInterfName())),
@@ -119,7 +116,7 @@ public class ClientInstaller {
 
     public static void main(String[] args) {
         try {
-            Class proxy = ClientInstaller.getInstance().install("math", "/home/vitorgreati/math.json");
+            Class proxy = ClientInstaller.getInstance().install("math", "C:\\Users\\Daniel\\IdeaProjects\\middlewareProjects\\interface-description-language\\src\\main\\java\\files\\example.json");
         } catch (InstallationException e) {
             Logger.getLogger(ClientInstaller.class.getName()).log(Level.SEVERE,e.getMessage(),e);
         }
