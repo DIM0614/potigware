@@ -1,21 +1,20 @@
 package br.ufrn.dimap.middleware.infrastructure.qos;
 
-import java.util.NavigableSet;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ConcurrentSkipListSet;
 
 import br.ufrn.dimap.middleware.remotting.impl.Invocation;
 
 public class QoSObserver implements Observer {
 	
 	private static final int maxSizeSet = 1000;
-	private ConcurrentMap<Invocation, LogInvocation> map;
-	private NavigableSet<LogInvocation> set;
+	private final ConcurrentMap<Invocation, LogInvocation> map;
+	private final Set<LogInvocation> set;
 	
 	public QoSObserver(){
 		this.map = new ConcurrentHashMap<Invocation, LogInvocation>();
-		this.set = new ConcurrentSkipListSet<LogInvocation>();
+		this.set = ConcurrentHashMap.<LogInvocation>newKeySet();
 	}
 	
 	@Override
