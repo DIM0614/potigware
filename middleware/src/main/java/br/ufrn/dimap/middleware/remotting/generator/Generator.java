@@ -35,7 +35,7 @@ import java.util.ArrayList;
 
 public class Generator {
 
-    private static void generateInterface(JSONObject file, Path path, String packageName) throws IOException, ClassNotFoundException {
+    private static String generateInterface(JSONObject file, Path path, String packageName) throws IOException, ClassNotFoundException {
         String interfaceName = (String )file.get("name");
         String interfaceDescription = (String )file.get("description");
 
@@ -83,9 +83,11 @@ public class Generator {
                 .build();
 
         javaFile.writeTo(path);
+
+        return interfaceName;
     }
 
-    private static void generateProxy(JSONObject file, Path path, String packageName) throws IOException, ClassNotFoundException {
+    private static String generateProxy(JSONObject file, Path path, String packageName) throws IOException, ClassNotFoundException {
         String className = (String )file.get("name");
         String classDescription = (String )file.get("description");
 
@@ -172,7 +174,9 @@ public class Generator {
                 .addStatement("this.r = new $T()", UnsyncRequestor.class)
                 .build();
 
-        TypeSpec classType = TypeSpec.classBuilder("Client" + className)
+        String proxyName = "Client" + className;
+
+        TypeSpec classType = TypeSpec.classBuilder(proxyName)
                 .addModifiers(Modifier.PUBLIC)
                 .addField(aor)
                 .addField(r)
@@ -187,9 +191,10 @@ public class Generator {
                 .build();
 
         javaFile.writeTo(path);
+        return proxyName;
     }
     
-    private static void generateInvoker(JSONObject file, Path path, String packageName) throws IOException, ClassNotFoundException {
+    private static String generateInvoker(JSONObject file, Path path, String packageName) throws IOException, ClassNotFoundException {
     	String className = (String )file.get("name");
         String classDescription = (String )file.get("description");
 
@@ -273,7 +278,9 @@ public class Generator {
 	             .addStatement("this.id =  id")
 	             .build();
 
-        TypeSpec classType = TypeSpec.classBuilder(className + "Invoker")
+        String invokerName = className + "Invoker";
+
+        TypeSpec classType = TypeSpec.classBuilder(invokerName)
                 .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
                 .addField(id)
                 .addMethod(constructor)
@@ -290,6 +297,7 @@ public class Generator {
                 .build();
 
         javaFile.writeTo(path);
+        return invokerName;
     }
     
     private static Type getType(String type) throws ClassNotFoundException {
@@ -334,21 +342,51 @@ public class Generator {
     }
 
     /**
-     * Method to generate the interface, client proxy and invoker for a specific description interface
+     *
+     *
+     */
+    public static class GeneratedFilesInfo {
+        final String interfName;
+        final String proxyName;
+        final String invokerName;
+
+        public GeneratedFilesInfo(final String interfName, final String proxyName, final String invokerName) {
+            this.interfName = interfName;
+            this.proxyName = proxyName;
+            this.invokerName = invokerName;
+        }
+
+        public String getInterfName() {
+            return interfName;
+        }
+
+        public String getProxyName() {
+            return proxyName;
+        }
+
+        public String getInvokerName() {
+            return invokerName;
+        }
+    }
+
+    /**
+     * Method to generate the interface, client proxy and invoker for a specific description interface.
+     *
      * @param interfaceDescriptionURL the path of interface description
      * @param pathToSave path to save the files
      * @param packageName package of files
      * @throws IOException
      * @throws ParseException
      */
-    public static void generateFiles(String interfaceDescriptionURL, String pathToSave, String packageName) throws IOException, ParseException, ClassNotFoundException {
+    public static GeneratedFilesInfo generateFiles(String interfaceDescriptionURL, String pathToSave, String packageName) throws IOException, ParseException, ClassNotFoundException {
         JSONParser parser = new JSONParser();
         Object obj = parser.parse(new FileReader(interfaceDescriptionURL));
         JSONObject jsonObject = (JSONObject) obj;
         Path path = Paths.get(pathToSave);
-        generateInterface(jsonObject, path, packageName);
-        generateProxy(jsonObject, path, packageName);
-        generateInvoker(jsonObject, path, packageName);
+        String interfName = generateInterface(jsonObject, path, packageName);
+        String proxyName = generateProxy(jsonObject, path, packageName);
+        String invokerName = generateInvoker(jsonObject, path, packageName);
+        return new GeneratedFilesInfo(interfName, proxyName, invokerName);
     }
 
     public Integer value(){

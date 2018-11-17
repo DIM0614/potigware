@@ -1,17 +1,12 @@
 package br.ufrn.dimap.middleware.identification.lookup;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutput;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
 import br.ufrn.dimap.middleware.identification.AbsoluteObjectReference;
 import br.ufrn.dimap.middleware.identification.ObjectId;
+import br.ufrn.dimap.middleware.remotting.interfaces.NamingInstaller;
 import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
 
 /**
@@ -28,7 +23,7 @@ import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
  * 
  * @author ireneginani thiagolucena
  */
-public class DefaultLookup implements Lookup {
+public class DefaultLookup implements Lookup, NamingInstaller {
 	
 	private Socket socket;
 	private DataOutputStream outToServer;
@@ -59,7 +54,12 @@ public class DefaultLookup implements Lookup {
         
         return w.getInstance();
 	}
-	
+
+	@Override
+	public void install(String objName, File interfaceFile, File invokerFile) {
+		//TODO
+	}
+
 	/**
 	 * 
 	 * Wraps the instance to allow final modifier
