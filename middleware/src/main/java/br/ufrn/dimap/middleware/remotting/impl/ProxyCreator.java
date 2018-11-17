@@ -2,12 +2,13 @@ package br.ufrn.dimap.middleware.remotting.impl;
 
 import br.ufrn.dimap.middleware.identification.AbsoluteObjectReference;
 import br.ufrn.dimap.middleware.identification.lookup.Lookup;
-import com.sun.xml.internal.ws.assembler.jaxws.TerminalTubeFactory;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.net.UnknownHostException;
 
 /**
- * Singleton used by clients to ease the intantiation of
+ * Singleton used by clients to ease the instantiation of
  * client proxies.
  *
  * @author vitorgreati
@@ -33,8 +34,11 @@ public class ProxyCreator {
      * @throws IllegalAccessException
      * @throws InvocationTargetException
      * @throws InstantiationException
+     * @throws IOException 
+     * @throws ClassNotFoundException 
+     * @throws UnknownHostException 
      */
-    public ClientProxy create(String objectName, Class<? extends ClientProxy> proxyClass) throws RemoteError, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    public ClientProxy create(String objectName, Class<? extends ClientProxy> proxyClass) throws RemoteError, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException, UnknownHostException, ClassNotFoundException, IOException {
         // get AOR
         AbsoluteObjectReference aor = lookup.find(objectName);
         // make proxy

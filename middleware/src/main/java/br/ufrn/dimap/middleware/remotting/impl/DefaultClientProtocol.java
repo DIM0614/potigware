@@ -18,7 +18,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import br.ufrn.dimap.middleware.remotting.interfaces.Callback;
-import br.ufrn.dimap.middleware.remotting.interfaces.ClientProtocolPlugin;
+import br.ufrn.dimap.middleware.extension.interfaces.ClientProtocolPlugIn;
 import br.ufrn.dimap.middleware.remotting.interfaces.Marshaller;
 import br.ufrn.dimap.middleware.remotting.interfaces.PollObject;
 
@@ -32,7 +32,7 @@ import br.ufrn.dimap.middleware.remotting.interfaces.PollObject;
  * 
  * @author victoragnez
  */
-public class DefaultClientProtocol implements ClientProtocolPlugin {
+public class DefaultClientProtocol implements ClientProtocolPlugIn {
 	
 	/**
 	 * ExecutorService to limit number of threads connecting to server

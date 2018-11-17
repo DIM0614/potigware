@@ -6,25 +6,36 @@ import br.ufrn.dimap.middleware.remotting.impl.UnsyncRequestor;
 import br.ufrn.dimap.middleware.remotting.interfaces.Callback;
 import br.ufrn.dimap.middleware.remotting.interfaces.InvocationAsynchronyPattern;
 import br.ufrn.dimap.middleware.remotting.interfaces.Requestor;
+import br.ufrn.dimap.middleware.remotting.impl.Invocation;
+import br.ufrn.dimap.middleware.remotting.interfaces.Invoker;
+
 import com.squareup.javapoet.*;
+import com.squareup.javapoet.MethodSpec.Builder;
+
+import com.sun.xml.internal.ws.util.StringUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import javax.lang.model.element.Modifier;
+import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 
 /**
  * This class generate interfaces, client proxies and invokers.
  *
  * @author Vinícius Campos
+ * @author Artur Curinga
  */
 
 public class Generator {
 
-    public void generateInterface(JSONObject file, Path path, String packageName) throws IOException {
+    private static void generateInterface(JSONObject file, Path path, String packageName) throws IOException, ClassNotFoundException {
         String interfaceName = (String )file.get("name");
         String interfaceDescription = (String )file.get("description");
 
@@ -74,7 +85,7 @@ public class Generator {
         javaFile.writeTo(path);
     }
 
-    public void generateProxy(JSONObject file, Path path, String packageName) throws IOException {
+    private static void generateProxy(JSONObject file, Path path, String packageName) throws IOException, ClassNotFoundException {
         String className = (String )file.get("name");
         String classDescription = (String )file.get("description");
 
@@ -177,37 +188,171 @@ public class Generator {
 
         javaFile.writeTo(path);
     }
+    
+    private static void generateInvoker(JSONObject file, Path path, String packageName) throws IOException, ClassNotFoundException {
+    	String className = (String )file.get("name");
+        String classDescription = (String )file.get("description");
 
-    private Type getType(String type){
-        if(type.equals("int")){
-            return Integer.class;
-        }else if(type.equals("float")){
-            return Float.class;
-        }else if(type.equals("boolean")){
-            return Boolean.class;
-        }else if(type.equals("string")){
-            return String.class;
-        }else if(type.equals("char")){
-            return Character.class;
+        Builder invoke = MethodSpec.methodBuilder("invoke")
+        		.returns(Object.class)
+    		   	.addModifiers(Modifier.PUBLIC)
+    		   	.addParameter(Invocation.class, "invocation")
+                .addException(ClassName.get("", "br.ufrn.dimap.middleware.remotting.impl.RemoteError"))
+        		.addStatement("Object[] params = invocation.getInvocationData().getActualParams()");
+        
+        JSONArray operations = (JSONArray) file.get("operations");
+        Iterable<MethodSpec> methods = new ArrayList<MethodSpec>();
+        for(int i = 0; i < operations.size(); ++i){
+            JSONObject method        = (JSONObject) operations.get(i);
+            String methodName        = (String) method.get("name");
+            String methodDescription = (String) method.get("description");
+            String methodReturn      = (String) method.get("return");
+            
+            String methodInReturn    = "return " + methodName + "(";
+            
+            invoke.beginControlFlow("if (invocation.getInvocationData().getOperationName().equals( \"" + methodName + "\" ))" );
+            	  
+            JSONArray params = (JSONArray) method.get("params");
+            Iterable<ParameterSpec> parameters = new ArrayList<ParameterSpec>();
+            for (int j = 0; j < params.size(); j++) {
+                JSONObject param        = (JSONObject) params.get(j);
+                String paramName        = (String) param.get("name");
+                String paramType        = (String) param.get("type");
+                String paramDescription = (String) param.get("description");            
+               
+                if(j != params.size() -1)
+                	methodInReturn += " (" + paramType + ") params[" + j + "], ";
+                else
+                	methodInReturn += " (" + paramType + ") params[" + j + "] ";
+                methodDescription += "\n@param " + paramName + " " + paramDescription;
+
+                ParameterSpec ps = ParameterSpec.builder(getType(paramType), paramName).build();
+                ((ArrayList<ParameterSpec>) parameters).add(ps);
+                
+                
+            }
+            	methodInReturn += ")";
+            invoke.addStatement(methodInReturn)
+                  .endControlFlow();
+
+            methodDescription += "\n@return " + methodReturn;
+
+            MethodSpec ms = MethodSpec.methodBuilder(methodName)
+                    .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                    .returns(getType(methodReturn))
+                    .addParameters(parameters)
+                    .addJavadoc(methodDescription)
+                    .addException(ClassName.get("", "br.ufrn.dimap.middleware.remotting.impl.RemoteError")) // change the real package name of class exception.RemoteError
+                    .build();
+            ((ArrayList<MethodSpec>) methods).add(ms);
         }
 
-        return void.class;
+        invoke.addStatement("return null");
+        
+        // Creating fields of aor and requestor
+        FieldSpec id = FieldSpec.builder(Integer.class, "id")
+                .addModifiers(Modifier.PRIVATE)
+                .build();
+
+        // Defining constructor of class
+        MethodSpec constructor = MethodSpec.constructorBuilder()
+                .addModifiers(Modifier.PUBLIC)
+                .addParameter(Integer.class, "id")
+                .addStatement("this.id = id")
+                .build();
+        
+        MethodSpec getId = MethodSpec.methodBuilder("getId")
+        				             .addModifiers(Modifier.PUBLIC)
+        				             .returns(Integer.class)
+        				             .addStatement("return id")
+        				             .build();
+        
+        MethodSpec setId = MethodSpec.methodBuilder("setId")
+	             .addModifiers(Modifier.PUBLIC)
+	             .addParameter(Integer.class, "id")
+	             .addStatement("this.id =  id")
+	             .build();
+
+        TypeSpec classType = TypeSpec.classBuilder(className + "Invoker")
+                .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                .addField(id)
+                .addMethod(constructor)
+                .addMethod(getId)
+                .addMethod(setId)
+                .addMethods(methods)
+                .addMethod(invoke.build())
+                .addJavadoc(classDescription)
+                .addSuperinterface(ClassName.get("", className))
+                .addSuperinterface(Invoker.class)
+                .build();
+
+        JavaFile javaFile = JavaFile.builder(packageName, classType)
+                .build();
+
+        javaFile.writeTo(path);
+    }
+    
+    private static Type getType(String type) throws ClassNotFoundException {
+        if(type.equals("void"))
+            return void.class;
+
+        String parts[] = type.split("\\[", 2);
+        if(parts.length == 1)
+            return Class.forName("java.lang." + getObjectType(type));
+        else{
+            String base = getObjectType(parts[0]);
+            int count = parts[1].length() - parts[1].replace("]",  "").length();
+            String squares = "";
+            for(int i = 0; i < count; ++i)
+                squares += "[";
+            return Class.forName(squares + "Ljava.lang." + base + ";");
+        }
     }
 
-    private String getCastType(String type){
-        if(type.equals("int")){
-            return "(Integer)";
-        }else if(type.equals("float")){
-            return "(Float)";
-        }else if(type.equals("boolean")){
-            return "(Boolean)";
-        }else if(type.equals("string")){
-            return "(String)";
-        }else if(type.equals("char")){
-            return "(Character)";
+    private static String getCastType(String type){
+        String parts[] = type.split("\\[", 2);
+        if(parts.length == 1)
+            return "(" + getObjectType(type) + ")";
+        else{
+            return "(" + getObjectType(parts[0]) + "[" + parts[1] + ")";
         }
+    }
 
-        return "(Void)";
+    private static String getObjectType(String baseType){
+        switch (baseType){
+            case "int":
+                return "Integer";
+            case "float":
+                return "Float";
+            case "bool":
+                return "Boolean";
+            case "char":
+                return "Character";
+            default:
+                return "String";
+        }
+    }
+
+    /**
+     * Method to generate the interface, client proxy and invoker for a specific description interface
+     * @param interfaceDescriptionURL the path of interface description
+     * @param pathToSave path to save the files
+     * @param packageName package of files
+     * @throws IOException
+     * @throws ParseException
+     */
+    public static void generateFiles(String interfaceDescriptionURL, String pathToSave, String packageName) throws IOException, ParseException, ClassNotFoundException {
+        JSONParser parser = new JSONParser();
+        Object obj = parser.parse(new FileReader(interfaceDescriptionURL));
+        JSONObject jsonObject = (JSONObject) obj;
+        Path path = Paths.get(pathToSave);
+        generateInterface(jsonObject, path, packageName);
+        generateProxy(jsonObject, path, packageName);
+        generateInvoker(jsonObject, path, packageName);
+    }
+
+    public Integer value(){
+        return 0;
     }
 
 }

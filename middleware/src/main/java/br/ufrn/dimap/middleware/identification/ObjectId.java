@@ -3,6 +3,9 @@ package br.ufrn.dimap.middleware.identification;
 
 import java.util.UUID;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+
 /**
  * Defines a valid (globally unique) identifier for each remote object instance, 
  * which is a 64-bit number value.
@@ -10,6 +13,7 @@ import java.util.UUID;
  * @author Yuri Alessandro Martins 
  * @version 1.0
  */
+@XmlAccessorType(XmlAccessType.FIELD)
 public class ObjectId {
 	
 	private UUID objectId;
