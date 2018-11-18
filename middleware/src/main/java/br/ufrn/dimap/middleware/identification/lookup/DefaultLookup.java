@@ -55,12 +55,17 @@ public class DefaultLookup implements Lookup, NamingInstaller {
         return w.getInstance();
 	}
 
-	@Override
-	public void install(String objName, File interfaceFile, File invokerFile) {
-		//TODO
-	}
+    @Override
+    public void installBase(File interfaceFile, File invokerFile) {
 
-	/**
+    }
+
+    @Override
+    public void installImplementation(String objName, File invokerFile) {
+
+    }
+
+    /**
 	 * 
 	 * Wraps the instance to allow final modifier
 	 * 

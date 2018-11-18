@@ -10,5 +10,5 @@ import java.io.File;
  */
 public interface NamingInstaller {
     void installBase(final File interfaceFile, final File invokerFile);
-    void installImplementation(String objName, final File interfaceFile, final File invokerFile);
+    void installImplementation(String objName, final File invokerFile);
 }
