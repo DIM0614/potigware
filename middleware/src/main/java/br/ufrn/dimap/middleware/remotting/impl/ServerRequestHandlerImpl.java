@@ -46,7 +46,7 @@ public class ServerRequestHandlerImpl implements ServerRequestHandler {
 	 */
 	@Override
 	public void init() {
-		protocol.init(port);
+		protocol.listen(port);
 	}
 
 	/*
@@ -54,7 +54,7 @@ public class ServerRequestHandlerImpl implements ServerRequestHandler {
 	 * @see br.ufrn.dimap.middleware.remotting.interfaces.ServerRequestHandler#shutdown()
 	 */
 	@Override
-	public void shutdown() {
+	public void shutdown() throws RemoteError {
 		protocol.shutdown();
 	}
 

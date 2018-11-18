@@ -1,5 +1,7 @@
 package br.ufrn.dimap.middleware.remotting.interfaces;
 
+import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
+
 /**
  * Interface for the Server Request Handler, 
  * responsible for managing connections with clients
@@ -22,6 +24,6 @@ public interface ServerRequestHandler {
 	/**
 	 * Shutdowns the handler
 	 */
-	public void shutdown();
+	public void shutdown() throws RemoteError;
 
 }
