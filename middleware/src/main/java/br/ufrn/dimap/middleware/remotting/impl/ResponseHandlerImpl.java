@@ -17,7 +17,7 @@ import br.ufrn.dimap.middleware.remotting.interfaces.ResponseHandler;
  */
 public class ResponseHandlerImpl implements ResponseHandler {
 	
-	private final Marshaller marshaller = null; //TODO instantiate marshaller
+	private final Marshaller marshaller = new XMLMarshaller(); 
 	private final LifecycleManager lifecycleManager = new LifecycleManagerImpl();
 	
 	/* (non-Javadoc)
