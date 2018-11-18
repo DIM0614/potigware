@@ -5,6 +5,12 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 
+/**
+ * Wraps connections and helps to deal with concurrent issues
+ * 
+ * @author victoragnez
+ *
+ */
 public class Connection {
 	private final Socket socket;
 	private final DataOutputStream outToServer;
@@ -34,8 +40,7 @@ public class Connection {
 	 * Closes the socket
 	 */
 	public synchronized void close() throws IOException {
-		if(!socket.isClosed())
-			socket.close();
+		socket.close();
 	}
 	
 	/**
