@@ -133,7 +133,7 @@ public class Generator {
 
             MethodSpec msCallback = MethodSpec.methodBuilder(methodName)
                     .addModifiers(Modifier.PUBLIC)
-                    .returns(getType("void"))
+                    .returns(void.class)
                     .addParameters(parameters)
                     .addParameter(Callback.class, "callback")
                     .addStatement("r.request(aor,\"" + methodName + "\",callback," + stringParams + ")")
@@ -293,9 +293,6 @@ public class Generator {
     }
     
     private static Type getType(String type) throws ClassNotFoundException {
-        if(type.equals("void"))
-            return void.class;
-
         String parts[] = type.split("\\[", 2);
         if(parts.length == 1)
             return Class.forName("java.lang." + getObjectType(type));
@@ -328,8 +325,10 @@ public class Generator {
                 return "Boolean";
             case "char":
                 return "Character";
-            default:
+            case "string":
                 return "String";
+            default:
+                return "Void";
         }
     }
 
@@ -350,9 +349,4 @@ public class Generator {
         generateProxy(jsonObject, path, packageName);
         generateInvoker(jsonObject, path, packageName);
     }
-
-    public Integer value(){
-        return 0;
-    }
-
 }
