@@ -3,15 +3,13 @@ package br.ufrn.dimap.middleware.installer;
 import br.ufrn.dimap.middleware.identification.lookup.DefaultLookup;
 import br.ufrn.dimap.middleware.remotting.generator.Generator;
 import br.ufrn.dimap.middleware.remotting.impl.ClientProxy;
-import br.ufrn.dimap.middleware.remotting.impl.ProxyCreator;
 import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
 import br.ufrn.dimap.middleware.remotting.interfaces.Invoker;
 import br.ufrn.dimap.middleware.remotting.interfaces.NamingInstaller;
 import br.ufrn.dimap.middleware.utils.Wrapper;
 import br.ufrn.dimap.middleware.utils.classloader.DynamicClassLoader;
 import br.ufrn.dimap.middleware.utils.compiler.JavaCompilerUtils;
-import generated.MathImpl;
-import generated.MathInvoker;
+
 import org.json.simple.parser.ParseException;
 
 import java.io.File;
@@ -33,7 +31,14 @@ public class ClientInstaller {
     /**
      * Represents the location where the compiled files are placed.
      */
-    private static final String DEFAULT_COMPILER_TARGET_PACKAGE = "generated";
+    static final String DEFAULT_COMPILER_TARGET_PACKAGE = "generated";
+
+    private final DynamicClassLoader dynamicClassLoader = DynamicClassLoader.getDynamicClassLoader();
+
+    /**
+     * Instance logger for the client installer.
+     */
+    private Logger logger = Logger.getLogger(ClientInstaller.class.getName());
 
     /**
      * Private constructor for the singleton instance.
@@ -71,40 +76,22 @@ public class ClientInstaller {
      *
      * @param idlPath
      */
-    public Class<? extends ClientProxy> install(final String idlPath) throws InstallationException {
+    public InstallationResult install(final String idlPath, String remoteObjectName, String invokerName) throws InstallationException {
         try {
-            return installInternal(idlPath);
-        } catch (IOException | ParseException | ClassNotFoundException e) {
-            throw new InstallationException(e);
-        }
-    }
 
-    /**
-     * Takes an Invoker implementation and the object id, binding them
-     * to the naming service.
-     *
-     * @param idlPath
-     */
-    public void install(final String objName, final Class<? extends Invoker> invokerImpl) throws InstallationException {
-        try {
-            installImplementation(objName, invokerImpl);
-        } catch (IOException | ClassNotFoundException | NoSuchMethodException | RemoteError | IllegalAccessException | InstantiationException | InvocationTargetException e) {
-            throw new InstallationException(e);
-        }
-    }
+            logger.log(Level.INFO,"Generating and loading the invoker stub.");
 
+            Class<? extends ClientProxy> clientProxyClass = installStub(idlPath);
 
-    /**
-     * Takes an Invoker implementation and the object id, binding them
-     * to the naming service.
-     *
-     * @param idlPath
-     */
-    public <T extends ClientProxy> T install(final String objName, final Class<? extends Invoker> invokerImpl, final Class<T> proxyToReturn) throws InstallationException {
-        try {
-            installImplementation(objName, invokerImpl);
-            return (T) ProxyCreator.getInstance().create(objName, proxyToReturn);
-        } catch (IOException | ClassNotFoundException | NoSuchMethodException | RemoteError | IllegalAccessException | InstantiationException | InvocationTargetException e) {
+            logger.log(Level.INFO,"Compiling and loading the invoker implementation.");
+
+            Class invokerClass = installImplementation(remoteObjectName, invokerName);
+
+            logger.log(Level.INFO,"Implementation generation has completed with success.");
+
+            return new InstallationResult(invokerClass, clientProxyClass);
+
+        } catch (IOException | ClassNotFoundException | ParseException e) {
             throw new InstallationException(e);
         }
     }
@@ -116,7 +103,7 @@ public class ClientInstaller {
      * the interface was already loaded in the naming service.
      *
      * @param objName
-     * @param invokerImpl
+     *
      * @throws NoSuchMethodException
      * @throws RemoteError
      * @throws IllegalAccessException
@@ -125,18 +112,17 @@ public class ClientInstaller {
      * @throws InvocationTargetException
      * @throws ClassNotFoundException
      */
-    public void installImplementation(final String objName, Class<? extends Invoker> invokerImpl) throws NoSuchMethodException, RemoteError, IllegalAccessException, InstantiationException, IOException, InvocationTargetException, ClassNotFoundException {
+    public Class installImplementation(final String objName, String implementationClass){
 
-        String implPath = getClassResource(invokerImpl);
+        //String implPath = getClassResource(invokerImpl);
+        JavaCompilerUtils.compile(InstalationConfig.getTargetDir(), InstalationConfig.getSourcecodeFilePath(implementationClass));
+        Class clazz = dynamicClassLoader.loadClassFromFile(InstalationConfig.getClassname(implementationClass),InstalationConfig.getClassFileLocation(InstalationConfig.getTargetDir(), implementationClass));
 
         // send classes over the network
         NamingInstaller lookup = (NamingInstaller) DefaultLookup.getInstance();
-        lookup.installImplementation(objName, new File(implPath));
-    }
+        lookup.installImplementation(objName, new File(implementationClass));
 
-    private String getClassResource(Class<?> klass) {
-        return klass.getClassLoader().getResource(
-                klass.getName().replace('.', '/') + ".class").toString();
+        return clazz;
     }
 
     /**
@@ -145,15 +131,14 @@ public class ClientInstaller {
      *
      * @param idlPath
      */
-    private Class<? extends ClientProxy> installInternal(String idlPath) throws InstallationException, IOException, ParseException, ClassNotFoundException {
-        String targetDir = getTargetDir();
+    private Class<? extends ClientProxy> installStub(String idlPath) throws IOException, ParseException, ClassNotFoundException {
+        String targetDir = InstalationConfig.getTargetDir();
 
-        String classPath = getClasspathLocation(targetDir);
+        String classPath = InstalationConfig.getClasspathLocation(targetDir);
 
         Generator.GeneratedFilesInfo filesInfo = Generator.generateFiles(idlPath, targetDir, DEFAULT_COMPILER_TARGET_PACKAGE);
         compileClassFiles(targetDir, filesInfo);
 
-        DynamicClassLoader dynamicClassLoader = DynamicClassLoader.getDynamicClassLoader();
         Class clientProxy = loadClasses(targetDir, filesInfo, dynamicClassLoader);
 
         // send classes over the network
@@ -172,17 +157,17 @@ public class ClientInstaller {
      * @param dynamicClassLoader
      */
     private Class<? extends ClientProxy> loadClasses(String targetDir, Generator.GeneratedFilesInfo filesInfo, DynamicClassLoader dynamicClassLoader) {
-        String interfaceClassname = getClassname(filesInfo.getInterfName());
-        String invokerClassname = getClassname(filesInfo.getInvokerName());
+        String interfaceClassname = InstalationConfig.getClassname(filesInfo.getInterfName());
+        String invokerClassname = InstalationConfig.getClassname(filesInfo.getInvokerName());
 
-        String interfaceLocation = getClassFileLocation(targetDir, filesInfo.getInterfName());
-        String invokerLocation = getClassFileLocation(targetDir, filesInfo.getInvokerName());
+        String interfaceLocation = InstalationConfig.getClassFileLocation(targetDir, filesInfo.getInterfName());
+        String invokerLocation = InstalationConfig.getClassFileLocation(targetDir, filesInfo.getInvokerName());
 
         dynamicClassLoader.loadClassFromFile(interfaceClassname, interfaceLocation);
         dynamicClassLoader.loadClassFromFile(invokerClassname, invokerLocation);
 
-        String proxyClassname = getClassname(filesInfo.getProxyName());
-        String proxyLocation = getClassFileLocation(targetDir, filesInfo.getProxyName());
+        String proxyClassname = InstalationConfig.getClassname(filesInfo.getProxyName());
+        String proxyLocation = InstalationConfig.getClassFileLocation(targetDir, filesInfo.getProxyName());
 
         return dynamicClassLoader.loadClassFromFile(proxyClassname, proxyLocation);
     }
@@ -194,39 +179,50 @@ public class ClientInstaller {
      * @param filesInfo
      */
     private void compileClassFiles(String targetDir, Generator.GeneratedFilesInfo filesInfo) {
-        String interfaceSourceCode = getSourcecodeFilePath(filesInfo.getInterfName());
-        String invokerSourceCode = getSourcecodeFilePath(filesInfo.getInvokerName());
-        String proxySourcecode = getSourcecodeFilePath(filesInfo.getProxyName());
+        String interfaceSourceCode = InstalationConfig.getSourcecodeFilePath(filesInfo.getInterfName());
+        String invokerSourceCode = InstalationConfig.getSourcecodeFilePath(filesInfo.getInvokerName());
+        String proxySourcecode = InstalationConfig.getSourcecodeFilePath(filesInfo.getProxyName());
 
         JavaCompilerUtils.compile(targetDir, interfaceSourceCode, invokerSourceCode, proxySourcecode);
     }
 
-    private String getClasspathLocation(String targetDir) {
-        return String.format("%s/%s/", targetDir, DEFAULT_COMPILER_TARGET_PACKAGE);
-    }
-
-    private String getTargetDir() {
-        return String.format("%s/src/main/java/", System.getProperty("user.dir"));
-    }
-
-    private String getClassFileLocation(String targetDir, String classname) {
-        return String.format("file:%s/%s/%s.class", targetDir, DEFAULT_COMPILER_TARGET_PACKAGE, classname);
-    }
-
-    private String getClassname(String classname) {
-        return String.format("%s.%s", DEFAULT_COMPILER_TARGET_PACKAGE, classname);
-    }
-
-    private String getSourcecodeFilePath(String className) {
-        return String.format("%s/%s.java", DEFAULT_COMPILER_TARGET_PACKAGE, className);
-    }
-
     public static void main(String[] args) {
         try {
-            Class clientProxyClass = ClientInstaller.getInstance().install("C:\\Users\\Daniel\\IdeaProjects\\middlewareProjects\\interface-description-language\\src\\main\\java\\files\\example.json");
-            ClientProxy clientProxy = ClientInstaller.getInstance().install("abc", MathImpl.class, clientProxyClass);
+            String idlPath = args[0];
+            String invokerName = args[1];
+            String remoteObjectName = args[2];
+
+            //EXAMPLE
+            //String idlPath = "C:\\Users\\Daniel\\IdeaProjects\\middlewareProjects\\interface-description-language\\src\\main\\java\\files\\example.json";
+            //String invokerName = "MathImpl";
+            //String remoteObjectName = "Math";
+
+            InstallationResult installationResult = ClientInstaller.getInstance().install(idlPath, remoteObjectName,invokerName);
+
+            Class clientProxyClass = installationResult.getClientProxyClass();
+            Class invokerClass = installationResult.getInvokerClass();
+
         } catch (InstallationException e) {
             Logger.getLogger(ClientInstaller.class.getName()).log(Level.SEVERE,e.getMessage(),e);
+        }
+    }
+
+    class InstallationResult{
+
+        private final Class<? extends Invoker> invokerClass;
+        private final Class<? extends ClientProxy> clientProxyClass;
+
+        InstallationResult(Class invokerClass, Class clientProxyClass) {
+            this.invokerClass = invokerClass;
+            this.clientProxyClass = clientProxyClass;
+        }
+
+        public Class getInvokerClass() {
+            return invokerClass;
+        }
+
+        public Class getClientProxyClass() {
+            return clientProxyClass;
         }
     }
 
