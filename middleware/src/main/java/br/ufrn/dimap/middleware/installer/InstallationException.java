@@ -19,4 +19,8 @@ public class InstallationException extends Throwable {
     public InstallationException(Throwable cause) {
         super(INSTALLATION_EXCEPTION_DEFAULT_MESSAGE,cause);
     }
+
+    public InstallationException(String message) {
+        super(message);
+    }
 }

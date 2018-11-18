@@ -27,7 +27,7 @@ public class ClientInstaller {
     /**
      * Represents the location where the compiled files are placed.
      */
-    public static final String DEFAULT_COMPLILER_TARGET_PACKAGE = "generated";
+    private static final String DEFAULT_COMPILER_TARGET_PACKAGE = "generated";
 
     /**
      * Private constructor for the singleton instance.
@@ -50,7 +50,7 @@ public class ClientInstaller {
             synchronized (ClientInstaller.class) {
                 w = wrapper;
                 if (w == null) { // check 2
-                    w = new Wrapper<ClientInstaller>(new ClientInstaller());
+                    w = new Wrapper<>(new ClientInstaller());
                     wrapper = w;
                 }
             }
@@ -65,14 +65,10 @@ public class ClientInstaller {
      *
      * @param idlPath
      */
-    public Class<? extends ClientProxy> install(final String objName, final String idlPath) throws InstallationException {
+    public Class install(final String objName, final String idlPath) throws InstallationException {
         try {
             return installInternal(objName, idlPath);
-        } catch (IOException e) {
-            throw new InstallationException(e);
-        } catch (ParseException e) {
-            throw new InstallationException(e);
-        } catch (ClassNotFoundException e) {
+        } catch (IOException | ParseException | ClassNotFoundException e) {
             throw new InstallationException(e);
         }
     }
@@ -83,35 +79,86 @@ public class ClientInstaller {
      *
      * @param idlPath
      */
-    private Class<? extends ClientProxy> installInternal(String objName, String idlPath) throws IOException, ParseException, ClassNotFoundException {
-        String targetDir = String.format("%s/src/main/java/", System.getProperty("user.dir"));
-        String classPath = String.format("%s/%s/", targetDir, DEFAULT_COMPLILER_TARGET_PACKAGE);
+    private Class installInternal(String remoteObjectName, String idlPath) throws InstallationException, IOException, ParseException, ClassNotFoundException {
+        String targetDir = getTargetDir();
 
-        // generate java files
-        Generator.GeneratedFilesInfo filesInfo = Generator.generateFiles(idlPath, targetDir, DEFAULT_COMPLILER_TARGET_PACKAGE);
-        // compile java files, generating thus the .class files
-        String interfaceFile = String.format("%s/%s.java", DEFAULT_COMPLILER_TARGET_PACKAGE, filesInfo.getInterfName());
-        String invokerFile = String.format("%s/%s.java", DEFAULT_COMPLILER_TARGET_PACKAGE, filesInfo.getInvokerName());
-        String proxyFile = String.format("%s/%s.java", DEFAULT_COMPLILER_TARGET_PACKAGE, filesInfo.getProxyName());
+        String classPath = getClasspathLocation(targetDir);
 
-        JavaCompilerUtils.compile(targetDir, interfaceFile, invokerFile, proxyFile);
+        Generator.GeneratedFilesInfo filesInfo = Generator.generateFiles(idlPath, targetDir, DEFAULT_COMPILER_TARGET_PACKAGE);
+        compileClassFiles(targetDir, filesInfo);
 
-        // load classes from the generated .class
         DynamicClassLoader dynamicClassLoader = DynamicClassLoader.getDynamicClassLoader();
-
-        dynamicClassLoader.loadClassFromFile(String.format("%s.%s", DEFAULT_COMPLILER_TARGET_PACKAGE, filesInfo.getInterfName()),
-                String.format("file:%s/%s/%s.class", targetDir, DEFAULT_COMPLILER_TARGET_PACKAGE, filesInfo.getInterfName()));
-        dynamicClassLoader.loadClassFromFile(String.format("%s.%s", DEFAULT_COMPLILER_TARGET_PACKAGE, filesInfo.getInvokerName()),
-                String.format("file:%s/%s/%s.class", targetDir, DEFAULT_COMPLILER_TARGET_PACKAGE, filesInfo.getInvokerName()));
-        Class client = dynamicClassLoader.loadClassFromFile(String.format("%s.%s", DEFAULT_COMPLILER_TARGET_PACKAGE, filesInfo.getProxyName()),
-                String.format("file:%s/%s/%s.class", targetDir, DEFAULT_COMPLILER_TARGET_PACKAGE, filesInfo.getProxyName()));
+        loadClasses(targetDir, filesInfo, dynamicClassLoader);
 
         // send classes over the network
         NamingInstaller lookup = (NamingInstaller) DefaultLookup.getInstance();
-        lookup.install(objName, new File(String.format("%s%s.class", classPath, filesInfo.getInterfName())),
+        lookup.install(remoteObjectName, new File(String.format("%s%s.class", classPath, filesInfo.getInterfName())),
                 new File(String.format("%s%s.class", classPath, filesInfo.getInvokerName())));
 
-        return client;
+        Class clientProxyClass = Class.forName(getClassname(filesInfo.getProxyName()), true, dynamicClassLoader);
+
+        if(!ClientProxy.class.isAssignableFrom(clientProxyClass)){
+            throw new InstallationException("The provided client proxy doesn't inherits the base client proxy class");
+        }
+
+        return clientProxyClass;
+    }
+
+    /**
+     * Load classes from the generated .class
+     *
+     * @param targetDir
+     * @param filesInfo
+     * @param dynamicClassLoader
+     */
+    private void loadClasses(String targetDir, Generator.GeneratedFilesInfo filesInfo, DynamicClassLoader dynamicClassLoader) {
+        String interfaceClassname = getClassname(filesInfo.getInterfName());
+        String invokerClassname = getClassname(filesInfo.getInvokerName());
+
+        String interfaceLocation = getClassFileLocation(targetDir, filesInfo.getInterfName());
+        String invokerLocation = getClassFileLocation(targetDir, filesInfo.getInvokerName());
+
+        dynamicClassLoader.loadClassFromFile(interfaceClassname, interfaceLocation);
+        dynamicClassLoader.loadClassFromFile(invokerClassname, invokerLocation);
+
+        String proxyClassname = getClassname(filesInfo.getProxyName());
+        String proxyLocation = getClassFileLocation(targetDir, filesInfo.getProxyName());
+
+        dynamicClassLoader.loadClassFromFile(proxyClassname, proxyLocation);
+    }
+
+    /**
+     * Compile java files, generating thus the .class files
+     *
+     * @param targetDir
+     * @param filesInfo
+     */
+    private void compileClassFiles(String targetDir, Generator.GeneratedFilesInfo filesInfo) {
+        String interfaceSourceCode = getSourcecodeFilePath(filesInfo.getInterfName());
+        String invokerSourceCode = getSourcecodeFilePath(filesInfo.getInvokerName());
+        String proxySourcecode = getSourcecodeFilePath(filesInfo.getProxyName());
+
+        JavaCompilerUtils.compile(targetDir, interfaceSourceCode, invokerSourceCode, proxySourcecode);
+    }
+
+    private String getClasspathLocation(String targetDir) {
+        return String.format("%s/%s/", targetDir, DEFAULT_COMPILER_TARGET_PACKAGE);
+    }
+
+    private String getTargetDir() {
+        return String.format("%s/src/main/java/", System.getProperty("user.dir"));
+    }
+
+    private String getClassFileLocation(String targetDir, String classname) {
+        return String.format("file:%s/%s/%s.class", targetDir, DEFAULT_COMPILER_TARGET_PACKAGE, classname);
+    }
+
+    private String getClassname(String classname) {
+        return String.format("%s.%s", DEFAULT_COMPILER_TARGET_PACKAGE, classname);
+    }
+
+    private String getSourcecodeFilePath(String className) {
+        return String.format("%s/%s.java", DEFAULT_COMPILER_TARGET_PACKAGE, className);
     }
 
     public static void main(String[] args) {
