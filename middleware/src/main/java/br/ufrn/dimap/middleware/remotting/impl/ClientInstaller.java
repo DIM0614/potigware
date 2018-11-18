@@ -2,6 +2,7 @@ package br.ufrn.dimap.middleware.remotting.impl;
 
 import br.ufrn.dimap.middleware.identification.lookup.DefaultLookup;
 import br.ufrn.dimap.middleware.remotting.generator.Generator;
+import br.ufrn.dimap.middleware.remotting.interfaces.Invoker;
 import br.ufrn.dimap.middleware.remotting.interfaces.NamingInstaller;
 import br.ufrn.dimap.middleware.utils.classloader.DynamicClassLoader;
 import org.json.simple.parser.ParseException;
@@ -11,6 +12,7 @@ import javax.tools.ToolProvider;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URL;
 
 /**
  * Provides an easy way to installer an IDL-specified interface in the server.
@@ -27,8 +29,7 @@ public class ClientInstaller {
      *
      * @param idlPath
      */
-    public Class<? extends  ClientProxy> install(final String objName, final String idlPath) throws ParseException, IOException, ClassNotFoundException, RemoteError, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-
+    public void installBase(final String idlPath) throws ParseException, IOException, ClassNotFoundException {
         String targetDir = System.getProperty("user.dir") + "/src/main/java/";
         String targetPackage = "generated";
         String classPath = targetDir + "/" + targetPackage + "/";
@@ -46,10 +47,15 @@ public class ClientInstaller {
             Class client = DynamicClassLoader.getDynamicClassLoader().loadClassFromFile(targetPackage + "." + filesInfo.getProxyName(), targetDir + filesInfo.getProxyName() + ".class");
             // send classes over the network
             NamingInstaller lookup = (NamingInstaller) DefaultLookup.getInstance();
-            lookup.install(objName, new File(classPath + filesInfo.getInterfName()+".class"),
+            lookup.installBase(new File(classPath + filesInfo.getInterfName()+".class"),
                     new File(classPath + filesInfo.getInvokerName()+".class"));
-            return client;
         }
+    }
+
+
+    public <T extends Invoker> Class<? extends  ClientProxy> installImplementation(final String objName, Class<T> invokerImpl) throws ParseException, IOException, ClassNotFoundException, RemoteError, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        // Retrieve .class url in the client
+        URL url = invokerImpl.getProtectionDomain().getCodeSource().getLocation();
 
         return null;
     }
