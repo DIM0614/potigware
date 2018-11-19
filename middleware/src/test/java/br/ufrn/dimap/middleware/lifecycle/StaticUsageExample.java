@@ -1,14 +1,15 @@
 package br.ufrn.dimap.middleware.lifecycle;
 
-import br.ufrn.dimap.middleware.lifecycle.statictest.NonStaticClassExample;
-import br.ufrn.dimap.middleware.lifecycle.statictest.StaticClassExample;
+import br.ufrn.dimap.middleware.lifecycle.staticexample.NonStaticClassExample;
+import br.ufrn.dimap.middleware.lifecycle.staticexample.StaticClassExample;
 
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
 /**
- * Class for testing separating classes that are annotated with @Static and those who are not.
+ * Class for testing separating classes that are annotated with @Static and
+ * those who are not.
  * <p>
  * Example: https://marcin-chwedczuk.github.io/creating-and-using-adnotations-in-java
  */
@@ -48,7 +49,8 @@ public class StaticUsageExample {
     }
 
     /**
-     * Simulates the class loader behavior, should load app classes from package or project.
+     * Simulates the class loader behavior, should load app classes from package
+     * or project.
      *
      * @return a list of classes from package or project
      */
