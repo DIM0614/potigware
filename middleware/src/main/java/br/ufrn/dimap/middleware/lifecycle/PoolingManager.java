@@ -1,16 +1,22 @@
 package br.ufrn.dimap.middleware.lifecycle;
 
-import jdk.nashorn.internal.ir.RuntimeNode;
-
-import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Queue;
 
-public class PoolingManager<T extends PerRequest> implements PoolingI<T> {
-
-    private String type;
-    private int size;
+/**
+ * Implements the pooling manager to provide servants to the Lifecycle Manager.
+ * 
+ * @author André Winston
+ * @author Carlos Antônio
+ * @author Gabriel Victor
+ * @author Pedro Henrique
+ * @author Wilson Farias
+ * @version 1.1
+ *
+ * @param <T>
+ */
+public class PoolingManager<T> implements PoolingI<T>{
+	
     private Queue<T> pool = new LinkedList<>();
 
     /**
@@ -20,9 +26,6 @@ public class PoolingManager<T extends PerRequest> implements PoolingI<T> {
      * @param size the size of the pool
      */
     public PoolingManager(String type, int size) {
-        this.type = type;
-        this.size = size;
-
         Class<?> aClass;
         try {
             aClass = Class.forName(type);
@@ -49,6 +52,11 @@ public class PoolingManager<T extends PerRequest> implements PoolingI<T> {
         return pool.add(pooledServant);
     }
 
+    /**
+     * This method gets an instance from the pool.
+     * 
+     * @return A servant
+     */
     @Override
     public T getFreeInstance() {
         return removeFromPool();
@@ -66,7 +74,6 @@ public class PoolingManager<T extends PerRequest> implements PoolingI<T> {
                 try {
                     pool.wait();
                 } catch (InterruptedException e) {
-                    //FIXME: Má prática
                     Thread.interrupted();
                 }
             }
@@ -75,18 +82,34 @@ public class PoolingManager<T extends PerRequest> implements PoolingI<T> {
         }
     }
 
+    /**
+     * Public method used by the LifecycleManager to put a servant back into the pool
+     * 
+     * @param pooledServant will be the servant to be placed back to the pool.
+     */
     @Override
-    public boolean putBackToPool(T pooledServant) {
-        boolean success = addPoolInstance(pooledServant);
-
-        if (success) {
-            pool.notifyAll();
-        }
-        return success;
+    public void putBackToPool(T pooledServant) {
+    	new Thread(() -> {
+    		putBackToPoolP(pooledServant);
+    	}).start();
     }
 
-    //TODO: putBackToPool private with synchronized access
+    /**
+     * Private method used to put a servant back into the pool and notify the requests waiting for a servant
+     * @param pooledServant will be the servant to be placed back to the pool
+     * @return true if successful, false if not
+     */
     private boolean putBackToPoolP(T pooledServant) {
-        return false;
+    	boolean success = false;
+    	
+    	synchronized (pool) {
+    		success = addPoolInstance(pooledServant);
+
+            if (success) {
+                pool.notifyAll();
+            }
+		}
+        
+        return success;
     }
 }

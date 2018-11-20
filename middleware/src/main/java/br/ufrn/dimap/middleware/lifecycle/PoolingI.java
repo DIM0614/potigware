@@ -7,7 +7,7 @@ package br.ufrn.dimap.middleware.lifecycle;
  * @author Gabriel Victor
  * @version 1.0
  */
-public interface PoolingI<T extends PerRequest> {
+public interface PoolingI<T> {
     /**
      * This method will access a pool of objects and return a free object if it
      * is the case.
@@ -21,6 +21,6 @@ public interface PoolingI<T extends PerRequest> {
      *
      * @param pooledServant used object to be returned to the pool;
      */
-    boolean putBackToPool(T pooledServant);
+    void putBackToPool(T pooledServant);
 
 }
