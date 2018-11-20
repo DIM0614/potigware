@@ -3,8 +3,15 @@ package br.ufrn.dimap.middleware.lifecycle;
 import br.ufrn.dimap.middleware.identification.ObjectId;
 import br.ufrn.dimap.middleware.remotting.interfaces.Invoker;
 
-public class PerRequestLifeCycleManager implements PerRequestLifeCycleManagerI{
+/**
+ * The early implementation of the PerRequest manager.
+ * 
+ * @author Gabriel Victor
+ * @version 0.1
+ */
 
+public class PerRequestLifeCycleManager implements PerRequestLifeCycleManagerI{
+	
 	@Override
 	public Servant InvocationArrived(ObjectId objectId, Invoker obj) {
 		Servant pooledServant = PoolingI.getFreeInstance();
