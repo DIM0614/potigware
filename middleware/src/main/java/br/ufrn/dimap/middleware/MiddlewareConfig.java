@@ -5,6 +5,7 @@ package br.ufrn.dimap.middleware;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -21,7 +22,7 @@ import br.ufrn.dimap.middleware.extension.interfaces.ServerProtocolPlugin;
  * @author Gustavo Carvalho
  *
  */
-public class MiddlewareConfig {
+public final class MiddlewareConfig {
 	
 	/**
 	 * This nested class holds the information regarding the interceptors of the framework
@@ -29,10 +30,36 @@ public class MiddlewareConfig {
 	 * @author Gustavo Carvalho
 	 */
 	public static class Interceptors {
-		private static final Collection<InvocationInterceptorUnserialized> clientInvocationInteceptors = new ConcurrentLinkedQueue<>();
-		private static final Collection<InvocationInterceptorUnserialized> serverInvocationInteceptors = new ConcurrentLinkedQueue<>();
-		private static final Collection<InvocationInterceptorSerialized> clientRequestInteceptors = new ConcurrentLinkedQueue<>();
-		private static final Collection<InvocationInterceptorSerialized> serverRequestInteceptors = new ConcurrentLinkedQueue<>();
+		private Interceptors() {}
+		
+		/**
+		 * Wraps the instance
+		 */
+		private static Wrapper<Interceptors> wrapper;
+		
+		/**
+		 * Creates a single instance, guarantees safe publication
+		 * @return
+		 */
+		public static Interceptors getInstance () {
+			Wrapper<Interceptors> w = wrapper;
+	        if (w == null) { // check 1
+	        	synchronized (ProtocolPlugins.class) {
+	        		w = wrapper;
+	        		if (w == null) { // check 2
+	        			w = new Wrapper<Interceptors>(new Interceptors());
+	        			wrapper = w;
+	        		}
+	        	}
+	        }
+	        
+	        return w.getInstance();
+		}
+		
+		private final Queue<InvocationInterceptorUnserialized> clientInvocationInteceptors = new ConcurrentLinkedQueue<>();
+		private final Queue<InvocationInterceptorUnserialized> serverInvocationInteceptors = new ConcurrentLinkedQueue<>();
+		private final Queue<InvocationInterceptorSerialized> clientRequestInteceptors = new ConcurrentLinkedQueue<>();
+		private final Queue<InvocationInterceptorSerialized> serverRequestInteceptors = new ConcurrentLinkedQueue<>();
 		
 		/**
 		 * Registers an interceptor to be executed by the client on an
@@ -40,7 +67,7 @@ public class MiddlewareConfig {
 		 * 
 		 * @param interceptor interceptor to be registered
 		 */
-		public static void registerClientInvocationInterceptor(InvocationInterceptorUnserialized interceptor) {
+		public void registerClientInvocationInterceptor(InvocationInterceptorUnserialized interceptor) {
 			clientInvocationInteceptors.add(interceptor);
 		}
 		
@@ -50,7 +77,7 @@ public class MiddlewareConfig {
 		 * 
 		 * @param interceptor interceptor to be registered
 		 */
-		public static void registerServerInvocationInterceptor(InvocationInterceptorUnserialized interceptor) {
+		public void registerServerInvocationInterceptor(InvocationInterceptorUnserialized interceptor) {
 			serverInvocationInteceptors.add(interceptor);
 		}
 		
@@ -60,7 +87,7 @@ public class MiddlewareConfig {
 		 * 
 		 * @param interceptor interceptor to be registered
 		 */
-		public static void registerClientRequestInterceptor(InvocationInterceptorSerialized interceptor) {
+		public void registerClientRequestInterceptor(InvocationInterceptorSerialized interceptor) {
 			clientRequestInteceptors.add(interceptor);
 		}
 	
@@ -70,7 +97,7 @@ public class MiddlewareConfig {
 		 * 
 		 * @param interceptor interceptor to be registered
 		 */
-		public static void registerServerRequestInterceptor(InvocationInterceptorSerialized interceptor) {
+		public void registerServerRequestInterceptor(InvocationInterceptorSerialized interceptor) {
 			serverRequestInteceptors.add(interceptor);
 		}
 
@@ -79,7 +106,7 @@ public class MiddlewareConfig {
 		 * they must be applied
 		 * @return the interceptor collection
 		 */
-		public static Collection<InvocationInterceptorUnserialized> getClientinvocationinteceptors() {
+		public Collection<InvocationInterceptorUnserialized> getClientInvocationinteceptors() {
 			return clientInvocationInteceptors;
 		}
 
@@ -88,7 +115,7 @@ public class MiddlewareConfig {
 		 * they must be applied
 		 * @return the interceptor collection
 		 */
-		public static Collection<InvocationInterceptorUnserialized> getServerinvocationinteceptors() {
+		public Collection<InvocationInterceptorUnserialized> getServerInvocationinteceptors() {
 			return serverInvocationInteceptors;
 		}
 
@@ -97,7 +124,7 @@ public class MiddlewareConfig {
 		 * they must be applied
 		 * @return the interceptor collection
 		 */
-		public static Collection<InvocationInterceptorSerialized> getClientrequestinteceptors() {
+		public Collection<InvocationInterceptorSerialized> getClientrequestInteceptors() {
 			return clientRequestInteceptors;
 		}
 
@@ -106,7 +133,7 @@ public class MiddlewareConfig {
 		 * they must be applied
 		 * @return the interceptor collection
 		 */
-		public static Collection<InvocationInterceptorSerialized> getServerrequestinteceptors() {
+		public Collection<InvocationInterceptorSerialized> getServerrequestInteceptors() {
 			return serverRequestInteceptors;
 		}
 	}
@@ -117,8 +144,34 @@ public class MiddlewareConfig {
 	 * @author Gustavo Carvalho
 	 */
 	public static class ProtocolPlugins {
-			private static final Map<String, ClientProtocolPlugIn> clientProtocolPlugins = new ConcurrentHashMap<String, ClientProtocolPlugIn>();
-			private static final Collection<ServerProtocolPlugin> serverProtocolPlugins = new ConcurrentLinkedQueue<>();
+			private ProtocolPlugins() {};
+		
+			/**
+			 * Wraps the instance
+			 */
+			private static Wrapper<ProtocolPlugins> wrapper;
+			
+			/**
+			 * Creates a single instance, guarantees safe publication
+			 * @return
+			 */
+			public static ProtocolPlugins getInstance () {
+				Wrapper<ProtocolPlugins> w = wrapper;
+		        if (w == null) { // check 1
+		        	synchronized (ProtocolPlugins.class) {
+		        		w = wrapper;
+		        		if (w == null) { // check 2
+		        			w = new Wrapper<ProtocolPlugins>(new ProtocolPlugins());
+		        			wrapper = w;
+		        		}
+		        	}
+		        }
+		        
+		        return w.getInstance();
+			}
+			
+			private final Map<String, ClientProtocolPlugIn> clientProtocolPlugins = new ConcurrentHashMap<String, ClientProtocolPlugIn>();
+			private final Queue<ServerProtocolPlugin> serverProtocolPlugins = new ConcurrentLinkedQueue<>();
 
 			/**
 			 * Registers a new protocol plugin to be used when requesting an
@@ -127,7 +180,7 @@ public class MiddlewareConfig {
 			 * @param route the route identifier of the object
 			 * @param protocolPlugin the plugin to be registered
 			 */
-			public static void addClientProtocolPlugin(String route, ClientProtocolPlugIn protocolPlugin) {
+			public void addClientProtocolPlugin(String route, ClientProtocolPlugIn protocolPlugin) {
 				clientProtocolPlugins.put(route, protocolPlugin);
 			}
 			
@@ -136,7 +189,7 @@ public class MiddlewareConfig {
 			 *
 			 * @param protocolPlugin the plugin to be registered
 			 */
-			public static void addServerProtocolPlugin(ServerProtocolPlugin protocolPlugin) {
+			public void addServerProtocolPlugin(ServerProtocolPlugin protocolPlugin) {
 				serverProtocolPlugins.add(protocolPlugin);
 			}
 			
@@ -147,7 +200,7 @@ public class MiddlewareConfig {
 			 * @param route the route identifier of the object
 			 * @return the protocol plugin if registered, else null
 			 */
-			public static ClientProtocolPlugIn getClientProtocolPlugin(String route) {
+			public ClientProtocolPlugIn getClientProtocolPlugin(String route) {
 				return clientProtocolPlugins.get(route);
 			}
 			
@@ -156,8 +209,26 @@ public class MiddlewareConfig {
 			 * 
 			 * @return the protocol plugins
 			 */
-			public static Collection<ServerProtocolPlugin> getServerProtocolPlugins() {
+			public Collection<ServerProtocolPlugin> getServerProtocolPlugins() {
 				return serverProtocolPlugins;
 			}
+	}
+	
+	/**
+	 * 
+	 * Wraps the instance to allow final modifier
+	 * 
+	 * @author victoragnez
+	 * 
+	 * @param <T> the type to be wrapped
+	 */
+	private static class Wrapper<T> {
+		private final T instance;
+	    public Wrapper(T service) {
+	        this.instance = service;
+	    }
+	    public T getInstance() {
+	        return instance;
+	    }
 	}
 }
