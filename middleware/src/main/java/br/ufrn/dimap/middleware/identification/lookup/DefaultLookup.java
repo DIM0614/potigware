@@ -7,6 +7,7 @@ import java.net.UnknownHostException;
 import br.ufrn.dimap.middleware.identification.AbsoluteObjectReference;
 import br.ufrn.dimap.middleware.identification.ObjectId;
 import br.ufrn.dimap.middleware.remotting.interfaces.NamingInstaller;
+import br.ufrn.dimap.middleware.remotting.impl.DeploymentDescriptor;
 import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
 
 /**
@@ -54,16 +55,6 @@ public class DefaultLookup implements Lookup, NamingInstaller {
         
         return w.getInstance();
 	}
-
-    @Override
-    public void installBase(File interfaceFile, File invokerFile) {
-
-    }
-
-    @Override
-    public void installImplementation(String objName, File invokerFile) {
-
-    }
 
     /**
 	 * 
@@ -121,7 +112,7 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 		return (AbsoluteObjectReference) ((ObjectInput) inFromServer).readObject();
 	}
   
-  /**
+   /**
 	 * @see br.ufrn.dimap.middleware.identification.lookup.Lookup#findById(ObjectId)
 	 */	
 	public Object findById(ObjectId ObjectId) throws RemoteError, UnknownHostException, IOException, ClassNotFoundException {
@@ -131,6 +122,11 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 		((ObjectOutput) outToServer).writeObject(data);
 		outToServer.flush();
 		return ((ObjectInput) inFromServer).readObject();
+	}
+
+	@Override
+	public void install(DeploymentDescriptor deploymentDescriptor) {
+		
 	}
 
 }

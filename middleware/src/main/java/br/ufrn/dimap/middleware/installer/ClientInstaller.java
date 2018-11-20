@@ -3,6 +3,7 @@ package br.ufrn.dimap.middleware.installer;
 import br.ufrn.dimap.middleware.identification.lookup.DefaultLookup;
 import br.ufrn.dimap.middleware.remotting.generator.Generator;
 import br.ufrn.dimap.middleware.remotting.impl.ClientProxy;
+import br.ufrn.dimap.middleware.remotting.impl.DeploymentDescriptor;
 import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
 import br.ufrn.dimap.middleware.remotting.interfaces.Invoker;
 import br.ufrn.dimap.middleware.remotting.interfaces.NamingInstaller;
@@ -80,73 +81,39 @@ public class ClientInstaller {
         try {
 
             logger.log(Level.INFO,"Generating and loading the invoker stub.");
-
-            Class<? extends ClientProxy> clientProxyClass = installStub(idlPath);
-
+			String targetDir = InstalationConfig.getTargetDir();
+			
+			String classPath = InstalationConfig.getClasspathLocation(targetDir);
+			
+			Generator.GeneratedFilesInfo filesInfo = Generator.generateFiles(idlPath, targetDir, DEFAULT_COMPILER_TARGET_PACKAGE);
+			compileClassFiles(targetDir, filesInfo);
+			
+			Class clientProxy = loadClasses(targetDir, filesInfo, dynamicClassLoader);
+			
             logger.log(Level.INFO,"Compiling and loading the invoker implementation.");
-
-            Class invokerClass = installImplementation(remoteObjectName, invokerName);
+			final String objName = remoteObjectName;
+			//String implPath = getClassResource(invokerImpl);
+			JavaCompilerUtils.compile(InstalationConfig.getTargetDir(), InstalationConfig.getSourcecodeFilePath(invokerName));
+			Class clazz = dynamicClassLoader.loadClassFromFile(InstalationConfig.getClassname(invokerName),InstalationConfig.getClassFileLocation(InstalationConfig.getTargetDir(), invokerName));
+			
+			logger.log(Level.INFO, "Sending classes through the network.");
+			
+			// send classes over the network
+			DeploymentDescriptor deploymentDescriptor = DeploymentDescriptor.createDeploymentDescriptor(
+					objName,
+					new File(String.format("%s%s.class", classPath, filesInfo.getInterfName())), 
+					new File(String.format("%s%s.class", classPath, filesInfo.getInterfName())), 
+					new File(invokerName));
+			NamingInstaller lookup = (NamingInstaller) DefaultLookup.getInstance();
+			lookup.install(deploymentDescriptor);
 
             logger.log(Level.INFO,"Implementation generation has completed with success.");
 
-            return new InstallationResult(invokerClass, clientProxyClass);
+            return new InstallationResult(clazz, clientProxy);
 
         } catch (IOException | ClassNotFoundException | ParseException e) {
             throw new InstallationException(e);
         }
-    }
-
-    /**
-     * Install an implementation of an Invoker.
-     *
-     * It is important that the abstract Invoker and
-     * the interface was already loaded in the naming service.
-     *
-     * @param objName
-     *
-     * @throws NoSuchMethodException
-     * @throws RemoteError
-     * @throws IllegalAccessException
-     * @throws InstantiationException
-     * @throws IOException
-     * @throws InvocationTargetException
-     * @throws ClassNotFoundException
-     */
-    public Class installImplementation(final String objName, String implementationClass){
-
-        //String implPath = getClassResource(invokerImpl);
-        JavaCompilerUtils.compile(InstalationConfig.getTargetDir(), InstalationConfig.getSourcecodeFilePath(implementationClass));
-        Class clazz = dynamicClassLoader.loadClassFromFile(InstalationConfig.getClassname(implementationClass),InstalationConfig.getClassFileLocation(InstalationConfig.getTargetDir(), implementationClass));
-
-        // send classes over the network
-        NamingInstaller lookup = (NamingInstaller) DefaultLookup.getInstance();
-        lookup.installImplementation(objName, new File(implementationClass));
-
-        return clazz;
-    }
-
-    /**
-     * Takes an IDL description, generates code for it,
-     * and bind it to the naming service.
-     *
-     * @param idlPath
-     */
-    private Class<? extends ClientProxy> installStub(String idlPath) throws IOException, ParseException, ClassNotFoundException {
-        String targetDir = InstalationConfig.getTargetDir();
-
-        String classPath = InstalationConfig.getClasspathLocation(targetDir);
-
-        Generator.GeneratedFilesInfo filesInfo = Generator.generateFiles(idlPath, targetDir, DEFAULT_COMPILER_TARGET_PACKAGE);
-        compileClassFiles(targetDir, filesInfo);
-
-        Class clientProxy = loadClasses(targetDir, filesInfo, dynamicClassLoader);
-
-        // send classes over the network
-        NamingInstaller lookup = (NamingInstaller) DefaultLookup.getInstance();
-        lookup.installBase(new File(String.format("%s%s.class", classPath, filesInfo.getInterfName())),
-                new File(String.format("%s%s.class", classPath, filesInfo.getInvokerName())));
-
-        return clientProxy;
     }
 
     /**

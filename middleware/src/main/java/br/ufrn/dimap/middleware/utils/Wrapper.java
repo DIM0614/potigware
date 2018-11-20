@@ -1,7 +1,7 @@
 package br.ufrn.dimap.middleware.utils;
 
 public class Wrapper<T> {
-    private T instance;
+    private final T instance;
 
     public Wrapper(T service) {
         this.instance = service;
