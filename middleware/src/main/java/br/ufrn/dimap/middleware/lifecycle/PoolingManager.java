@@ -3,18 +3,25 @@ package br.ufrn.dimap.middleware.lifecycle;
 import jdk.nashorn.internal.ir.RuntimeNode;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
 public class PoolingManager<T extends PerRequest> implements PoolingI<T> {
 
     private String type;
     private int size;
-    private List<T> pool;
+    private Queue<T> pool = new LinkedList<>();
 
+    /**
+     * Default constructor
+     *
+     * @param type the Fully Qualified Name of the class
+     * @param size the size of the pool
+     */
     public PoolingManager(String type, int size) {
         this.type = type;
         this.size = size;
-        pool = new ArrayList<>(size);
 
         Class<?> aClass;
         try {
@@ -42,40 +49,39 @@ public class PoolingManager<T extends PerRequest> implements PoolingI<T> {
         return pool.add(pooledServant);
     }
 
-    public boolean removeFromPool() throws InterruptedException {
-//        synchronized (pool) {
-//            while (pool.size() <= 0) {
-//                //pool.wait();
-//            }
-//            return pool.remove(pooledSrvt);
-//        }
-        return false;
-    }
-
-    public void putBackToPool(int pooledSrvt) {
-//        synchronized (pool) {
-//            pool.add(pooledSrvt);
-//            //pool.notify();
-//            System.out.println("Tamanho: " + pool.size());
-//        }
-    }
-
     @Override
     public T getFreeInstance() {
-        return null;
+        return removeFromPool();
     }
 
     /**
      * This method will retrieve a servant from the pool to be used by the
      * client.
      *
-     * @param pooledServant servant to be removed and used.
+     * @return An object from pool
      */
-//    private boolean removeFromPool(T pooledServant) {
-//        return false;
-//    }
+    private T removeFromPool() {
+        synchronized (pool) {
+            if (pool.isEmpty()) {
+                try {
+                    pool.wait();
+                } catch (InterruptedException e) {
+                    //FIXME: Má prática
+                    Thread.interrupted();
+                }
+            }
+
+            return pool.poll();
+        }
+    }
+
     @Override
-    public boolean putBackToPool(Servant pooledServant) {
-        return false;
+    public boolean putBackToPool(T pooledServant) {
+        boolean success = addPoolInstance(pooledServant);
+
+        if (success) {
+            pool.notifyAll();
+        }
+        return success;
     }
 }

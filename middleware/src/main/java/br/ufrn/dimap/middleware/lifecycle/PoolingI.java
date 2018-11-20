@@ -14,13 +14,13 @@ public interface PoolingI<T extends PerRequest> {
      *
      * @return to be implemented
      */
-    public T getFreeInstance();
+    T getFreeInstance();
 
     /**
      * This method should implement the return of the used object to the pool;
      *
      * @param pooledServant used object to be returned to the pool;
      */
-    public boolean putBackToPool(Servant pooledServant);
+    boolean putBackToPool(T pooledServant);
 
 }
