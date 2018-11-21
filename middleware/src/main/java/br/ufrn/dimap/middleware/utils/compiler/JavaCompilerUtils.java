@@ -18,7 +18,7 @@ public class JavaCompilerUtils {
     /**
      * Constant that maps the result when the compiler completes with success.
      */
-    public static final int COMPILER_SUCCESS = 0;
+    private static final int COMPILER_SUCCESS = 0;
 
     /**
      * Compile a .java into the respective folder.

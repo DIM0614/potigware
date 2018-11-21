@@ -4,20 +4,21 @@ import br.ufrn.dimap.middleware.identification.lookup.DefaultLookup;
 import br.ufrn.dimap.middleware.remotting.generator.Generator;
 import br.ufrn.dimap.middleware.remotting.impl.ClientProxy;
 import br.ufrn.dimap.middleware.remotting.impl.DeploymentDescriptor;
-import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
-import br.ufrn.dimap.middleware.remotting.interfaces.Invoker;
 import br.ufrn.dimap.middleware.remotting.interfaces.NamingInstaller;
 import br.ufrn.dimap.middleware.utils.Wrapper;
 import br.ufrn.dimap.middleware.utils.classloader.DynamicClassLoader;
-import br.ufrn.dimap.middleware.utils.compiler.JavaCompilerUtils;
 
 import org.json.simple.parser.ParseException;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static br.ufrn.dimap.middleware.installer.InstallationConfig.getClassFileLocation;
+import static br.ufrn.dimap.middleware.installer.InstallationConfig.getClassname;
+import static br.ufrn.dimap.middleware.utils.compiler.JavaCompilerUtils.compile;
 
 /**
  * Provides an easy way to installer an IDL-specified interface in the server.
@@ -29,10 +30,6 @@ import java.util.logging.Logger;
  * @author Daniel Smith
  */
 public class ClientInstaller {
-    /**
-     * Represents the location where the compiled files are placed.
-     */
-    static final String DEFAULT_COMPILER_TARGET_PACKAGE = "generated";
 
     private final DynamicClassLoader dynamicClassLoader = DynamicClassLoader.getDynamicClassLoader();
 
@@ -80,32 +77,30 @@ public class ClientInstaller {
     public InstallationResult install(final String idlPath, String remoteObjectName, String invokerName) throws InstallationException {
         try {
 
-            logger.log(Level.INFO,"Generating and loading the invoker stub.");
-			String targetDir = InstalationConfig.getTargetDir();
-			
-			String classPath = InstalationConfig.getClasspathLocation(targetDir);
-			
-			Generator.GeneratedFilesInfo filesInfo = Generator.generateFiles(idlPath, targetDir, DEFAULT_COMPILER_TARGET_PACKAGE);
+            logger.log(Level.INFO,"Generating the invoker stub.");
+
+			String targetDir = InstallationConfig.getTargetDir();
+			String classPath = InstallationConfig.getClasspathLocation(targetDir);
+
+            Generator.GeneratedFilesInfo filesInfo = Generator.generateFiles(idlPath, targetDir, InstallationConfig.DEFAULT_COMPILER_TARGET_PACKAGE);
+
 			compileClassFiles(targetDir, filesInfo);
-			
-			Class clientProxy = loadClasses(targetDir, filesInfo, dynamicClassLoader);
-			
-            logger.log(Level.INFO,"Compiling and loading the invoker implementation.");
-			final String objName = remoteObjectName;
-			//String implPath = getClassResource(invokerImpl);
-			JavaCompilerUtils.compile(InstalationConfig.getTargetDir(), InstalationConfig.getSourcecodeFilePath(invokerName));
-			Class clazz = dynamicClassLoader.loadClassFromFile(InstalationConfig.getClassname(invokerName),InstalationConfig.getClassFileLocation(InstalationConfig.getTargetDir(), invokerName));
+
+            logger.log(Level.INFO,"Compiling the invoker implementation.");
+
+			compile(InstallationConfig.getTargetDir(), InstallationConfig.getSourcecodeFilePath(invokerName));
+
+            logger.log(Level.INFO,"Loading the stub and the invoker implementation.");
+
+            dynamicClassLoader.loadClassFromFile(getClassname(filesInfo.getInterfName()), getClassFileLocation(targetDir, filesInfo.getInterfName()));
+            dynamicClassLoader.loadClassFromFile(getClassname(filesInfo.getInvokerName()), getClassFileLocation(targetDir, filesInfo.getInvokerName()));
+
+            Class clientProxy = (Class<? extends ClientProxy>) dynamicClassLoader.loadClassFromFile(getClassname(filesInfo.getProxyName()), getClassFileLocation(targetDir, filesInfo.getProxyName()));
+            Class clazz = dynamicClassLoader.loadClassFromFile(getClassname(invokerName), getClassFileLocation(InstallationConfig.getTargetDir(), invokerName));
 			
 			logger.log(Level.INFO, "Sending classes through the network.");
-			
-			// send classes over the network
-			DeploymentDescriptor deploymentDescriptor = DeploymentDescriptor.createDeploymentDescriptor(
-					objName,
-					new File(String.format("%s%s.class", classPath, filesInfo.getInterfName())), 
-					new File(String.format("%s%s.class", classPath, filesInfo.getInterfName())), 
-					new File(invokerName));
-			NamingInstaller lookup = (NamingInstaller) DefaultLookup.getInstance();
-			lookup.install(deploymentDescriptor);
+
+            deployApplication(remoteObjectName, invokerName, filesInfo.getInterfName(), classPath);
 
             logger.log(Level.INFO,"Implementation generation has completed with success.");
 
@@ -117,52 +112,57 @@ public class ClientInstaller {
     }
 
     /**
-     * Load classes from the generated .class
+     * Register the application into the naming service.
      *
-     * @param targetDir
-     * @param filesInfo
-     * @param dynamicClassLoader
+     * @param remoteObjectName the name of the remote object.
+     * @param invokerName the name of the invoker class
+     * @param interfaceName the name of the IDL generated interface class
+     * @param classPath the source folder where the classes were placed.
      */
-    private Class<? extends ClientProxy> loadClasses(String targetDir, Generator.GeneratedFilesInfo filesInfo, DynamicClassLoader dynamicClassLoader) {
-        String interfaceClassname = InstalationConfig.getClassname(filesInfo.getInterfName());
-        String invokerClassname = InstalationConfig.getClassname(filesInfo.getInvokerName());
+    private void deployApplication(String remoteObjectName, String invokerName,String interfaceName, String classPath) {
 
-        String interfaceLocation = InstalationConfig.getClassFileLocation(targetDir, filesInfo.getInterfName());
-        String invokerLocation = InstalationConfig.getClassFileLocation(targetDir, filesInfo.getInvokerName());
+        DeploymentDescriptor deploymentDescriptor = DeploymentDescriptor.createDeploymentDescriptor(
+                remoteObjectName,
+                new File(String.format("%s%s.class", classPath, interfaceName)),
+                new File(String.format("%s%s.class", classPath, interfaceName)),
+                new File(invokerName));
 
-        dynamicClassLoader.loadClassFromFile(interfaceClassname, interfaceLocation);
-        dynamicClassLoader.loadClassFromFile(invokerClassname, invokerLocation);
-
-        String proxyClassname = InstalationConfig.getClassname(filesInfo.getProxyName());
-        String proxyLocation = InstalationConfig.getClassFileLocation(targetDir, filesInfo.getProxyName());
-
-        return dynamicClassLoader.loadClassFromFile(proxyClassname, proxyLocation);
+        NamingInstaller lookup = (NamingInstaller) DefaultLookup.getInstance();
+        lookup.install(deploymentDescriptor);
     }
 
     /**
      * Compile java files, generating thus the .class files
      *
-     * @param targetDir
-     * @param filesInfo
+     * @param targetDir the target directory of the compilation.
+     * @param filesInfo the result of the dynamic class generation.
      */
     private void compileClassFiles(String targetDir, Generator.GeneratedFilesInfo filesInfo) {
-        String interfaceSourceCode = InstalationConfig.getSourcecodeFilePath(filesInfo.getInterfName());
-        String invokerSourceCode = InstalationConfig.getSourcecodeFilePath(filesInfo.getInvokerName());
-        String proxySourcecode = InstalationConfig.getSourcecodeFilePath(filesInfo.getProxyName());
+        String interfaceSourceCode = InstallationConfig.getSourcecodeFilePath(filesInfo.getInterfName());
+        String invokerSourceCode = InstallationConfig.getSourcecodeFilePath(filesInfo.getInvokerName());
+        String proxySourcecode = InstallationConfig.getSourcecodeFilePath(filesInfo.getProxyName());
 
-        JavaCompilerUtils.compile(targetDir, interfaceSourceCode, invokerSourceCode, proxySourcecode);
+        compile(targetDir, interfaceSourceCode, invokerSourceCode, proxySourcecode);
     }
 
+    /**
+     * Main method for the CLI remote object installer application.
+     *
+     * @param args the arg array that provides the three required parameters:
+     *             <ul>
+     *                  <li>The idl path in the file system</li>
+     *                  <li>The name of the invoker class created into the generated directory.</li>
+     *                  <li>The remote object name to be deployed.</li>
+     *             </ul>
+     *
+     * @throws IllegalArgumentException if any of the required parameters is null.
+     */
     public static void main(String[] args) {
         try {
-            String idlPath = args[0];
-            String invokerName = args[1];
-            String remoteObjectName = args[2];
 
-            //EXAMPLE
-            //String idlPath = "C:\\Users\\Daniel\\IdeaProjects\\middlewareProjects\\interface-description-language\\src\\main\\java\\files\\example.json";
-            //String invokerName = "MathImpl";
-            //String remoteObjectName = "Math";
+            String idlPath = Objects.requireNonNull(args[0], "The IDL path should be provided.");
+            String invokerName = Objects.requireNonNull(args[1], "The invoker name should be provided.");
+            String remoteObjectName = Objects.requireNonNull(args[2],"The remote object name should be provided.");
 
             InstallationResult installationResult = ClientInstaller.getInstance().install(idlPath, remoteObjectName,invokerName);
 
@@ -171,25 +171,6 @@ public class ClientInstaller {
 
         } catch (InstallationException e) {
             Logger.getLogger(ClientInstaller.class.getName()).log(Level.SEVERE,e.getMessage(),e);
-        }
-    }
-
-    class InstallationResult{
-
-        private final Class<? extends Invoker> invokerClass;
-        private final Class<? extends ClientProxy> clientProxyClass;
-
-        InstallationResult(Class invokerClass, Class clientProxyClass) {
-            this.invokerClass = invokerClass;
-            this.clientProxyClass = clientProxyClass;
-        }
-
-        public Class getInvokerClass() {
-            return invokerClass;
-        }
-
-        public Class getClientProxyClass() {
-            return clientProxyClass;
         }
     }
 
