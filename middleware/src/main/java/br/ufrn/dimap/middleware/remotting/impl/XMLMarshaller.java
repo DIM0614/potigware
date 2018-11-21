@@ -18,9 +18,14 @@ import br.ufrn.dimap.middleware.remotting.interfaces.Marshaller;
  * Marshaller that uses XML as marshalling format, making use
  * of JAXB (Java Architecture for XML Binding).
  * 
- * The class of the "root" object to be marshalled must be
+ * The class of the "root" object to be marshalled should be
  * annotated with XmlRootElement. See javax.xml.bind
  * documentation for details.
+ * 
+ * But, in the case when XmlRootElement is missing, XMLMarshaller
+ * will wrap the object in a JAXBElement before marshaling,
+ * although resulting in an undescriptive element name ("root")
+ * for the object in the generated XML document.
  * 
  * Note that, by default, only public getter/setter pairs and
  * public fields are bound to XML in JAXB. This can be changed
