@@ -1,6 +1,8 @@
 package br.ufrn.dimap.middleware.remotting.interfaces;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import br.ufrn.dimap.middleware.remotting.impl.DeploymentDescriptor;
 
@@ -11,5 +13,5 @@ import br.ufrn.dimap.middleware.remotting.impl.DeploymentDescriptor;
  * @author vitorgreati
  */
 public interface NamingInstaller {
-    void install(final DeploymentDescriptor deploymentDescriptor);
+    void install(final DeploymentDescriptor deploymentDescriptor) throws IOException;
 }

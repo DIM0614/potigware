@@ -124,9 +124,37 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 		return ((ObjectInput) inFromServer).readObject();
 	}
 
+	/**
+	 *
+	 * @see br.ufrn.dimap.middleware.remotting.interfaces.NamingInstaller#install(DeploymentDescriptor)
+	 */
 	@Override
-	public void install(DeploymentDescriptor deploymentDescriptor) {
-		
+	public void install(DeploymentDescriptor deploymentDescriptor) throws IOException {
+
+		if(deploymentDescriptor != null) {
+			FileInputStream fileInputStream = null;
+			byte[] buffer = new byte[4096];
+
+			if(deploymentDescriptor.getInterfaceFile() != null && deploymentDescriptor.getInvokerFile() != null && deploymentDescriptor.getInvokerImplementation() != null){
+				fileInputStream = new FileInputStream(deploymentDescriptor.getInterfaceFile());
+				while (fileInputStream.read(buffer) > 0) {
+					outToServer.write(buffer);
+				}
+
+				fileInputStream = new FileInputStream(deploymentDescriptor.getInvokerFile());
+				while (fileInputStream.read(buffer) > 0) {
+					outToServer.write(buffer);
+				}
+
+				fileInputStream = new FileInputStream(deploymentDescriptor.getInvokerImplementation());
+				while (fileInputStream.read(buffer) > 0) {
+					outToServer.write(buffer);
+				}
+			}
+
+			if(fileInputStream != null)
+				fileInputStream.close();
+		}
 	}
 
 }
