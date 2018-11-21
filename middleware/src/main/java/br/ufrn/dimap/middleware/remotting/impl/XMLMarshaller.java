@@ -3,13 +3,14 @@ package br.ufrn.dimap.middleware.remotting.impl;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.namespace.QName;
+import javax.xml.transform.stream.StreamSource;
 
 import br.ufrn.dimap.middleware.remotting.interfaces.Marshaller;
 
@@ -34,17 +35,30 @@ import br.ufrn.dimap.middleware.remotting.interfaces.Marshaller;
 public class XMLMarshaller implements Marshaller {
 
 	public <T> ByteArrayOutputStream marshal(T object) throws IOException {
-		ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
 		
-		try {
-			JAXBContext jc = JAXBContext.newInstance(object.getClass());
-			javax.xml.bind.Marshaller marshaller = jc.createMarshaller();
+		Object marshalObject = null;
+		Class<T> objClass = (Class<T>) object.getClass();
+		
+		if (object.getClass().getAnnotation(XmlRootElement.class) == null) {
+			QName qName = new QName("root");
+			JAXBElement<T> objElement = new JAXBElement<T>(qName, objClass, object);
 			
-			marshaller.marshal(object, byteStream);
-		} catch (JAXBException e) {
-			e.printStackTrace();
+			marshalObject = (Object) objElement;
+		} else {
+			marshalObject = (Object) object;
 		}
 
+		ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+		try {
+			JAXBContext jc = JAXBContext.newInstance(objClass);
+			javax.xml.bind.Marshaller marshaller = jc.createMarshaller();
+			
+			marshaller.marshal(marshalObject, byteStream);
+		} catch (JAXBException e) {
+			e.printStackTrace();
+			throw new IOException(e);
+		}
+		
 		return byteStream;
 	}
 
@@ -55,9 +69,15 @@ public class XMLMarshaller implements Marshaller {
 			JAXBContext jc = JAXBContext.newInstance(tgtClass);
 			Unmarshaller unmarshaller = jc.createUnmarshaller();
 
-			result = (T) unmarshaller.unmarshal(byteStream);
+			if (tgtClass.getAnnotation(XmlRootElement.class) == null) {
+				JAXBElement<T> root = unmarshaller.unmarshal(new StreamSource(byteStream), tgtClass);
+				result = root.getValue();
+			} else {
+				result = (T) unmarshaller.unmarshal(byteStream);
+			}
 		} catch (JAXBException e) {
 			e.printStackTrace();
+			throw new IOException(e);
 		}
 		
 		return result;
