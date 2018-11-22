@@ -3,9 +3,12 @@ package br.ufrn.dimap.middleware.identification;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.file.Files;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import br.ufrn.dimap.middleware.installer.InstallationConfig;
+import br.ufrn.dimap.middleware.remotting.impl.DeploymentDescriptor;
 import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
 
 public class NameServer {
@@ -21,14 +24,22 @@ public class NameServer {
 	private Map<ObjectId, Object> remoteMap;
 	private int port;
 	ServerSocket server;
+
+	/**
+	 * Maps object names to file names.
+	 *
+	 */
+	private Map<String, InstalledFilesInfo> filesMap;
+
 	
 	protected NameServer(int port) {
 		this.port = port;
-		this.nameMap = new ConcurrentHashMap <String, AbsoluteObjectReference>();
-		this.remoteMap = new ConcurrentHashMap <ObjectId, Object>();
+		this.nameMap = new ConcurrentHashMap<>();
+		this.remoteMap = new ConcurrentHashMap<>();
+		this.filesMap = new ConcurrentHashMap<>();
 	}
 	
-	public void startServer() throws IOException, RemoteError {
+	public void startServer() throws IOException {
 		
 		server = new ServerSocket(port);
 	
@@ -54,24 +65,56 @@ public class NameServer {
 					output.flush();
 					output.close();
 				}else if(data[0].equals("install")) {
-					File directory = new File("./");
-					String filesURL = directory.getCanonicalPath() + "/src/main/java/br/ufrn/dimap/middleware/remotting/files/";
+
+					String filesURL = InstallationConfig.getTargetDir();
+
 					String interfaceName = (String) data[1];
 					String invokerName = (String) data[3];
 					String invokerImplName = (String) data[5];
 
 					// Reference obtained in stackoverlfow: https://stackoverflow.com/questions/4350084/byte-to-file-in-java
-					try (FileOutputStream fos = new FileOutputStream(filesURL + interfaceName)) {
+					try (FileOutputStream fos = new FileOutputStream(filesURL + interfaceName + ".class")) {
 						fos.write((byte[]) data[2]);
+
 					}
 
-					try (FileOutputStream fos = new FileOutputStream(filesURL + invokerName)) {
+					try (FileOutputStream fos = new FileOutputStream(filesURL + invokerName + ".class")) {
 						fos.write((byte[]) data[4]);
 					}
 
-					try (FileOutputStream fos = new FileOutputStream(filesURL + invokerImplName)) {
+					try (FileOutputStream fos = new FileOutputStream(filesURL + invokerImplName + ".class")) {
 						fos.write((byte[]) data[6]);
 					}
+
+					String objName = (String) data[7];
+
+					InstalledFilesInfo installedInfo = new InstalledFilesInfo(interfaceName, invokerName, invokerImplName);
+					filesMap.put(objName, installedInfo);
+
+				} else if (data[0].equals("findClasses")) {
+
+					String filesURL = InstallationConfig.getTargetDir();
+
+					InstalledFilesInfo filesInfo = filesMap.get((String) data[1]);
+
+					Object[] files = new Object[6];
+
+					byte[] interfFile = Files.readAllBytes(new File(filesURL + filesInfo.getInterfName() + ".class").toPath());
+					byte[] invokerFile = Files.readAllBytes(new File(filesURL + filesInfo.getInvokerName() + ".class").toPath());
+					byte[] implFile = Files.readAllBytes(new File(filesURL + filesInfo.getImplName() + ".class").toPath());
+
+					files[0] = filesInfo.getInterfName();
+					files[1] = interfFile;
+					files[2] = filesInfo.getInvokerName();
+					files[3] = invokerFile;
+					files[4] = filesInfo.getImplName();
+					files[5] = implFile;
+
+					DataOutputStream outToServer = new DataOutputStream(client.getOutputStream());
+
+					((ObjectOutput) outToServer).writeObject(files);
+					outToServer.flush();
+
 				}
 			} catch (ClassNotFoundException e) {
 				// TODO Auto-generated catch block
@@ -119,6 +162,34 @@ public class NameServer {
 		}
 		
 		return remoteMap.get(ObjectId);
+	}
+
+
+
+	public static class InstalledFilesInfo {
+		final String interfName;
+		final String implName;
+		final String invokerName;
+
+		public InstalledFilesInfo(final String interfName, final String invokerName, final String implName) {
+			this.interfName = interfName;
+			this.implName = implName;
+			this.invokerName = invokerName;
+		}
+
+		public String getInterfName() {
+			return interfName;
+		}
+
+		public String getImplName() {
+			return implName;
+		}
+
+		public String getInvokerName() {
+			return invokerName;
+		}
+
+
 	}
 	
 }

@@ -28,7 +28,7 @@ public interface Lookup {
 	 * @throws RemoteError 
    * @throws IOException 
 	 */
-	public void bind(String name, Object remoteObject, String host, int port) throws RemoteError, IOException;	
+	void bind(String name, Object remoteObject, String host, int port) throws RemoteError, IOException;
   
 	/**
 	 * Allow clients to use lookup service to query for the ABSOLUTE OBJECT 
@@ -42,7 +42,7 @@ public interface Lookup {
 	 * @throws UnknownHostException 
 	 * @throws ClassNotFoundException 
 	 */
-	public AbsoluteObjectReference find(String name) throws RemoteError, UnknownHostException, IOException, ClassNotFoundException;
+	AbsoluteObjectReference find(String name) throws RemoteError, UnknownHostException, IOException, ClassNotFoundException;
 	
 	/**
 	 * Allow the server requestor find the remote object reference given an 
@@ -56,5 +56,14 @@ public interface Lookup {
 	 * @throws UnknownHostException 
 	 * @throws ClassNotFoundException 
 	 */
-	public Object findById(ObjectId ObjectId) throws RemoteError, UnknownHostException, IOException, ClassNotFoundException;
+	Object findById(ObjectId ObjectId) throws RemoteError, UnknownHostException, IOException, ClassNotFoundException;
+
+	/**
+	 * Retrieve previously installed classes from the naming service,
+	 * and install them locally.
+	 *
+	 * @param objName
+	 * @throws RemoteError
+	 */
+	void findAndInstallClasses(String objName) throws RemoteError, IOException, ClassNotFoundException;
 }
