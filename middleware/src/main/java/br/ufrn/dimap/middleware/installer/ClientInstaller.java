@@ -4,6 +4,7 @@ import br.ufrn.dimap.middleware.identification.lookup.DefaultLookup;
 import br.ufrn.dimap.middleware.remotting.generator.Generator;
 import br.ufrn.dimap.middleware.remotting.impl.ClientProxy;
 import br.ufrn.dimap.middleware.remotting.impl.DeploymentDescriptor;
+import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
 import br.ufrn.dimap.middleware.remotting.interfaces.NamingInstaller;
 import br.ufrn.dimap.middleware.utils.Wrapper;
 import br.ufrn.dimap.middleware.utils.classloader.DynamicClassLoader;
@@ -74,7 +75,7 @@ public class ClientInstaller {
      *
      * @param idlPath
      */
-    public InstallationResult install(final String idlPath, String remoteObjectName, String invokerName) throws InstallationException {
+    public InstallationResult install(final String idlPath, String remoteObjectName, String implementationName) throws InstallationException {
         try {
 
             logger.log(Level.INFO,"Generating the invoker stub.");
@@ -88,7 +89,7 @@ public class ClientInstaller {
 
             logger.log(Level.INFO,"Compiling the invoker implementation.");
 
-			compile(InstallationConfig.getTargetDir(), InstallationConfig.getSourcecodeFilePath(invokerName));
+			compile(InstallationConfig.getTargetDir(), InstallationConfig.getSourcecodeFilePath(implementationName));
 
             logger.log(Level.INFO,"Loading the stub and the invoker implementation.");
 
@@ -96,11 +97,11 @@ public class ClientInstaller {
             dynamicClassLoader.loadClassFromFile(getClassname(filesInfo.getInvokerName()), getClassFileLocation(targetDir, filesInfo.getInvokerName()));
 
             Class clientProxy = (Class<? extends ClientProxy>) dynamicClassLoader.loadClassFromFile(getClassname(filesInfo.getProxyName()), getClassFileLocation(targetDir, filesInfo.getProxyName()));
-            Class clazz = dynamicClassLoader.loadClassFromFile(getClassname(invokerName), getClassFileLocation(InstallationConfig.getTargetDir(), invokerName));
+            Class clazz = dynamicClassLoader.loadClassFromFile(getClassname(implementationName), getClassFileLocation(InstallationConfig.getTargetDir(), implementationName));
 			
 			logger.log(Level.INFO, "Sending classes through the network.");
 
-            deployApplication(remoteObjectName, invokerName, filesInfo.getInterfName(), classPath);
+            deployApplication(remoteObjectName, filesInfo.getInterfName(), filesInfo.getInvokerName(),  implementationName , classPath);
 
             logger.log(Level.INFO,"Implementation generation has completed with success.");
 
@@ -108,7 +109,11 @@ public class ClientInstaller {
 
         } catch (IOException | ClassNotFoundException | ParseException e) {
             throw new InstallationException(e);
+        } catch (RemoteError remoteError) {
+            remoteError.printStackTrace();
         }
+
+        return null;
     }
 
     /**
@@ -119,13 +124,13 @@ public class ClientInstaller {
      * @param interfaceName the name of the IDL generated interface class
      * @param classPath the source folder where the classes were placed.
      */
-    private void deployApplication(String remoteObjectName, String invokerName,String interfaceName, String classPath) throws IOException {
+    private void deployApplication(String remoteObjectName, String interfaceName, String invokerName, String implementationName, String classPath) throws IOException, RemoteError {
 
         DeploymentDescriptor deploymentDescriptor = DeploymentDescriptor.createDeploymentDescriptor(
                 remoteObjectName,
                 new File(String.format("%s%s.class", classPath, interfaceName)),
-                new File(String.format("%s%s.class", classPath, interfaceName)),
-                new File(invokerName));
+                new File(String.format("%s%s.class", classPath, invokerName)),
+                new File(String.format("%s%s.class", classPath, implementationName)));
 
         NamingInstaller lookup = (NamingInstaller) DefaultLookup.getInstance();
         lookup.install(deploymentDescriptor);
@@ -163,6 +168,7 @@ public class ClientInstaller {
             String idlPath = Objects.requireNonNull(args[0], "The IDL path should be provided.");
             String invokerName = Objects.requireNonNull(args[1], "The invoker name should be provided.");
             String remoteObjectName = Objects.requireNonNull(args[2],"The remote object name should be provided.");
+
 
             InstallationResult installationResult = ClientInstaller.getInstance().install(idlPath, remoteObjectName,invokerName);
 

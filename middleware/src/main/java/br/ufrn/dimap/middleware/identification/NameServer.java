@@ -6,7 +6,10 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import br.ufrn.dimap.middleware.installer.ClientInstaller;
 import br.ufrn.dimap.middleware.installer.InstallationConfig;
 import br.ufrn.dimap.middleware.remotting.impl.DeploymentDescriptor;
 import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
@@ -24,6 +27,9 @@ public class NameServer {
 	private Map<ObjectId, Object> remoteMap;
 	private int port;
 	ServerSocket server;
+
+	private Logger logger = MainServer.getLogger();
+
 
 	/**
 	 * Maps object names to file names.
@@ -48,23 +54,41 @@ public class NameServer {
 	public synchronized void receiveMessage() throws IOException {
 		
 		while(true) {
-			Socket client = server.accept();
-			ObjectInputStream msg = new ObjectInputStream(client.getInputStream());
-			Object[] data;
+			logger.log(Level.INFO, "Server waiting...");
 			try {
-				data = (Object[]) msg.readObject();
+				Socket client = server.accept();
+				logger.log(Level.INFO, "Client accepted...");
+				ObjectInputStream msg = new ObjectInputStream(client.getInputStream());
+				logger.log(Level.INFO, "Msg created...");
+				Object[] data = null;
+				try {
+					while(true) {
+						data = (Object[]) msg.readObject();
+					}
+				} catch(EOFException eof){}
+				logger.log(Level.INFO, "Data read...");
+
 				ObjectOutputStream output = new ObjectOutputStream(client.getOutputStream());
-				if (data[0].equals("bind")) {
+
+				String opName = (String) data[0];
+
+				logger.log(Level.INFO, "Request " + opName + " arrived");
+
+				System.out.println(opName);
+
+				if (opName.equals("bind")) {
 					bind((String)data[1], data[2], (String) data[3], (Integer) data[4]);
-				}else if (data[0].equals("find")) {
+				}else if (opName.equals("find")) {
 					output.writeObject(find((String) data[1]));
 					output.flush();
 					output.close();
-				}else if (data[0].equals("findById")) {
+				}else if (opName.equals("findById")) {
 					output.writeObject(findById((ObjectId) data[1]));
 					output.flush();
 					output.close();
-				}else if(data[0].equals("install")) {
+				}else if(opName.equals("install")) {
+
+					logger.log(Level.INFO, "Installing remotes...");
 
 					String filesURL = InstallationConfig.getTargetDir();
 
@@ -91,7 +115,10 @@ public class NameServer {
 					InstalledFilesInfo installedInfo = new InstalledFilesInfo(interfaceName, invokerName, invokerImplName);
 					filesMap.put(objName, installedInfo);
 
-				} else if (data[0].equals("findClasses")) {
+					logger.log(Level.INFO, "Classes installed");
+
+
+				} else if (opName.equals("findClasses")) {
 
 					String filesURL = InstallationConfig.getTargetDir();
 
@@ -116,19 +143,12 @@ public class NameServer {
 					outToServer.flush();
 
 				}
-			} catch (ClassNotFoundException e) {
-				// TODO Auto-generated catch block
+			} catch (ClassNotFoundException | IOException | RemoteError e) {
 				e.printStackTrace();
-				
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				
-			} catch (RemoteError e) {
-				// TODO Auto-generated catch block
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			
+
 		}
 			
 	}

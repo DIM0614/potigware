@@ -15,6 +15,7 @@ import br.ufrn.dimap.middleware.remotting.interfaces.NamingInstaller;
 import br.ufrn.dimap.middleware.remotting.impl.DeploymentDescriptor;
 import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
 import br.ufrn.dimap.middleware.utils.IOUtils;
+import br.ufrn.dimap.middleware.utils.StringUtils;
 import br.ufrn.dimap.middleware.utils.classloader.DynamicClassLoader;
 
 import static br.ufrn.dimap.middleware.installer.InstallationConfig.getClassFileLocation;
@@ -39,12 +40,17 @@ import static br.ufrn.dimap.middleware.installer.InstallationConfig.getClassname
 public class DefaultLookup implements Lookup, NamingInstaller {
 	
 	private Socket socket;
-	private DataOutputStream outToServer;
-	private DataInputStream inFromServer;
+	private ObjectOutputStream outToServer;
+	private ObjectInputStream inFromServer;
+
+	private static final String HOST = "localhost";
+	private static final int PORT = 8000;
 
 	private Logger logger = Logger.getLogger(ClientInstaller.class.getName());
 
-
+	private DefaultLookup() throws RemoteError {
+		init(HOST, PORT);
+	}
 	/**
 	 * Wraps the instance
 	 */
@@ -56,7 +62,7 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 	 * @author victoragnez
 	 */
   
-	public static Lookup getInstance() {
+	public static Lookup getInstance() throws RemoteError {
 		Wrapper<Lookup> w = instanceWrapper;
         if (w == null) { // check 1
         	synchronized (DefaultLookup.class) {
@@ -94,11 +100,11 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 	 * @see br.ufrn.dimap.middleware.identification.lookup.Lookup#bind(String, Object, String, int)
 	 */
 	
-	public void Connection(String host, int port) throws RemoteError {
+	public void init(String host, int port) throws RemoteError {
 		try {
 			this.socket = new Socket(host, port);
-			this.outToServer = new DataOutputStream(socket.getOutputStream());
-			this.inFromServer = new DataInputStream(socket.getInputStream());
+			this.outToServer = new ObjectOutputStream(socket.getOutputStream());
+			this.inFromServer = new ObjectInputStream(socket.getInputStream());
 		} catch (IOException e) {
 			throw new RemoteError(e);
 		}
@@ -200,15 +206,15 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 
 				Object data[] = new Object[8];
 				data[0] = "install";
-				data[1] = "interfaceFile";
+				data[1] = StringUtils.getFileName(deploymentDescriptor.getInterfaceFile().getPath());
 				data[2] = Files.readAllBytes(deploymentDescriptor.getInterfaceFile().toPath());
-				data[3] = "invokerFile";
+				data[3] = StringUtils.getFileName(deploymentDescriptor.getInvokerFile().getPath());
 				data[4] = Files.readAllBytes(deploymentDescriptor.getInvokerFile().toPath());
-				data[5] = "invokerImplementation";
+				data[5] = StringUtils.getFileName(deploymentDescriptor.getInvokerImplementation().getPath());
 				data[6] = Files.readAllBytes(deploymentDescriptor.getInvokerImplementation().toPath());
 				data[7] = deploymentDescriptor.getRemoteObjectName();
 
-				((ObjectOutput) outToServer).writeObject(data);
+				outToServer.writeObject(data);
 				outToServer.flush();
 			}
 		}

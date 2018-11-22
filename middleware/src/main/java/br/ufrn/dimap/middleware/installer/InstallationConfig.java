@@ -17,7 +17,7 @@ public class InstallationConfig {
     }
 
     public static String getTargetDir() {
-        return String.format("%s/middleware/src/main/java/", System.getProperty("user.dir"));
+        return String.format("%s/src/main/java/", System.getProperty("user.dir"));
     }
 
     public static String getClassFileLocation(String targetDir, String classname) {

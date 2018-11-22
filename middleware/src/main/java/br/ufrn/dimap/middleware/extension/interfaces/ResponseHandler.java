@@ -1,7 +1,5 @@
 package br.ufrn.dimap.middleware.extension.interfaces;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 
 /**
  * This interface is implemented by the Server Request Handler and hosts
@@ -20,5 +18,5 @@ public interface ResponseHandler {
 	 * @param msg the incoming message
 	 * @return the outgoing message
 	 */
-	public ByteArrayOutputStream handleResponse(ByteArrayInputStream msg);
+	public Byte[] handleResponse(Byte[] msg);
 }
