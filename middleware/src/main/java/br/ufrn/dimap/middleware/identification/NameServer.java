@@ -90,7 +90,7 @@ public class NameServer {
 
 					logger.log(Level.INFO, "Installing remotes...");
 
-					String filesURL = InstallationConfig.getTargetDir();
+					String filesURL = InstallationConfig.getTargetDir() + "generated/naming/";
 
 					String interfaceName = (String) data[1];
 					String invokerName = (String) data[3];
@@ -143,7 +143,7 @@ public class NameServer {
 					outToServer.flush();
 
 				}
-			} catch (ClassNotFoundException | IOException | RemoteError e) {
+			} catch (IOException | RemoteError e) {
 				e.printStackTrace();
 			} catch (Exception e) {
 				e.printStackTrace();

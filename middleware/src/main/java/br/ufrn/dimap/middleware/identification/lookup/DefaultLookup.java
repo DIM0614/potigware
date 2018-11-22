@@ -41,7 +41,6 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 	
 	private Socket socket;
 	private ObjectOutputStream outToServer;
-	private ObjectInputStream inFromServer;
 
 	private static final String HOST = "localhost";
 	private static final int PORT = 8000;
@@ -104,7 +103,8 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 		try {
 			this.socket = new Socket(host, port);
 			this.outToServer = new ObjectOutputStream(socket.getOutputStream());
-			this.inFromServer = new ObjectInputStream(socket.getInputStream());
+
+            System.out.println("INIT METHODDDD");
 		} catch (IOException e) {
 			throw new RemoteError(e);
 		}
@@ -130,7 +130,7 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 		String data  = "find " + name;
 		outToServer.writeChars(data);
 		outToServer.flush();
-		return (AbsoluteObjectReference) ((ObjectInput) inFromServer).readObject();
+		return (AbsoluteObjectReference) ((ObjectInput) new ObjectInputStream(socket.getInputStream())).readObject();
 	}
   
    /**
@@ -142,7 +142,7 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 		data[1] = ObjectId;
 		((ObjectOutput) outToServer).writeObject(data);
 		outToServer.flush();
-		return ((ObjectInput) inFromServer).readObject();
+		return ((ObjectInput) new ObjectInputStream(socket.getInputStream())).readObject();
 	}
 
 	@Override
@@ -156,7 +156,7 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 
 		logger.log(Level.INFO, "Waiting for naming server response...");
 
-		Object[] files = (Object[]) ((ObjectInput) inFromServer).readObject();
+		Object[] files = (Object[]) ((ObjectInput) new ObjectInputStream(socket.getInputStream())).readObject();
 
 		byte[] interfFile = (byte[]) files[1];
 		byte[] invokerFile = (byte[]) files[3];
@@ -190,6 +190,7 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 		dynamicClassLoader.loadClassFromFile(getClassname(invokerName), getClassFileLocation(filesURL, invokerName));
 		dynamicClassLoader.loadClassFromFile(getClassname(implName), getClassFileLocation(filesURL, implName));
 
+		
 		logger.log(Level.INFO, "Implementation saved in the middleware");
 
 	}
@@ -200,7 +201,6 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 	 */
 	@Override
 	public void install(DeploymentDescriptor deploymentDescriptor) throws IOException {
-
 		if(deploymentDescriptor != null) {
 			if(deploymentDescriptor.getInterfaceFile() != null && deploymentDescriptor.getInvokerFile() != null && deploymentDescriptor.getInvokerImplementation() != null){
 
