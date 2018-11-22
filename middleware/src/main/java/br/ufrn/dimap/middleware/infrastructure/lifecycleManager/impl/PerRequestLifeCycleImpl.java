@@ -4,6 +4,7 @@ import br.ufrn.dimap.middleware.identification.ObjectId;
 import br.ufrn.dimap.middleware.infrastructure.lifecycleManager.interfaces.PerRequestLifeCycle;
 import br.ufrn.dimap.middleware.remotting.interfaces.Invoker;
 
+@Deprecated
 public class PerRequestLifeCycleImpl implements PerRequestLifeCycle {
 	
 	/*

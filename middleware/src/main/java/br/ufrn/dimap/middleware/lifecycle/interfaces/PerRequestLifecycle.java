@@ -1,6 +1,7 @@
 package br.ufrn.dimap.middleware.lifecycle.interfaces;
 
-import br.ufrn.dimap.middleware.identification.ObjectId;
+import br.ufrn.dimap.middleware.identification.AbsoluteObjectReference;
+import br.ufrn.dimap.middleware.infrastructure.lifecycleManager.interfaces.LifecycleManager;
 import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
 import br.ufrn.dimap.middleware.remotting.interfaces.Invoker;
 
@@ -12,7 +13,7 @@ import br.ufrn.dimap.middleware.remotting.interfaces.Invoker;
  * @author Gabriel Victor de Assis Azevedo 
  * @version 1.0
  */
-public interface PerRequestLifecycle extends GenericManager {
+public interface PerRequestLifecycle extends LifecycleManager {
 	/**
 	 * Start the process of retrieving a servant from the pool of objects.
 	 * 
@@ -20,7 +21,7 @@ public interface PerRequestLifecycle extends GenericManager {
 	 * @param obj is the object created on server 
 	 */
 	@Override
-	public Invoker InvocationArrived(ObjectId objectId) throws RemoteError;
+	public Invoker getInvoker(AbsoluteObjectReference aor) throws RemoteError;
 	
 	/**
 	 * returns the servant for his deactivation and placement back in the pool.
@@ -28,12 +29,14 @@ public interface PerRequestLifecycle extends GenericManager {
 	 * @param pooledServant servant used by the client.
 	 */
 	@Override
-	public void InvocationDone(ObjectId objectId, Invoker pooledServant) throws RemoteError;
+	public void invocationDone(AbsoluteObjectReference aor,  Invoker obj);
+	
 	/**
 	 * Create a pool of servants that will be created to available for the client.
 	 * 
 	 * @param pooledServant servant used by the client.
 	 */
-	public void RegisterPerRequestInstancePool(ObjectId objectId, Class<? extends Invoker> type) throws RemoteError;
+	@Override
+	public void registerInvoker(AbsoluteObjectReference aor, Class<? extends Invoker> type) throws RemoteError;
 	
 }

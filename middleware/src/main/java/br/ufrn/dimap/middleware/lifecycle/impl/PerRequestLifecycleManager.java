@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import br.ufrn.dimap.middleware.identification.AbsoluteObjectReference;
 import br.ufrn.dimap.middleware.identification.ObjectId;
 import br.ufrn.dimap.middleware.lifecycle.interfaces.Activate;
 import br.ufrn.dimap.middleware.lifecycle.interfaces.Deactivate;
@@ -35,8 +36,8 @@ public class PerRequestLifecycleManager implements PerRequestLifecycle{
 	 * @see br.ufrn.dimap.middleware.lifecycle.interfaces.PerRequestLifecycle#InvocationArrived(br.ufrn.dimap.middleware.identification.ObjectId)
 	 */
 	@Override
-	public Invoker InvocationArrived(ObjectId objectId) throws RemoteError {
-		
+	public Invoker getInvoker(AbsoluteObjectReference aor) throws RemoteError {
+		ObjectId objectId = aor.getObjectId();
 		Invoker ret = pools.get(objectId).getFreeInstance();
 		activate(ret);
 		return ret;
@@ -47,9 +48,14 @@ public class PerRequestLifecycleManager implements PerRequestLifecycle{
 	 * @see br.ufrn.dimap.middleware.lifecycle.interfaces.PerRequestLifecycle#InvocationDone(br.ufrn.dimap.middleware.identification.ObjectId, br.ufrn.dimap.middleware.remotting.interfaces.Invoker)
 	 */
 	@Override
-	public void InvocationDone(ObjectId objectId, Invoker pooledServant) throws RemoteError {
+	public void invocationDone(AbsoluteObjectReference aor, Invoker pooledServant) {
 		deactivate(pooledServant);
-		pools.get(objectId).putBackToPool(pooledServant);
+		ObjectId objectId = aor.getObjectId();
+		try {
+			pools.get(objectId).putBackToPool(pooledServant);
+		} catch (RemoteError e) {
+			e.printStackTrace();
+		}
 	}
 	
 	/**
@@ -73,7 +79,8 @@ public class PerRequestLifecycleManager implements PerRequestLifecycle{
 	 * @see br.ufrn.dimap.middleware.lifecycle.interfaces.PerRequestLifecycle#RegisterPerRequestInstancePool(br.ufrn.dimap.middleware.identification.ObjectId, java.lang.Class, int)
 	 */
 	@Override
-	public void RegisterPerRequestInstancePool(ObjectId objectId, Class<? extends Invoker> type) throws RemoteError {
+	public void registerInvoker(AbsoluteObjectReference aor, Class<? extends Invoker> type) throws RemoteError {
+		ObjectId objectId = aor.getObjectId();
 		PerRequest perRequest = type.getAnnotation(PerRequest.class);
 		pools.put(objectId, new PoolingManager(type, perRequest.poolSize()));
 	}
