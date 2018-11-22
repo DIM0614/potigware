@@ -1,6 +1,5 @@
 package br.ufrn.dimap.middleware.lifecycle;
 
-import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -16,7 +15,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  *
  * @param <T>
  */
-public class PoolingManager<T> implements PoolingI<T>{
+public class PoolingManager<T> implements Pooling<T>{
 	
     private final Queue<T> pool = new LinkedBlockingQueue<>();
 

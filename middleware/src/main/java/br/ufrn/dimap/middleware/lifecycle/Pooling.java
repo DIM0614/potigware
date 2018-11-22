@@ -7,7 +7,7 @@ package br.ufrn.dimap.middleware.lifecycle;
  * @author Gabriel Victor
  * @version 1.0
  */
-public interface PoolingI<T> {
+public interface Pooling<T> {
     /**
      * This method will access a pool of objects and return a free object if it
      * is the case.
