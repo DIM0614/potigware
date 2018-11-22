@@ -30,14 +30,15 @@ public class LifecycleManagerImpl implements LifecycleManager {
 
 	private final StaticLifecycle staticLifecycle;
 	private final PerRequestLifecycle perRequestLifeCycle;
-	private final Lookup defaultLookup = DefaultLookup.getInstance();
+	private final Lookup defaultLookup;
 
 	/*
 	 * Instantiates a new lifecycle management.
 	 */
-	public LifecycleManagerImpl() {
+	public LifecycleManagerImpl() throws RemoteError {
 		staticLifecycle = new StaticLifecycleManager();
 		perRequestLifeCycle = new PerRequestLifecycleManager();
+		defaultLookup = DefaultLookup.getInstance();
 	}
 
 	@SuppressWarnings("unchecked")
