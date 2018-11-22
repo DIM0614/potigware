@@ -42,7 +42,10 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
             ByteArrayInputStream inputStream = this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream);
 
             Object returnValue = this.marshaller.unmarshal(inputStream, Object.class);
-
+            
+            if(returnValue instanceof VoidObject)
+				returnValue = null;
+            
             return returnValue;
 
         } catch (IOException | ClassNotFoundException e) {

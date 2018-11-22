@@ -276,6 +276,8 @@ public class DefaultClientProtocol implements ClientProtocolPlugIn {
 		try {
 			ByteArrayInputStream inputStream = sendAndCache(host, port, msg, true);
 			Object returnValue = this.marshaller.unmarshal(inputStream, Object.class);
+			if(returnValue instanceof VoidObject)
+				returnValue = null;
 			callback.onResult(returnValue);
 		} catch (ClassNotFoundException | IOException e) {
 			callback.onError(new RemoteError(e));
@@ -313,6 +315,8 @@ public class DefaultClientProtocol implements ClientProtocolPlugIn {
 			ByteArrayInputStream inputStream = sendAndCache(host, port, msg, true);
 			try {
 				Object returnValue = this.marshaller.unmarshal(inputStream, Object.class);
+				if(returnValue instanceof VoidObject)
+					returnValue = null;
 				pollObject.storeResult(returnValue);
 			} catch(IOException | ClassNotFoundException e) {
 				throw new RemoteError(e);

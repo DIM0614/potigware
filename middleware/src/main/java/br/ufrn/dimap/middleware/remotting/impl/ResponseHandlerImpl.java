@@ -47,6 +47,8 @@ public class ResponseHandlerImpl implements ResponseHandler {
 		
 		try {
 			Object returnedData = invoker.invoke(invocation);
+			if(returnedData == null)
+				returnedData = new VoidObject();
 			lifecycleManager.invocationDone(aor, invoker);
 			ret = marshaller.marshal(returnedData).toByteArray();
 		} catch(Exception e) {
