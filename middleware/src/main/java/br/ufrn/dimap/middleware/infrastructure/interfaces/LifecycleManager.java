@@ -1,4 +1,4 @@
-package br.ufrn.dimap.middleware.infrastructure.lifecycleManager.interfaces;
+package br.ufrn.dimap.middleware.infrastructure.interfaces;
 
 import br.ufrn.dimap.middleware.identification.AbsoluteObjectReference;
 import br.ufrn.dimap.middleware.remotting.interfaces.Invoker;
@@ -8,11 +8,11 @@ import br.ufrn.dimap.middleware.remotting.interfaces.Invoker;
  * 
  * @author
  * @version 1.0
- * @see LifecycleManagerImpl Interface
+ * @see PerRequestLifecycleManager Interface
  */
 public interface LifecycleManager {
 
-	public Invoker getInvoker( AbsoluteObjectReference aor) throws Exception;
-	public void invocationDone( AbsoluteObjectReference aor,  Invoker obj);
+	public Invoker invocationArrived( AbsoluteObjectReference aor) throws Exception;
+	public void invocationDone( Invoker obj);
 	
 }
