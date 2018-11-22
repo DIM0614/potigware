@@ -2,6 +2,7 @@ package br.ufrn.dimap.middleware.extension.interfaces;
 
 import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
 
+
 /**
  * This interface is implemented by the Server Request Handler and hosts
  * a callback function that must be used to parse the incoming data
@@ -21,4 +22,5 @@ public interface ResponseHandler {
 	 * @throws RemoteError if any error occurs
 	 */
 	public byte[] handleResponse(byte[] msg) throws RemoteError;
+
 }
