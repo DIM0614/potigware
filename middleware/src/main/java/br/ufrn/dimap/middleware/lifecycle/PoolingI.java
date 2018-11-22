@@ -14,13 +14,13 @@ public interface PoolingI<T> {
      *
      * @return to be implemented
      */
-    T getFreeInstance();
+    public T getFreeInstance();
 
     /**
      * This method should implement the return of the used object to the pool;
      *
      * @param pooledServant used object to be returned to the pool;
      */
-    void putBackToPool(T pooledServant);
+    public void putBackToPool(T pooledServant);
 
 }
