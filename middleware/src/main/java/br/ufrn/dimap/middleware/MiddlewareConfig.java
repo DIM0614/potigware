@@ -56,57 +56,143 @@ public final class MiddlewareConfig {
 	        return w.getInstance();
 		}
 		
+		private final Map<String, InvocationInterceptorUnserialized> invocationInterceptors = new ConcurrentHashMap<>(); 
+		private final Map<String, InvocationInterceptorSerialized> requestInterceptors = new ConcurrentHashMap<>(); 
+		
 		private final Queue<InvocationInterceptorUnserialized> clientInvocationInteceptors = new ConcurrentLinkedQueue<>();
 		private final Queue<InvocationInterceptorUnserialized> serverInvocationInteceptors = new ConcurrentLinkedQueue<>();
 		private final Queue<InvocationInterceptorSerialized> clientRequestInteceptors = new ConcurrentLinkedQueue<>();
 		private final Queue<InvocationInterceptorSerialized> serverRequestInteceptors = new ConcurrentLinkedQueue<>();
 		
 		/**
-		 * Registers an interceptor to be executed by the client on an
-		 * invocation. Happens before the object serialization.
-		 * 
-		 * @param interceptor interceptor to be registered
+		 * Registers an invocation interceptor under the given name
+		 * @param name
+		 * @param interceptor
 		 */
-		public void registerClientInvocationInterceptor(InvocationInterceptorUnserialized interceptor) {
-			clientInvocationInteceptors.add(interceptor);
+		
+		public void registerInvocationInterceptor(String name, InvocationInterceptorUnserialized interceptor) {
+			invocationInterceptors.put(name, interceptor);
 		}
 		
 		/**
-		 * Registers an interceptor to be executed by the server on an
-		 * invocation. Happens after the object deserialization.
-		 * 
-		 * @param interceptor interceptor to be registered
+		 * Registers a request interceptor under the given name
+		 * @param name
+		 * @param interceptor
 		 */
-		public void registerServerInvocationInterceptor(InvocationInterceptorUnserialized interceptor) {
-			serverInvocationInteceptors.add(interceptor);
+		public void registerRequestInterceptor(String name, InvocationInterceptorSerialized interceptor) {
+			requestInterceptors.put(name, interceptor);
 		}
 		
 		/**
-		 * Registers an interceptor to be executed by the client on an
-		 * invocation. Happens after the object serialization.
+		 * Adds a pre-registered invocation interceptor to the client
+		 * invocation interceptor queue
 		 * 
-		 * @param interceptor interceptor to be registered
+		 * @param name the interceptor identifier
+		 * @throws MiddlewareConfigException 
 		 */
-		public void registerClientRequestInterceptor(InvocationInterceptorSerialized interceptor) {
-			clientRequestInteceptors.add(interceptor);
+		public void startClientInvocationInterceptor(String name) throws MiddlewareConfigException {
+			InvocationInterceptorUnserialized iiu = invocationInterceptors.get(name);
+			if (iiu == null) throw new MiddlewareConfigException("Interceptor not found");
+			clientInvocationInteceptors.add(iiu);
+		}
+		
+		/**
+		 * Removes a pre-registered invocation interceptor to the client
+		 * invocation interceptor queue
+		 * 
+		 * @param name the interceptor identifier
+		 * @throws MiddlewareConfigException 
+		 */
+		public void stopClientInvocationInterceptor(String name) throws MiddlewareConfigException {
+			InvocationInterceptorUnserialized iiu = invocationInterceptors.get(name);
+			if (iiu == null) throw new MiddlewareConfigException("Interceptor not found");
+			clientInvocationInteceptors.remove(iiu);
+		}
+		
+		/**
+		 * Adds a pre-registered invocation interceptor to the server
+		 * invocation interceptor queue
+		 * 
+		 * @param name the interceptor identifier
+		 * @throws MiddlewareConfigException 
+		 */
+		public void startServerInvocationInterceptor(String name) throws MiddlewareConfigException {
+			InvocationInterceptorUnserialized iiu = invocationInterceptors.get(name);
+			if (iiu == null) throw new MiddlewareConfigException("Interceptor not found");
+			serverInvocationInteceptors.add(iiu);
+		}
+		
+		/**
+		 * Removes a pre-registered invocation interceptor to the server
+		 * invocation interceptor queue
+		 * 
+		 * @param name the interceptor identifier
+		 * @throws MiddlewareConfigException 
+		 */
+		public void stopServerInvocationInterceptor(String name) throws MiddlewareConfigException {
+			InvocationInterceptorUnserialized iiu = invocationInterceptors.get(name);
+			if (iiu == null) throw new MiddlewareConfigException("Interceptor not found");
+			serverInvocationInteceptors.remove(iiu);
+		}
+		
+		/**
+		 * Adds a pre-registered request interceptor to the client
+		 * request interceptor queue
+		 * 
+		 * @param name the interceptor identifier
+		 * @throws MiddlewareConfigException 
+		 */
+		public void startClientRequestInterceptor(String name) throws MiddlewareConfigException {
+			InvocationInterceptorSerialized iis = requestInterceptors.get(name);
+			if (iis == null) throw new MiddlewareConfigException("Interceptor not found");
+			clientRequestInteceptors.add(iis);
 		}
 	
 		/**
-		 * Registers an interceptor to be executed by the client on an
-		 * invocation. Happens after the object serialization.
+		 * Removes a pre-registered request interceptor to the client
+		 * request interceptor queue
 		 * 
-		 * @param interceptor interceptor to be registered
+		 * @param name the interceptor identifier
+		 * @throws MiddlewareConfigException 
 		 */
-		public void registerServerRequestInterceptor(InvocationInterceptorSerialized interceptor) {
-			serverRequestInteceptors.add(interceptor);
+		public void stopClientRequestInterceptor(String name) throws MiddlewareConfigException {
+			InvocationInterceptorSerialized iis = requestInterceptors.get(name);
+			if (iis == null) throw new MiddlewareConfigException("Interceptor not found");
+			clientRequestInteceptors.remove(iis);
+		}
+		
+		/**
+		 * Adds a pre-registered request interceptor to the server
+		 * request interceptor queue
+		 * 
+		 * @param name the interceptor identifier
+		 * @throws MiddlewareConfigException 
+		 */
+		public void startServerRequestInterceptor(String name) throws MiddlewareConfigException {
+			InvocationInterceptorSerialized iis = requestInterceptors.get(name);
+			if (iis == null) throw new MiddlewareConfigException("Interceptor not found");
+			serverRequestInteceptors.add(iis);
 		}
 
+		/**
+		 * Removes a pre-registered request interceptor to the server
+		 * request interceptor queue
+		 * 
+		 * @param name the interceptor identifier
+		 * @throws MiddlewareConfigException 
+		 */
+		public void stopServerRequestInterceptor(String name) throws MiddlewareConfigException {
+			InvocationInterceptorSerialized iis = requestInterceptors.get(name);
+			if (iis == null) throw new MiddlewareConfigException("Interceptor not found");
+			serverRequestInteceptors.remove(iis);
+		}
+		
 		/**
 		 * Returns a collection with the client invocation interceptors in the order
 		 * they must be applied
 		 * @return the interceptor collection
 		 */
-		public Collection<InvocationInterceptorUnserialized> getClientInvocationinteceptors() {
+		public Collection<InvocationInterceptorUnserialized> getClientInvocationInteceptors() {
 			return clientInvocationInteceptors;
 		}
 
@@ -115,7 +201,7 @@ public final class MiddlewareConfig {
 		 * they must be applied
 		 * @return the interceptor collection
 		 */
-		public Collection<InvocationInterceptorUnserialized> getServerInvocationinteceptors() {
+		public Collection<InvocationInterceptorUnserialized> getServerInvocationInteceptors() {
 			return serverInvocationInteceptors;
 		}
 
@@ -124,7 +210,7 @@ public final class MiddlewareConfig {
 		 * they must be applied
 		 * @return the interceptor collection
 		 */
-		public Collection<InvocationInterceptorSerialized> getClientrequestInteceptors() {
+		public Collection<InvocationInterceptorSerialized> getClientRequestInteceptors() {
 			return clientRequestInteceptors;
 		}
 
@@ -133,7 +219,7 @@ public final class MiddlewareConfig {
 		 * they must be applied
 		 * @return the interceptor collection
 		 */
-		public Collection<InvocationInterceptorSerialized> getServerrequestInteceptors() {
+		public Collection<InvocationInterceptorSerialized> getServerRequestInteceptors() {
 			return serverRequestInteceptors;
 		}
 	}
