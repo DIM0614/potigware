@@ -12,7 +12,7 @@ public interface Pooling<T> {
      * This method will access a pool of objects and return a free object if it
      * is the case.
      *
-     * @return to be implemented
+     * @return an instance of the servant
      */
     public T getFreeInstance();
 
