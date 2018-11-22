@@ -17,7 +17,7 @@ public interface ServerProtocolPlugin {
 	 * @param responseHandler Hosts the callback function that handles the incoming data
 	 * @throws RemoteError
 	 */
-	public void listen(ResponseHandler responseHandler) throws RemoteError;
+	public void listen(int port, ResponseHandler responseHandler) throws RemoteError;
 	
 	/**
 	 * Shutdown the plug-in. Used when shutting down the server.

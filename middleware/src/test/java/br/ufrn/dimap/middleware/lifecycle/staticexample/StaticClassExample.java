@@ -1,6 +1,6 @@
 package br.ufrn.dimap.middleware.lifecycle.staticexample;
 
-import br.ufrn.dimap.middleware.lifecycle.Static;
+import br.ufrn.dimap.middleware.lifecycle.interfaces.Static;
 
 /**
  * Represents some class that should be loaded with the server initiation.

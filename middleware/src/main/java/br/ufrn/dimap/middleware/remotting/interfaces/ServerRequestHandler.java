@@ -18,8 +18,9 @@ public interface ServerRequestHandler {
 	
 	/**
 	 * Initialize the handler
+	 * @throws RemoteError if any error occurs
 	 */
-	public void init();
+	public void init() throws RemoteError;
 	
 	/**
 	 * Shutdowns the handler
