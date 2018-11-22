@@ -3,12 +3,14 @@ package br.ufrn.dimap.middleware.identification.lookup;
 import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.nio.file.Files;
 
 import br.ufrn.dimap.middleware.identification.AbsoluteObjectReference;
 import br.ufrn.dimap.middleware.identification.ObjectId;
 import br.ufrn.dimap.middleware.remotting.interfaces.NamingInstaller;
 import br.ufrn.dimap.middleware.remotting.impl.DeploymentDescriptor;
 import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
+import br.ufrn.dimap.middleware.utils.IOUtils;
 
 /**
 
@@ -22,7 +24,9 @@ import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
  * according to their respective object IDs as well.
  * The singleton pattern is used to implement this class.
  * 
- * @author ireneginani thiagolucena
+ * @author ireneginani
+ * @author thiagolucena
+ * @author vinihcampos
  */
 public class DefaultLookup implements Lookup, NamingInstaller {
 	
@@ -132,28 +136,20 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 	public void install(DeploymentDescriptor deploymentDescriptor) throws IOException {
 
 		if(deploymentDescriptor != null) {
-			FileInputStream fileInputStream = null;
-			byte[] buffer = new byte[4096];
-
 			if(deploymentDescriptor.getInterfaceFile() != null && deploymentDescriptor.getInvokerFile() != null && deploymentDescriptor.getInvokerImplementation() != null){
-				fileInputStream = new FileInputStream(deploymentDescriptor.getInterfaceFile());
-				while (fileInputStream.read(buffer) > 0) {
-					outToServer.write(buffer);
-				}
 
-				fileInputStream = new FileInputStream(deploymentDescriptor.getInvokerFile());
-				while (fileInputStream.read(buffer) > 0) {
-					outToServer.write(buffer);
-				}
+				Object data[] = new Object[7];
+				data[0] = "install";
+				data[1] = "interfaceFile";
+				data[2] = Files.readAllBytes(deploymentDescriptor.getInterfaceFile().toPath());
+				data[3] = "invokerFile";
+				data[4] = Files.readAllBytes(deploymentDescriptor.getInvokerFile().toPath());
+				data[5] = "invokerImplementation";
+				data[6] = Files.readAllBytes(deploymentDescriptor.getInvokerImplementation().toPath());
 
-				fileInputStream = new FileInputStream(deploymentDescriptor.getInvokerImplementation());
-				while (fileInputStream.read(buffer) > 0) {
-					outToServer.write(buffer);
-				}
+				((ObjectOutput) outToServer).writeObject(data);
+				outToServer.flush();
 			}
-
-			if(fileInputStream != null)
-				fileInputStream.close();
 		}
 	}
 

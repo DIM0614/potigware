@@ -1,8 +1,6 @@
 package br.ufrn.dimap.middleware.identification;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Map;
@@ -55,6 +53,25 @@ public class NameServer {
 					output.writeObject(findById((ObjectId) data[1]));
 					output.flush();
 					output.close();
+				}else if(data[0].equals("install")) {
+					File directory = new File("./");
+					String filesURL = directory.getCanonicalPath() + "/src/main/java/br/ufrn/dimap/middleware/remotting/files/";
+					String interfaceName = (String) data[1];
+					String invokerName = (String) data[3];
+					String invokerImplName = (String) data[5];
+
+					// Reference obtained in stackoverlfow: https://stackoverflow.com/questions/4350084/byte-to-file-in-java
+					try (FileOutputStream fos = new FileOutputStream(filesURL + interfaceName)) {
+						fos.write((byte[]) data[2]);
+					}
+
+					try (FileOutputStream fos = new FileOutputStream(filesURL + invokerName)) {
+						fos.write((byte[]) data[4]);
+					}
+
+					try (FileOutputStream fos = new FileOutputStream(filesURL + invokerImplName)) {
+						fos.write((byte[]) data[6]);
+					}
 				}
 			} catch (ClassNotFoundException e) {
 				// TODO Auto-generated catch block

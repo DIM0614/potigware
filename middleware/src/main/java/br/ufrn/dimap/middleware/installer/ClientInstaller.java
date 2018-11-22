@@ -119,7 +119,7 @@ public class ClientInstaller {
      * @param interfaceName the name of the IDL generated interface class
      * @param classPath the source folder where the classes were placed.
      */
-    private void deployApplication(String remoteObjectName, String invokerName,String interfaceName, String classPath) {
+    private void deployApplication(String remoteObjectName, String invokerName,String interfaceName, String classPath) throws IOException {
 
         DeploymentDescriptor deploymentDescriptor = DeploymentDescriptor.createDeploymentDescriptor(
                 remoteObjectName,
