@@ -13,7 +13,7 @@ import br.ufrn.dimap.middleware.remotting.interfaces.Invoker;
  * @author Gabriel Victor de Assis Azevedo 
  * @version 1.0
  */
-public interface PerRequestLifeCycleManagerI {
+public interface PerRequestLifecycle {
 	/**
 	 * Start the process of retrieving a servant from the pool of objects.
 	 * 

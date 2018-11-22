@@ -10,20 +10,22 @@ import br.ufrn.dimap.middleware.remotting.interfaces.Invoker;
  * @version 0.1
  */
 
-public class PerRequestLifeCycleManager implements PerRequestLifeCycleManagerI{
+public class PerRequestLifecycleManager implements PerRequestLifecycle{
 	
 	@Override
 	public Servant InvocationArrived(ObjectId objectId, Invoker obj) {
-		Servant pooledServant = PoolingI.getFreeInstance();
-		pooledServant.activate();
+		return null;
 		
-		return pooledServant;
+		// TODO
+		//Servant pooledServant = Pooling.getFreeInstance();
+		//pooledServant.activate();
+		//return pooledServant;
 	}
 
 	@Override
 	public void InvocationDone(Servant pooledServant) {
-		pooledServant.deactivate();
-		PoolingI.putBackToPool(pooledServant);
+		//pooledServant.deactivate();
+		//Pooling.putBackToPool(pooledServant);
 		
 	}
 
