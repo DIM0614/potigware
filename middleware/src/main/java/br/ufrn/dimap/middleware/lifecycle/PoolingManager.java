@@ -2,6 +2,7 @@ package br.ufrn.dimap.middleware.lifecycle;
 
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Implements the pooling manager to provide servants to the Lifecycle Manager.
@@ -17,21 +18,16 @@ import java.util.Queue;
  */
 public class PoolingManager<T> implements PoolingI<T>{
 	
-    private Queue<T> pool = new LinkedList<>();
+    private final Queue<T> pool = new LinkedBlockingQueue<>();
 
     /**
      * Default constructor
      *
-     * @param type the Fully Qualified Name of the class
+     * @param type class of servant
      * @param size the size of the pool
      */
-    public PoolingManager(String type, int size) {
-        Class<?> aClass;
-        try {
-            aClass = Class.forName(type);
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Classe não existe - jumento!", e);
-        }
+    public PoolingManager(Class <? extends T> type, int size) {
+        Class<?> aClass = type;
 
         try {
             for (int i = 0; i < size; i++) {
@@ -106,7 +102,7 @@ public class PoolingManager<T> implements PoolingI<T>{
     		success = addPoolInstance(pooledServant);
 
             if (success) {
-                pool.notifyAll();
+                pool.notify();
             }
 		}
         
