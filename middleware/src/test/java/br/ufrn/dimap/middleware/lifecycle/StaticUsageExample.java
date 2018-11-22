@@ -1,5 +1,6 @@
 package br.ufrn.dimap.middleware.lifecycle;
 
+import br.ufrn.dimap.middleware.lifecycle.interfaces.Static;
 import br.ufrn.dimap.middleware.lifecycle.staticexample.NonStaticClassExample;
 import br.ufrn.dimap.middleware.lifecycle.staticexample.StaticClassExample;
 
