@@ -7,7 +7,7 @@ import br.ufrn.dimap.middleware.infrastructure.lifecycleManager.impl.LifecycleMa
 import br.ufrn.dimap.middleware.infrastructure.lifecycleManager.interfaces.LifecycleManager;
 import br.ufrn.dimap.middleware.remotting.interfaces.Invoker;
 import br.ufrn.dimap.middleware.remotting.interfaces.Marshaller;
-import br.ufrn.dimap.middleware.remotting.interfaces.ResponseHandler;
+import br.ufrn.dimap.middleware.extension.interfaces.ResponseHandler;
 
 /**
  * Handles requests from clients.
@@ -24,7 +24,7 @@ public class ResponseHandlerImpl implements ResponseHandler {
 	 * @see br.ufrn.dimap.middleware.remotting.interfaces.ResponseHandler#handleResponse(java.io.InputStream)
 	 */
 	@Override
-	public byte[] handleResponse(byte[] msg, boolean respond) throws RemoteError {
+	public byte[] handleResponse(byte[] msg) throws RemoteError {
 		Invocation invocation;
 		InvocationData invocationData;
 		AbsoluteObjectReference aor;
@@ -44,10 +44,7 @@ public class ResponseHandlerImpl implements ResponseHandler {
 		try {
 			Object returnedData = invoker.invoke(invocation);
 			lifecycleManager.invocationDone(aor, invoker);
-			if(respond)
-				ret = marshaller.marshal(returnedData).toByteArray();
-			else
-				ret = null;
+			ret = marshaller.marshal(returnedData).toByteArray();
 		} catch(Exception e) {
 			throw new RemoteError(e);
 		} finally {
