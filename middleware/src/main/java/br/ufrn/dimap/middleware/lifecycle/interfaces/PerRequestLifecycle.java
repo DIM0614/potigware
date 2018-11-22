@@ -34,7 +34,6 @@ public interface PerRequestLifecycle extends GenericManager {
 	 * 
 	 * @param pooledServant servant used by the client.
 	 */
-	public void RegisterPerRequestInstancePool(ObjectId objectId, Class<? extends Invoker> type, 
-			int size) throws RemoteError;
+	public void RegisterPerRequestInstancePool(ObjectId objectId, Class<? extends Invoker> type) throws RemoteError;
 	
 }
