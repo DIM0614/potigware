@@ -1,6 +1,7 @@
 package br.ufrn.dimap.middleware.remotting.generator;
 
 import br.ufrn.dimap.middleware.identification.AbsoluteObjectReference;
+import br.ufrn.dimap.middleware.installer.InstallationConfig;
 import br.ufrn.dimap.middleware.remotting.impl.ClientProxy;
 import br.ufrn.dimap.middleware.remotting.impl.UnsyncRequestor;
 import br.ufrn.dimap.middleware.remotting.interfaces.Callback;
@@ -18,6 +19,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import javax.lang.model.element.Modifier;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -348,6 +350,10 @@ public class Generator {
         JSONParser parser = new JSONParser();
         Object obj = parser.parse(new FileReader(interfaceDescriptionURL));
         JSONObject jsonObject = (JSONObject) obj;
+
+        // Create dir if not exists
+        new File(InstallationConfig.getClasspathLocation(pathToSave)).mkdirs();
+
         Path path = Paths.get(pathToSave);
         String interfName = generateInterface(jsonObject, path, packageName);
         String proxyName = generateProxy(jsonObject, path, packageName);

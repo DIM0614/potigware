@@ -311,20 +311,6 @@ public class ClientInstaller {
             }
         }
 
-        //try {
-
-            //String idlPath = Objects.requireNonNull(args[0], "The IDL path should be provided.");
-            //String invokerName = Objects.requireNonNull(args[1], "The invoker name should be provided.");
-            //String remoteObjectName = Objects.requireNonNull(args[2],"The remote object name should be provided.");
-
-            //InstallationResult installationResult = ClientInstaller.getInstance().install(idlPath, remoteObjectName,invokerName);
-
-            //Class clientProxyClass = installationResult.getClientProxyClass();
-            //Class invokerClass = installationResult.getInvokerClass();
-
-        //} catch (Exception e)//InstallationException e) {
-        //    Logger.getLogger(ClientInstaller.class.getName()).log(Level.SEVERE,e.getMessage(),e);
-        //}
     }
 
 }

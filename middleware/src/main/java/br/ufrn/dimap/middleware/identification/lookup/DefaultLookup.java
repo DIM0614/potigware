@@ -235,6 +235,9 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 
 		logger.log(Level.INFO, "Storing interface file...");
 
+		// Create dir if not exists
+        new File(filesURL).mkdirs();
+
 		try (FileOutputStream fos = new FileOutputStream(filesURL + interfName + ".class")) {
 			fos.write(interfFile);
 		}

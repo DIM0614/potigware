@@ -22,12 +22,9 @@ public class IntegrationTest {
         generated.ClientMath math = null;
         try {
 
-            System.out.println("Creating proxy");
-
             math = (generated.ClientMath) ProxyCreator.getInstance().create("math", ClientMath.class);
 
             if (math != null) {
-            	System.out.println("Created");
 
             	System.out.println("Pi value: " + math.pi(0.1f));
 
