@@ -128,13 +128,22 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 	 *
 	 * @see br.ufrn.dimap.middleware.identification.lookup.Lookup#find(String)
 	 */
-	public AbsoluteObjectReference find(String name) throws RemoteError, UnknownHostException, IOException, ClassNotFoundException {
+	public AbsoluteObjectReference find(String name) throws IOException, ClassNotFoundException {
 		Object[] data = new Object[2];
 		data[0] = "find";
 		data[1] = name;
 		outToServer.writeObject(data);
 		outToServer.flush();
-		return (AbsoluteObjectReference) ((ObjectInput) new ObjectInputStream(socket.getInputStream())).readObject();
+		logger.log(Level.INFO, "Waiting server response...");
+
+		AbsoluteObjectReference aor = null;
+
+		try(ObjectInputStream ois = new ObjectInputStream(socket.getInputStream())) {
+			aor = (AbsoluteObjectReference) ois.readObject();
+		}
+		logger.log(Level.INFO, "AOR received!");
+
+		return aor;
 	}
   
    /**
@@ -179,7 +188,7 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 		String invokerName = (String) files[2];
 		String implName = (String) files[4];
 
-		String filesURL = InstallationConfig.getTargetDir();
+		String filesURL = InstallationConfig.getTargetDir() + "generated/middleware/";
 
 		logger.log(Level.INFO, "Storing interface file...");
 
