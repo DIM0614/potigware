@@ -38,7 +38,7 @@ public class IOUtils {
             throw new IllegalArgumentException("Filepath must not be null.");
         }
 
-        if(filePath.endsWith(extension)){
+        if(!filePath.endsWith(extension)){
             throw new IllegalArgumentException("The file extension must be .class");
         }
     }

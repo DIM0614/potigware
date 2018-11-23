@@ -2,6 +2,7 @@ package br.ufrn.dimap.middleware.identification;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import java.io.Serializable;
 
 /**
  * This class describes a remote absolute reference that uniquely identifies a 
@@ -13,7 +14,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
  * @see ObjectId
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-public class AbsoluteObjectReference {
+public class AbsoluteObjectReference implements Serializable {
 	
 	private ObjectId objectId;
 	private String host;

@@ -1,5 +1,6 @@
 package br.ufrn.dimap.middleware.remotting.impl;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,7 +13,7 @@ import javax.xml.bind.annotation.XmlRootElement;
  * @author vitorgreati
  */
 @XmlRootElement(name = "Invocation")
-public class Invocation {
+public class Invocation implements Serializable {
 
     private InvocationData invocationData;
 

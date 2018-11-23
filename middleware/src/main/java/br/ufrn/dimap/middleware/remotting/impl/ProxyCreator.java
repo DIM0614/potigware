@@ -1,11 +1,15 @@
 package br.ufrn.dimap.middleware.remotting.impl;
 
 import br.ufrn.dimap.middleware.identification.AbsoluteObjectReference;
+import br.ufrn.dimap.middleware.identification.lookup.DefaultLookup;
 import br.ufrn.dimap.middleware.identification.lookup.Lookup;
+import br.ufrn.dimap.middleware.installer.ClientInstaller;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.UnknownHostException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Singleton used by clients to ease the instantiation of
@@ -19,8 +23,10 @@ public class ProxyCreator {
 
     private static Wrapper<ProxyCreator> wrapper;
 
-    public ProxyCreator() {
-        lookup = null;//TODO Middleware.getService("lookup") ;
+    private Logger logger = Logger.getLogger(ProxyCreator.class.getName());
+
+    private ProxyCreator() throws RemoteError {
+        lookup = DefaultLookup.getInstance();
     }
 
     /**
@@ -39,13 +45,21 @@ public class ProxyCreator {
      * @throws UnknownHostException 
      */
     public ClientProxy create(String objectName, Class<? extends ClientProxy> proxyClass) throws RemoteError, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException, UnknownHostException, ClassNotFoundException, IOException {
+
+        logger.log(Level.INFO, "Start lookup...");
+
         // get AOR
         AbsoluteObjectReference aor = lookup.find(objectName);
-        // make proxy
-        return proxyClass.getConstructor(AbsoluteObjectReference.class).newInstance(aor);
+
+        logger.log(Level.INFO, "Ended searching for AOR...");
+
+        if (aor != null) {
+            // make proxy
+            return proxyClass.getConstructor(AbsoluteObjectReference.class).newInstance(aor);
+        } else return null;
     }
 
-    public static ProxyCreator getInstance() {
+    public static ProxyCreator getInstance() throws RemoteError {
         Wrapper<ProxyCreator> w = wrapper;
         if (w == null) {
             synchronized (ProxyCreator.class) {

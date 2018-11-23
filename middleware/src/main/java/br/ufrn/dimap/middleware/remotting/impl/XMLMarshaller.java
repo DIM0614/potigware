@@ -39,6 +39,7 @@ import br.ufrn.dimap.middleware.remotting.interfaces.Marshaller;
  */
 public class XMLMarshaller implements Marshaller {
 
+	@Override
 	public <T> ByteArrayOutputStream marshal(T object) throws IOException {
 		
 		Object marshalObject = null;
@@ -67,6 +68,7 @@ public class XMLMarshaller implements Marshaller {
 		return byteStream;
 	}
 
+	@Override
 	public <T> T unmarshal(ByteArrayInputStream byteStream, Class<T> tgtClass) throws IOException, ClassNotFoundException {
 		T result = null;
 		

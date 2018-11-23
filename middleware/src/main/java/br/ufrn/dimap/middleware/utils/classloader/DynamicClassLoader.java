@@ -20,19 +20,28 @@ public class DynamicClassLoader extends ClassLoader {
      */
     public static final String CLASS_FILE_EXTENSION = ".class";
 
+    private static DynamicClassLoader instance;
+
     private DynamicClassLoader(ClassLoader parent){
         super(parent);
     }
 
     /**
-     * Static factory method for the DynamicClassLoader.
+     * Singleton access method for the DynamicClassLoader.
      *
      * @return a DynamicClassLoader instance.
      */
     public static DynamicClassLoader getDynamicClassLoader(){
-        ClassLoader parentClassloader = DynamicClassLoader.class.getClassLoader();
+        if(instance == null){
+            synchronized (DynamicClassLoader.class){
+                if(instance == null){
+                    ClassLoader parentClassloader = DynamicClassLoader.class.getClassLoader();
+                    instance = new DynamicClassLoader(parentClassloader);
+                }
+            }
+        }
 
-        return new DynamicClassLoader(parentClassloader);
+        return instance;
     }
 
     /**
