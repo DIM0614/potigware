@@ -100,6 +100,9 @@ public class NameServer {
 
 						String filesURL = InstallationConfig.getTargetDir() + "generated/naming/";
 
+						// Create dir if not exists
+						new File(filesURL).mkdirs();
+
 						String interfaceName = (String) data[1];
 						String invokerName = (String) data[3];
 						String invokerImplName = (String) data[5];
