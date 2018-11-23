@@ -35,7 +35,7 @@ public class ObjectId implements Serializable {
 	public ObjectId(String seed) {
 		this.objectId = UUID.fromString(seed);
 	}
-	
+
 	/**
 	 * Return the least significant 64 bits of this UUID's 128 bit value.
 	 * @return Least significant 64 bits.
