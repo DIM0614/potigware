@@ -41,7 +41,6 @@ import static br.ufrn.dimap.middleware.installer.InstallationConfig.getClassname
 public class DefaultLookup implements Lookup, NamingInstaller {
 	
 	private Socket socket;
-	private ObjectOutputStream outToServer;
 
 	private static final String HOST = "localhost";
 	private static final int PORT = 8000;
@@ -103,8 +102,6 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 	public void init(String host, int port) throws RemoteError {
 		try {
 			this.socket = new Socket(host, port);
-
-			this.outToServer = null; //new ObjectOutputStream(socket.getOutputStream());
 		} catch (IOException e) {
 			throw new RemoteError(e);
 		}
@@ -119,8 +116,10 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 		data[2] = remoteObject;
 		data[3] = host;
 		data[4] = port;
-		((ObjectOutput) outToServer).writeObject(data);
-		outToServer.flush();
+		ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+		
+		((ObjectOutput) oos).writeObject(data);
+		oos.flush();
 		
 	}
   
@@ -132,15 +131,15 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 	public AbsoluteObjectReference find(String name) throws IOException, ClassNotFoundException {
 
         try {
-            init(HOST, PORT);
+        	init(HOST, PORT);
         } catch (RemoteError remoteError) {
             remoteError.printStackTrace();
         }
-
+        
+        
         AbsoluteObjectReference aor = null;
 
 		ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-        ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
 
         Object data[] = new Object[2];
 
@@ -155,14 +154,15 @@ public class DefaultLookup implements Lookup, NamingInstaller {
         try {
             while (true) {
                 logger.log(Level.INFO, "Waiting server response...");
+                ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
                 aor = (AbsoluteObjectReference) ois.readObject();
             }
         } catch (EOFException e) {}
 
 		logger.log(Level.INFO, "AOR received!");
 
-		oos.close();
-		ois.close();
+		//oos.close();
+		//ois.close();
 		socket.close();
 
 		return aor;
@@ -176,8 +176,9 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 	    Object data [] = new Object[2];
 		data[0] = "findById";
 		data[1] = ObjectId;
-		((ObjectOutput) outToServer).writeObject(data);
-		outToServer.flush();
+		ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+		((ObjectOutput) oos).writeObject(data);
+		oos.flush();
 		return ((ObjectInput) new ObjectInputStream(socket.getInputStream())).readObject();
 	}
 
@@ -204,10 +205,6 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 
 		ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
 
-		logger.log(Level.INFO, "Waiting for input stream...");
-
-		ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
-
 		logger.log(Level.INFO, "Making request...");
 
 		oos.writeObject(data);
@@ -218,9 +215,12 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 		Object[] files = null;
 
 		try {
-			while(true){
+			//while(true){				
+				logger.log(Level.INFO, "Waiting for input stream...");
+				
+				ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
 				files = (Object[]) ois.readObject();
-			}
+			//}
 		} catch(EOFException e) {}
 
 		byte[] interfFile = (byte[]) files[1];
@@ -257,6 +257,8 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 
 		logger.log(Level.INFO, "Implementation saved in the middleware");
 
+		socket.close();
+		
 		return implClass;
 	}
 
