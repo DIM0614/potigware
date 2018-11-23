@@ -128,7 +128,7 @@ public class Generator {
                     .addModifiers(Modifier.PUBLIC)
                     .returns(getType(methodReturn))
                     .addParameters(parameters)
-                    .addStatement("return " + getCastType(methodReturn) + " r.request(aor,\"" + methodName + "\"," + stringParams + ")")
+                    .addStatement("return " + getCastType(methodReturn) + " r.request(absoluteObjectReference,\"" + methodName + "\"," + stringParams + ")")
                     .addJavadoc(methodDescription)
                     .addException(ClassName.get("", "br.ufrn.dimap.middleware.remotting.impl.RemoteError"))
                     .build();
@@ -138,7 +138,7 @@ public class Generator {
                     .returns(void.class)
                     .addParameters(parameters)
                     .addParameter(Callback.class, "callback")
-                    .addStatement("r.request(aor,\"" + methodName + "\",callback," + stringParams + ")")
+                    .addStatement("r.request(absoluteObjectReference,\"" + methodName + "\",callback," + stringParams + ")")
                     .addJavadoc(methodDescriptionCallback)
                     .addException(ClassName.get("", "br.ufrn.dimap.middleware.remotting.impl.RemoteError"))
                     .build();
@@ -148,7 +148,7 @@ public class Generator {
                     .returns(Object.class)
                     .addParameters(parameters)
                     .addParameter(InvocationAsynchronyPattern.class, "invocationAsyncPattern")
-                    .addStatement("return r.request(aor,\"" + methodName + "\",invocationAsyncPattern," + stringParams + ")")
+                    .addStatement("return r.request(absoluteObjectReference,\"" + methodName + "\",invocationAsyncPattern," + stringParams + ")")
                     .addJavadoc(methodDescriptionAsync)
                     .addException(ClassName.get("", "br.ufrn.dimap.middleware.remotting.impl.RemoteError"))
                     .build();
@@ -158,10 +158,7 @@ public class Generator {
             ((ArrayList<MethodSpec>) methods).add(msAsync);
         }
 
-        // Creating fields of aor and requestor
-        FieldSpec aor = FieldSpec.builder(AbsoluteObjectReference.class, "aor")
-                .addModifiers(Modifier.PRIVATE)
-                .build();
+        // Creating field requestor
         FieldSpec r = FieldSpec.builder(Requestor.class, "r")
                 .addModifiers(Modifier.PRIVATE)
                 .build();
@@ -169,8 +166,8 @@ public class Generator {
         // Defining constructor of class
         MethodSpec constructor = MethodSpec.constructorBuilder()
                 .addModifiers(Modifier.PUBLIC)
-                .addParameter(AbsoluteObjectReference.class, "aor")
-                .addStatement("super(aor)")
+                .addParameter(AbsoluteObjectReference.class, "absoluteObjectReference")
+                .addStatement("super(absoluteObjectReference)")
                 .addStatement("this.r = new $T()", UnsyncRequestor.class)
                 .build();
 
@@ -178,7 +175,6 @@ public class Generator {
 
         TypeSpec classType = TypeSpec.classBuilder(proxyName)
                 .addModifiers(Modifier.PUBLIC)
-                .addField(aor)
                 .addField(r)
                 .addMethod(constructor)
                 .addMethods(methods)
