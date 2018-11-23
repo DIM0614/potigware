@@ -23,6 +23,7 @@ public class JavaMarshaller implements Marshaller {
 	 * 
 	 * @param object an Object that must implement the Java.io.Serializable interface
 	 */
+	@Override
 	public <T> ByteArrayOutputStream marshal(T object) throws IOException {
 		ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
 		ObjectOutputStream objectStream = new ObjectOutputStream(byteStream);
@@ -37,6 +38,7 @@ public class JavaMarshaller implements Marshaller {
 	 * @param byteStream a byte stream that represents a serialized instance of a known class
 	 * @param tgtClass is not used, result is cast to Object
 	 */
+	@Override
 	public <T> T unmarshal(ByteArrayInputStream byteStream, Class<T> tgtClass) throws IOException, ClassNotFoundException {
 		ObjectInputStream objectStream = new ObjectInputStream(byteStream);
 		T obj = (T) objectStream.readObject();

@@ -11,8 +11,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import br.ufrn.dimap.middleware.remotting.interfaces.ResponseHandler;
-import br.ufrn.dimap.middleware.remotting.interfaces.ServerProtocolPlugin;
+import br.ufrn.dimap.middleware.extension.interfaces.ResponseHandler;
+import br.ufrn.dimap.middleware.extension.interfaces.ServerProtocolPlugin;
 
 /**
  * Default Server Protocol Plug-in to handle TCP connections. The default format of messages is:
@@ -38,8 +38,7 @@ public class DefaultServerProtocolTCP implements ServerProtocolPlugin {
 
 	private final ThreadPoolExecutor tasksExecutor;
 	private final Set<Socket> activeSockets = ConcurrentHashMap.newKeySet();
-	private final ResponseHandler responseHandler;
-	private Thread listenThread;
+	private ResponseHandler responseHandler;
 	private ServerSocket server;
 	
 	/**
@@ -48,25 +47,16 @@ public class DefaultServerProtocolTCP implements ServerProtocolPlugin {
 	 * when not specified.
 	 */
 	public DefaultServerProtocolTCP() {
-		this(2000, new ResponseHandlerImpl());
-	}
-	
-	public DefaultServerProtocolTCP(int port) {
-		this(port, new ResponseHandlerImpl());
-	}
-	
-	public DefaultServerProtocolTCP(ResponseHandler responseHandler) {
-		this(2000, responseHandler);
+		this(2000);
 	}
 	
 	/**
 	 * Creates the tasks Executor
 	 * @param maxTasks
 	 */
-	public DefaultServerProtocolTCP(int maxTasks, ResponseHandler responseHandler) {
+	public DefaultServerProtocolTCP(int maxTasks) {
 		this.tasksExecutor = new ThreadPoolExecutor(maxTasks, maxTasks, 1000, 
 				TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
-		this.responseHandler = responseHandler;
 	}
 
 	/*
@@ -74,16 +64,9 @@ public class DefaultServerProtocolTCP implements ServerProtocolPlugin {
 	 * @see br.ufrn.dimap.middleware.remotting.interfaces.ServerProtocolPlugin#init(int)
 	 */
 	@Override
-	public void listen(int port) {
-		listenThread = new Thread(() -> doListen(port));
-		listenThread.start();
-	}
-	
-	/**
-	 * Method to listen in a specific port
-	 * @param port the port to listen
-	 */
-	private void doListen(int port) {
+	public void listen(int port, ResponseHandler responseHandler) {
+		this.responseHandler = responseHandler;
+
 		try {
 			server = new ServerSocket(port);
 		} catch (IOException e) {
@@ -109,9 +92,13 @@ public class DefaultServerProtocolTCP implements ServerProtocolPlugin {
 	private void handleConnection(Socket client) {
 		try {
 			activeSockets.add(client);
-			DataInputStream in = new DataInputStream(client.getInputStream());
-			DataOutputStream out = new DataOutputStream(client.getOutputStream());
+			DataInputStream in = null;
+			DataOutputStream out = null;
 			while(!Thread.interrupted() && !client.isClosed()) {
+				if(in == null) {
+					in = new DataInputStream(client.getInputStream());
+				}
+				
 				char kind = (char)in.read();
 				if(kind == 'd' || (kind != 'a' && kind != 'q')) {
 					break;
@@ -120,12 +107,18 @@ public class DefaultServerProtocolTCP implements ServerProtocolPlugin {
 				byte[] msg = new byte[inSize];
 				in.readFully(msg);
 				if(kind == 'a') {
+					if(out == null) {
+						out = new DataOutputStream(client.getOutputStream());
+					}
 					out.writeByte((byte)'c');
+					out.flush();
 				}
-				out.flush();
 				try {
-					byte[] ans = responseHandler.handleResponse(msg, kind == 'q');
+					byte[] ans = responseHandler.handleResponse(msg);
 					if(kind == 'q') {
+						if(out == null) {
+							out = new DataOutputStream(client.getOutputStream());
+						}
 						out.writeByte((byte)'r');
 						out.writeInt(ans.length);
 						out.write(ans);
@@ -140,6 +133,9 @@ public class DefaultServerProtocolTCP implements ServerProtocolPlugin {
 						byte[] ans = new byte[errorMessage.length()];
 						for(int i = 0; i < ans.length; i++) {
 							ans[i] = (byte)errorMessage.charAt(i);
+						}
+						if(out == null) {
+							out = new DataOutputStream(client.getOutputStream());
 						}
 						out.writeByte((byte)'e');
 						out.writeInt(ans.length);

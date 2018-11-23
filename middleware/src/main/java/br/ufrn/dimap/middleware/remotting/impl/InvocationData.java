@@ -4,12 +4,14 @@ import java.util.Arrays;
 
 import br.ufrn.dimap.middleware.identification.AbsoluteObjectReference;
 
+import java.io.Serializable;
+
 /**
  * Comprises all necessary data to perform an invocation.
  *
  * @author vitorgreati
  */
-public class InvocationData {
+public class InvocationData implements Serializable {
 
     private AbsoluteObjectReference aor;
 
