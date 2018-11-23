@@ -231,7 +231,7 @@ public class Generator {
                 
                 
             }
-            	methodInReturn += ")";
+            methodInReturn += ")";
             invoke.addStatement(methodInReturn)
                   .endControlFlow();
 
@@ -248,39 +248,11 @@ public class Generator {
         }
 
         invoke.addStatement("return null");
-        
-        // Creating fields of aor and requestor
-        FieldSpec id = FieldSpec.builder(Integer.class, "id")
-                .addModifiers(Modifier.PRIVATE)
-                .build();
-
-        // Defining constructor of class
-        MethodSpec constructor = MethodSpec.constructorBuilder()
-                .addModifiers(Modifier.PUBLIC)
-                .addParameter(Integer.class, "id")
-                .addStatement("this.id = id")
-                .build();
-        
-        MethodSpec getId = MethodSpec.methodBuilder("getId")
-        				             .addModifiers(Modifier.PUBLIC)
-        				             .returns(Integer.class)
-        				             .addStatement("return id")
-        				             .build();
-        
-        MethodSpec setId = MethodSpec.methodBuilder("setId")
-	             .addModifiers(Modifier.PUBLIC)
-	             .addParameter(Integer.class, "id")
-	             .addStatement("this.id =  id")
-	             .build();
 
         String invokerName = className + "Invoker";
 
         TypeSpec classType = TypeSpec.classBuilder(invokerName)
                 .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
-                .addField(id)
-                .addMethod(constructor)
-                .addMethod(getId)
-                .addMethod(setId)
                 .addMethods(methods)
                 .addMethod(invoke.build())
                 .addJavadoc(classDescription)
