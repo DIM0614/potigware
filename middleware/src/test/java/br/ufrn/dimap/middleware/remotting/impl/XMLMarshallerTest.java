@@ -50,6 +50,12 @@ public class XMLMarshallerTest extends TestCase {
  	}
 	
 	@Test
+	public void testVoidObjectMarshaling() throws ClassNotFoundException, IOException {
+		VoidObject v0 = new VoidObject();
+		VoidObject v1 = marshalUnmarshal(v0);
+	}
+	
+	@Test
 	public void testNullMarshaling() throws ClassNotFoundException, IOException {
 		Object n0 = null;
 		Object n1 = marshalUnmarshal(n0);
