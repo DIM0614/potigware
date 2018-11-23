@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import br.ufrn.dimap.middleware.identification.AbsoluteObjectReference;
-import br.ufrn.dimap.middleware.identification.MainServer;
+import br.ufrn.dimap.middleware.identification.NameServerMain;
 import br.ufrn.dimap.middleware.identification.lookup.DefaultLookup;
 import br.ufrn.dimap.middleware.identification.lookup.Lookup;
 import br.ufrn.dimap.middleware.infrastructure.lifecycleManager.impl.LifecycleManagerImpl;
@@ -123,7 +123,7 @@ public class TestManagers {
 	
 	public static void main(String[] args) throws Exception {
 		new Thread(() -> {
-			MainServer.main(null);
+			NameServerMain.main(null);
 		}).start();
 		Thread.sleep(2000);
 		Lookup server = DefaultLookup.getInstance();

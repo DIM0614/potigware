@@ -277,13 +277,13 @@ public class ClientInstaller {
 
                     String objName = scanner.nextLine();
 
-                    System.out.println("Finally, provide the middleware network location:");
-
+                    System.out.println("\nFinally, provide the middleware network location:");
+                    System.out.print("host: ");
                     String host = scanner.nextLine();
-
+                    System.out.print("port: ");
                     Integer port = scanner.nextInt();
 
-                    System.out.println("Installing...");
+                    System.out.println("\nInstalling...");
 
                     try {
 
