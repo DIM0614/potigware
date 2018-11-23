@@ -103,8 +103,8 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 	public void init(String host, int port) throws RemoteError {
 		try {
 			this.socket = new Socket(host, port);
-			this.outToServer = new ObjectOutputStream(socket.getOutputStream());
 
+			this.outToServer = null; //new ObjectOutputStream(socket.getOutputStream());
 		} catch (IOException e) {
 			throw new RemoteError(e);
 		}
@@ -129,19 +129,33 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 	 * @see br.ufrn.dimap.middleware.identification.lookup.Lookup#find(String)
 	 */
 	public AbsoluteObjectReference find(String name) throws IOException, ClassNotFoundException {
-		Object[] data = new Object[2];
-		data[0] = "find";
-		data[1] = name;
-		outToServer.writeObject(data);
-		outToServer.flush();
-		logger.log(Level.INFO, "Waiting server response...");
 
 		AbsoluteObjectReference aor = null;
 
-		try(ObjectInputStream ois = new ObjectInputStream(socket.getInputStream())) {
-			aor = (AbsoluteObjectReference) ois.readObject();
-		}
+		ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+			ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+
+			Object data[] = new Object[2];
+
+			data[0] = "find";
+			data[1] = name;
+
+		oos.writeObject(data);
+		oos.flush();
+
+			logger.log(Level.INFO, "Find requested");
+
+			try {
+				while (true) {
+					logger.log(Level.INFO, "Waiting server response...");
+					aor = (AbsoluteObjectReference) ois.readObject();
+				}
+			} catch (EOFException e) {}
+
 		logger.log(Level.INFO, "AOR received!");
+
+		oos.close();
+		socket.close();
 
 		return aor;
 	}
@@ -170,15 +184,34 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 	@Override
 	public void findAndLocallyInstall(ObjectId objId) throws RemoteError, IOException, ClassNotFoundException {
 
-		Object data[] = new Object[10];
+		init(HOST, PORT);
+
+		Object data[] = new Object[2];
 		data[0] = "findClasses";
 		data[1] = objId;
-		((ObjectOutput) outToServer).writeObject(data);
-		outToServer.flush();
+
+		logger.log(Level.INFO, "Waiting for output stream...");
+
+		ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+
+		logger.log(Level.INFO, "Waiting for input stream...");
+
+		ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+
+		logger.log(Level.INFO, "Making request...");
+
+		oos.writeObject(data);
+		oos.flush();
 
 		logger.log(Level.INFO, "Waiting for naming server response...");
 
-		Object[] files = (Object[]) ((ObjectInput) new ObjectInputStream(socket.getInputStream())).readObject();
+		Object[] files = null;
+
+		try {
+			while(true){
+				files = (Object[]) ois.readObject();
+			}
+		} catch(EOFException e) {}
 
 		byte[] interfFile = (byte[]) files[1];
 		byte[] invokerFile = (byte[]) files[3];
@@ -224,6 +257,8 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 		if(deploymentDescriptor != null) {
 			if(deploymentDescriptor.getInterfaceFile() != null && deploymentDescriptor.getInvokerFile() != null && deploymentDescriptor.getInvokerImplementation() != null){
 
+				ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+
 				Object data[] = new Object[10];
 				data[0] = "install";
 				data[1] = StringUtils.getFileName(deploymentDescriptor.getInterfaceFile().getPath());
@@ -236,8 +271,8 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 				data[8] = middlewareAddress.getHost();
 				data[9] = middlewareAddress.getPort();
 
-				outToServer.writeObject(data);
-				outToServer.flush();
+				oos.writeObject(data);
+				oos.flush();
 			}
 		}
 	}

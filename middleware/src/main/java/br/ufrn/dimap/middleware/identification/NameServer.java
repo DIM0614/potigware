@@ -62,105 +62,95 @@ public class NameServer {
 		while(true) {
 			logger.log(Level.INFO, "Server waiting...");
 			try {
-				try(Socket client = server.accept()) {
+				try(Socket client = server.accept();
+					ObjectInputStream msg = new ObjectInputStream(client.getInputStream());
+					ObjectOutputStream output = new ObjectOutputStream(client.getOutputStream())) {
 					logger.log(Level.INFO, "Client accepted...");
 
 					Object[] data = null;
 
-					try (ObjectInputStream msg = new ObjectInputStream(client.getInputStream())) {
-						logger.log(Level.INFO, "Msg created...");
+					logger.log(Level.INFO, "Msg created...");
 
-						try {
-							while (true) {
-								data = (Object[]) msg.readObject();
-							}
-						} catch (EOFException eof) {}
+					data = (Object[]) msg.readObject();
 
-						logger.log(Level.INFO, "Data read...");
+					logger.log(Level.INFO, "Data read...");
 
+					String opName = (String) data[0];
 
-						try (ObjectOutputStream output = new ObjectOutputStream(client.getOutputStream())) {
+					logger.log(Level.INFO, "Request " + opName + " arrived");
 
-							String opName = (String) data[0];
+					if (opName.equals("bind")) { //REMOVE
+						bind((String) data[1], data[2], (String) data[3], (Integer) data[4]);
+					} else if (opName.equals("find")) {
+						output.writeObject(find((String) data[1]));
+						output.flush();
+						output.close();
+					} else if (opName.equals("findById")) { //REMOVE
+						output.writeObject(findById((ObjectId) data[1]));
+						output.flush();
+						output.close();
+					} else if (opName.equals("install")) {
 
-							logger.log(Level.INFO, "Request " + opName + " arrived");
+						logger.log(Level.INFO, "Installing remotes...");
 
-							System.out.println(opName);
+						String filesURL = InstallationConfig.getTargetDir() + "generated/naming/";
 
-							if (opName.equals("bind")) { //REMOVE
-								bind((String) data[1], data[2], (String) data[3], (Integer) data[4]);
-							} else if (opName.equals("find")) {
-								output.writeObject(find((String) data[1]));
-								output.flush();
-								output.close();
-							} else if (opName.equals("findById")) { //REMOVE
-								output.writeObject(findById((ObjectId) data[1]));
-								output.flush();
-								output.close();
-							} else if (opName.equals("install")) {
+						String interfaceName = (String) data[1];
+						String invokerName = (String) data[3];
+						String invokerImplName = (String) data[5];
 
-								logger.log(Level.INFO, "Installing remotes...");
+						try (FileOutputStream fos = new FileOutputStream(filesURL + interfaceName + ".class")) {
+							fos.write((byte[]) data[2]);
 
-								String filesURL = InstallationConfig.getTargetDir() + "generated/naming/";
-
-								String interfaceName = (String) data[1];
-								String invokerName = (String) data[3];
-								String invokerImplName = (String) data[5];
-
-								try (FileOutputStream fos = new FileOutputStream(filesURL + interfaceName + ".class")) {
-									fos.write((byte[]) data[2]);
-
-								}
-
-								try (FileOutputStream fos = new FileOutputStream(filesURL + invokerName + ".class")) {
-									fos.write((byte[]) data[4]);
-								}
-
-								try (FileOutputStream fos = new FileOutputStream(filesURL + invokerImplName + ".class")) {
-									fos.write((byte[]) data[6]);
-								}
-
-								String objName = (String) data[7];
-
-								InstalledFilesInfo installedInfo = new InstalledFilesInfo(interfaceName, invokerName, invokerImplName);
-
-								logger.log(Level.INFO, "Classes installed, generating AOR now...");
-
-								String host = (String) data[8];
-								Integer port = (Integer) data[9];
-
-								AbsoluteObjectReference aor = bind(objName, host, port);
-
-								filesMap.put(aor.getObjectId(), installedInfo);
-
-							} else if (opName.equals("findClasses")) {
-
-								String filesURL = InstallationConfig.getTargetDir();
-
-								InstalledFilesInfo filesInfo = filesMap.get((String) data[1]);
-
-								Object[] files = new Object[6];
-
-								byte[] interfFile = Files.readAllBytes(new File(filesURL + filesInfo.getInterfName() + ".class").toPath());
-								byte[] invokerFile = Files.readAllBytes(new File(filesURL + filesInfo.getInvokerName() + ".class").toPath());
-								byte[] implFile = Files.readAllBytes(new File(filesURL + filesInfo.getImplName() + ".class").toPath());
-
-								files[0] = filesInfo.getInterfName();
-								files[1] = interfFile;
-								files[2] = filesInfo.getInvokerName();
-								files[3] = invokerFile;
-								files[4] = filesInfo.getImplName();
-								files[5] = implFile;
-
-								DataOutputStream outToServer = new DataOutputStream(client.getOutputStream());
-
-								((ObjectOutput) outToServer).writeObject(files);
-								outToServer.flush();
-
-							}
 						}
+
+						try (FileOutputStream fos = new FileOutputStream(filesURL + invokerName + ".class")) {
+							fos.write((byte[]) data[4]);
+						}
+
+						try (FileOutputStream fos = new FileOutputStream(filesURL + invokerImplName + ".class")) {
+							fos.write((byte[]) data[6]);
+						}
+
+						String objName = (String) data[7];
+
+						InstalledFilesInfo installedInfo = new InstalledFilesInfo(interfaceName, invokerName, invokerImplName);
+
+						logger.log(Level.INFO, "Classes installed, generating AOR now...");
+
+						String host = (String) data[8];
+						Integer port = (Integer) data[9];
+
+						AbsoluteObjectReference aor = bind(objName, host, port);
+
+						filesMap.put(aor.getObjectId(), installedInfo);
+
+					} else if (opName.equals("findClasses")) {
+
+						String filesURL = InstallationConfig.getTargetDir() + "generated/naming/";
+
+						InstalledFilesInfo filesInfo = filesMap.get((ObjectId) data[1]);
+
+						Object[] files = new Object[6];
+
+						byte[] interfFile = Files.readAllBytes(new File(filesURL + filesInfo.getInterfName() + ".class").toPath());
+						byte[] invokerFile = Files.readAllBytes(new File(filesURL + filesInfo.getInvokerName() + ".class").toPath());
+						byte[] implFile = Files.readAllBytes(new File(filesURL + filesInfo.getImplName() + ".class").toPath());
+
+						files[0] = filesInfo.getInterfName();
+						files[1] = interfFile;
+						files[2] = filesInfo.getInvokerName();
+						files[3] = invokerFile;
+						files[4] = filesInfo.getImplName();
+						files[5] = implFile;
+
+						output.writeObject(files);
+						output.flush();
+
 					}
+
 				}
+
 			} catch (IOException | RemoteError e) {
 				e.printStackTrace();
 			} catch (Exception e) {

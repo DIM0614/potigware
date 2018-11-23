@@ -12,9 +12,9 @@ public class LoadFromNamingTest {
 
         AbsoluteObjectReference aor = DefaultLookup.getInstance().find("math");
 
-        //DefaultLookup.getInstance().findAndLocallyInstall(aor.getObjectId());
+        System.out.println("Obj Id: " + aor.getObjectId().toString());
 
-
+        DefaultLookup.getInstance().findAndLocallyInstall(aor.getObjectId());
 
     }
 

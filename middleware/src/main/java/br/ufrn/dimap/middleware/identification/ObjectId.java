@@ -2,6 +2,7 @@
 package br.ufrn.dimap.middleware.identification;
 
 import java.io.Serializable;
+import java.util.Objects;
 import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -41,5 +42,18 @@ public class ObjectId implements Serializable {
 	 */
 	public long getObjectId() {
 		return this.objectId.getLeastSignificantBits();
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		ObjectId objectId1 = (ObjectId) o;
+		return Objects.equals(objectId, objectId1.objectId);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(objectId);
 	}
 }
