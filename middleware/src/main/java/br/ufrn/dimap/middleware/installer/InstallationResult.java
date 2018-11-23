@@ -5,7 +5,7 @@ import br.ufrn.dimap.middleware.remotting.impl.ClientProxy;
 import br.ufrn.dimap.middleware.remotting.interfaces.Invoker;
 
 /**
- * Class that represents the result of an application in the middleware.
+ * Class that represents the result of an application install in the middleware.
  *
  * @author Daniel Smith
  */
