@@ -29,7 +29,7 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
 
 
     public UnsyncRequestor() {
-    	this.marshaller = new XMLMarshaller();
+    	this.marshaller = new JavaMarshaller();
     	this.clientRequestHandler = ClientRequestHandlerImpl.getInstance();
     }
 

@@ -17,7 +17,7 @@ import br.ufrn.dimap.middleware.extension.interfaces.ResponseHandler;
  */
 public class ResponseHandlerImpl implements ResponseHandler {
 	
-	private final Marshaller marshaller = new XMLMarshaller(); 
+	private final Marshaller marshaller = new JavaMarshaller(); 
 	private final LifecycleManager lifecycleManager;
 	
 	public ResponseHandlerImpl() throws RemoteError {

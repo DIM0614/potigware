@@ -20,9 +20,12 @@ public class IntegrationTest {
             System.out.println("Creating proxy");
 
             math = (generated.Math) ProxyCreator.getInstance().create("math", ClientMath.class);
-
+            
+            
             if (math != null) {
-                System.out.println("Pi value: " + math.pi(0.1f));
+            	System.out.println("Created");
+
+            	System.out.println("Pi value: " + math.pi(0.1f));
 
                 System.out.println("Fib number value: " + math.fibonacci(0, 20));
             } else {
