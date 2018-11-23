@@ -8,6 +8,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import br.ufrn.dimap.middleware.identification.AbsoluteObjectReference;
+import br.ufrn.dimap.middleware.identification.NetAddr;
 import br.ufrn.dimap.middleware.identification.ObjectId;
 import br.ufrn.dimap.middleware.installer.ClientInstaller;
 import br.ufrn.dimap.middleware.installer.InstallationConfig;
@@ -104,7 +105,6 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 			this.socket = new Socket(host, port);
 			this.outToServer = new ObjectOutputStream(socket.getOutputStream());
 
-            System.out.println("INIT METHODDDD");
 		} catch (IOException e) {
 			throw new RemoteError(e);
 		}
@@ -123,12 +123,16 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 		
 	}
   
-  /**
+	/**
+	 *  Called by clients who need to know the location of a remote object.
+	 *
 	 * @see br.ufrn.dimap.middleware.identification.lookup.Lookup#find(String)
 	 */
 	public AbsoluteObjectReference find(String name) throws RemoteError, UnknownHostException, IOException, ClassNotFoundException {
-		String data  = "find " + name;
-		outToServer.writeChars(data);
+		Object[] data = new Object[2];
+		data[0] = "find";
+		data[1] = name;
+		outToServer.writeObject(data);
 		outToServer.flush();
 		return (AbsoluteObjectReference) ((ObjectInput) new ObjectInputStream(socket.getInputStream())).readObject();
 	}
@@ -145,12 +149,21 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 		return ((ObjectInput) new ObjectInputStream(socket.getInputStream())).readObject();
 	}
 
+	/**
+	 * Called by the middleware when it needs to load the classes needed
+	 * to instantiate the object.
+	 *
+	 * @param objId
+	 * @throws RemoteError
+	 * @throws IOException
+	 * @throws ClassNotFoundException
+	 */
 	@Override
-	public void findAndInstallClasses(String objName) throws RemoteError, IOException, ClassNotFoundException {
+	public void findAndLocallyInstall(ObjectId objId) throws RemoteError, IOException, ClassNotFoundException {
 
 		Object data[] = new Object[10];
 		data[0] = "findClasses";
-		data[1] = objName;
+		data[1] = objId;
 		((ObjectOutput) outToServer).writeObject(data);
 		outToServer.flush();
 
@@ -169,7 +182,7 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 		String filesURL = InstallationConfig.getTargetDir();
 
 		logger.log(Level.INFO, "Storing interface file...");
-		// Reference obtained in stackoverlfow: https://stackoverflow.com/questions/4350084/byte-to-file-in-java
+
 		try (FileOutputStream fos = new FileOutputStream(filesURL + interfName + ".class")) {
 			fos.write(interfFile);
 		}
@@ -190,21 +203,19 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 		dynamicClassLoader.loadClassFromFile(getClassname(invokerName), getClassFileLocation(filesURL, invokerName));
 		dynamicClassLoader.loadClassFromFile(getClassname(implName), getClassFileLocation(filesURL, implName));
 
-		
 		logger.log(Level.INFO, "Implementation saved in the middleware");
-
 	}
 
 	/**
+	 * Install in the naming service the generated files.
 	 *
-	 * @see br.ufrn.dimap.middleware.remotting.interfaces.NamingInstaller#install(DeploymentDescriptor)
 	 */
 	@Override
-	public void install(DeploymentDescriptor deploymentDescriptor) throws IOException {
+	public void install(DeploymentDescriptor deploymentDescriptor, NetAddr middlewareAddress) throws IOException {
 		if(deploymentDescriptor != null) {
 			if(deploymentDescriptor.getInterfaceFile() != null && deploymentDescriptor.getInvokerFile() != null && deploymentDescriptor.getInvokerImplementation() != null){
 
-				Object data[] = new Object[8];
+				Object data[] = new Object[10];
 				data[0] = "install";
 				data[1] = StringUtils.getFileName(deploymentDescriptor.getInterfaceFile().getPath());
 				data[2] = Files.readAllBytes(deploymentDescriptor.getInterfaceFile().toPath());
@@ -213,6 +224,8 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 				data[5] = StringUtils.getFileName(deploymentDescriptor.getInvokerImplementation().getPath());
 				data[6] = Files.readAllBytes(deploymentDescriptor.getInvokerImplementation().toPath());
 				data[7] = deploymentDescriptor.getRemoteObjectName();
+				data[8] = middlewareAddress.getHost();
+				data[9] = middlewareAddress.getPort();
 
 				outToServer.writeObject(data);
 				outToServer.flush();

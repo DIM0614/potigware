@@ -1,6 +1,7 @@
 
 package br.ufrn.dimap.middleware.identification;
 
+import java.io.Serializable;
 import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -14,7 +15,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
  * @version 1.0
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-public class ObjectId {
+public class ObjectId implements Serializable {
 	
 	private UUID objectId;
 	

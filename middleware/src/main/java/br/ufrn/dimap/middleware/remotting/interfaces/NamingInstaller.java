@@ -4,7 +4,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import br.ufrn.dimap.middleware.identification.NetAddr;
 import br.ufrn.dimap.middleware.remotting.impl.DeploymentDescriptor;
+import sun.nio.ch.Net;
 
 /**
  * Should be implemented by lookups for registering
@@ -13,5 +15,5 @@ import br.ufrn.dimap.middleware.remotting.impl.DeploymentDescriptor;
  * @author vitorgreati
  */
 public interface NamingInstaller {
-    void install(final DeploymentDescriptor deploymentDescriptor) throws IOException;
+    void install(final DeploymentDescriptor deploymentDescriptor, NetAddr middlewareAddress) throws IOException;
 }

@@ -65,5 +65,5 @@ public interface Lookup {
 	 * @param objName
 	 * @throws RemoteError
 	 */
-	void findAndInstallClasses(String objName) throws RemoteError, IOException, ClassNotFoundException;
+	void findAndLocallyInstall(ObjectId objId) throws RemoteError, IOException, ClassNotFoundException;
 }

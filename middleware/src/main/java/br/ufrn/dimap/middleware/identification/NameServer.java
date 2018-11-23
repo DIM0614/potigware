@@ -1,6 +1,8 @@
 package br.ufrn.dimap.middleware.identification;
 
 import java.io.*;
+import java.net.Inet4Address;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Files;
@@ -15,7 +17,11 @@ import br.ufrn.dimap.middleware.remotting.impl.DeploymentDescriptor;
 import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
 
 public class NameServer {
-	
+
+	private NetAddr[] knownMiddlewareServers = {
+			new NetAddr("localhost", 7000)
+	};
+
 	/**
 	 * The lookup data structure used to register absolute object references along with their name properties.
 	 */
@@ -35,7 +41,7 @@ public class NameServer {
 	 * Maps object names to file names.
 	 *
 	 */
-	private Map<String, InstalledFilesInfo> filesMap;
+	private Map<ObjectId, InstalledFilesInfo> filesMap;
 
 	
 	protected NameServer(int port) {
@@ -76,17 +82,17 @@ public class NameServer {
 
 				System.out.println(opName);
 
-				if (opName.equals("bind")) {
+				if (opName.equals("bind")) { //REMOVE
 					bind((String)data[1], data[2], (String) data[3], (Integer) data[4]);
-				}else if (opName.equals("find")) {
+				} else if (opName.equals("find")) {
 					output.writeObject(find((String) data[1]));
 					output.flush();
 					output.close();
-				}else if (opName.equals("findById")) {
+				} else if (opName.equals("findById")) { //REMOVE
 					output.writeObject(findById((ObjectId) data[1]));
 					output.flush();
 					output.close();
-				}else if(opName.equals("install")) {
+				} else if(opName.equals("install")) {
 
 					logger.log(Level.INFO, "Installing remotes...");
 
@@ -113,10 +119,15 @@ public class NameServer {
 					String objName = (String) data[7];
 
 					InstalledFilesInfo installedInfo = new InstalledFilesInfo(interfaceName, invokerName, invokerImplName);
-					filesMap.put(objName, installedInfo);
 
-					logger.log(Level.INFO, "Classes installed");
+					logger.log(Level.INFO, "Classes installed, generating AOR now...");
 
+					String host = (String) data[8];
+					Integer port = (Integer) data[9];
+
+					AbsoluteObjectReference aor = bind(objName, host, port);
+
+					filesMap.put(aor.getObjectId(), installedInfo);
 
 				} else if (opName.equals("findClasses")) {
 
@@ -152,7 +163,26 @@ public class NameServer {
 		}
 			
 	}
-	
+
+	public AbsoluteObjectReference bind(String name, String host, int port) throws RemoteError {
+
+		ObjectId objectId = new ObjectId();
+		AbsoluteObjectReference aor = new AbsoluteObjectReference(objectId, host, port);
+
+		//if (nameMap.containsKey(name) || remoteMap.containsKey(objectId)) {
+		//	throw new RemoteError("Error on lookup binding! There already exists an absolute object reference for this name property.");
+		//}
+
+		if (nameMap.containsKey(name)) {
+			throw new RemoteError("Error on lookup binding! There already exists an absolute object reference for this name property.");
+		}
+
+		//remoteMap.put(objectId, remoteObject);
+		nameMap.put(name, aor);
+
+		return aor;
+	}
+
 	public void bind (String name, Object remoteObject, String host, int port) throws RemoteError {
 		
 		ObjectId objectId = new ObjectId();
@@ -164,8 +194,6 @@ public class NameServer {
 		
 		remoteMap.put(objectId, remoteObject);
 		nameMap.put(name, aor);
-		
-		
 	}
 
 	public AbsoluteObjectReference find(String name) throws RemoteError {
@@ -183,8 +211,6 @@ public class NameServer {
 		
 		return remoteMap.get(ObjectId);
 	}
-
-
 
 	public static class InstalledFilesInfo {
 		final String interfName;
