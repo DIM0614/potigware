@@ -67,7 +67,7 @@ public class NameServer {
 					ObjectInputStream msg = new ObjectInputStream(client.getInputStream());
 
 				logger.log(Level.INFO, "IS accepted...");
-				ObjectOutputStream output = new ObjectOutputStream(client.getOutputStream());
+				ObjectOutputStream output = null; /*new ObjectOutputStream(client.getOutputStream()) here is unsafe*/
 				logger.log(Level.INFO, "OS accepted...");
 
 					Object[] data = null;
@@ -85,10 +85,12 @@ public class NameServer {
 					if (opName.equals("bind")) { //REMOVE
 						bind((String) data[1], data[2], (String) data[3], (Integer) data[4]);
 					} else if (opName.equals("find")) {
+						output = new ObjectOutputStream(client.getOutputStream());
 						output.writeObject(find((String) data[1]));
 						output.flush();
 						output.close();
 					} else if (opName.equals("findById")) { //REMOVE
+						output = new ObjectOutputStream(client.getOutputStream());
 						output.writeObject(findById((ObjectId) data[1]));
 						output.flush();
 						output.close();
@@ -146,7 +148,8 @@ public class NameServer {
 						files[3] = invokerFile;
 						files[4] = filesInfo.getImplName();
 						files[5] = implFile;
-
+						
+						output = new ObjectOutputStream(client.getOutputStream());
 						output.writeObject(files);
 						output.flush();
 

@@ -193,19 +193,19 @@ public class DefaultClientProtocol implements ClientProtocolPlugIn {
 			allConnections.add(con);
 		}
 		
-		DataOutputStream outToServer = con.getOutput();
-		DataInputStream inFromServer = con.getInput();
 		ByteArrayInputStream ret;
 		RemoteError error = null;
 		
 		byte[] byteMsg = msg.toByteArray();
 		
 		try {
+			DataOutputStream outToServer = con.getOutput();
 			outToServer.writeByte((byte)(waitResponse ? 'q' : 'a'));
 			outToServer.writeInt(byteMsg.length);
 			outToServer.write(byteMsg);
 			
 			if(waitResponse) {
+				DataInputStream inFromServer = con.getInput();
 				char kind = (char)inFromServer.read();
 				
 				if(kind != 'r' && kind != 'e') {
@@ -231,6 +231,8 @@ public class DefaultClientProtocol implements ClientProtocolPlugIn {
 				}
 			}
 			else {
+				DataInputStream inFromServer = con.getInput();
+				
 				char kind = (char)inFromServer.read();
 				
 				if(kind != 'c') {
@@ -451,11 +453,11 @@ public class DefaultClientProtocol implements ClientProtocolPlugIn {
 						
 			client = new Socket(host, port);
 			outToServer = new DataOutputStream(client.getOutputStream());
-			inFromServer = new DataInputStream(client.getInputStream());
 			
 			outToServer.writeInt(byteMsg.length);
 			outToServer.write(byteMsg);
 			
+			inFromServer = new DataInputStream(client.getInputStream());
 			int length = inFromServer.readInt();
 			byte[] byteAns = new byte[length];
 			

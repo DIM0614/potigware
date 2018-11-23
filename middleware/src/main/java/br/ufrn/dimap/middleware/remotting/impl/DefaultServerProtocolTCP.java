@@ -92,9 +92,13 @@ public class DefaultServerProtocolTCP implements ServerProtocolPlugin {
 	private void handleConnection(Socket client) {
 		try {
 			activeSockets.add(client);
-			DataInputStream in = new DataInputStream(client.getInputStream());
-			DataOutputStream out = new DataOutputStream(client.getOutputStream());
+			DataInputStream in = null;
+			DataOutputStream out = null;
 			while(!Thread.interrupted() && !client.isClosed()) {
+				if(in == null) {
+					in = new DataInputStream(client.getInputStream());
+				}
+				
 				char kind = (char)in.read();
 				if(kind == 'd' || (kind != 'a' && kind != 'q')) {
 					break;
@@ -103,12 +107,18 @@ public class DefaultServerProtocolTCP implements ServerProtocolPlugin {
 				byte[] msg = new byte[inSize];
 				in.readFully(msg);
 				if(kind == 'a') {
+					if(out == null) {
+						out = new DataOutputStream(client.getOutputStream());
+					}
 					out.writeByte((byte)'c');
+					out.flush();
 				}
-				out.flush();
 				try {
 					byte[] ans = responseHandler.handleResponse(msg);
 					if(kind == 'q') {
+						if(out == null) {
+							out = new DataOutputStream(client.getOutputStream());
+						}
 						out.writeByte((byte)'r');
 						out.writeInt(ans.length);
 						out.write(ans);
@@ -123,6 +133,9 @@ public class DefaultServerProtocolTCP implements ServerProtocolPlugin {
 						byte[] ans = new byte[errorMessage.length()];
 						for(int i = 0; i < ans.length; i++) {
 							ans[i] = (byte)errorMessage.charAt(i);
+						}
+						if(out == null) {
+							out = new DataOutputStream(client.getOutputStream());
 						}
 						out.writeByte((byte)'e');
 						out.writeInt(ans.length);
