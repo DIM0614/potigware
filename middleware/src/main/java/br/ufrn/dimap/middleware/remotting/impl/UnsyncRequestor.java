@@ -1,12 +1,15 @@
 package br.ufrn.dimap.middleware.remotting.impl;
 
 import br.ufrn.dimap.middleware.identification.AbsoluteObjectReference;
+import br.ufrn.dimap.middleware.installer.ClientInstaller;
 import br.ufrn.dimap.middleware.remotting.interfaces.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.rmi.Remote;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Unsynchronized requestor to be used for
@@ -21,6 +24,9 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
     private Marshaller marshaller;
 
     private ClientRequestHandler clientRequestHandler;
+
+    private Logger logger = Logger.getLogger(UnsyncRequestor.class.getName());
+
 
     public UnsyncRequestor() {
     	this.marshaller = new JavaMarshaller();

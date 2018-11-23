@@ -65,7 +65,6 @@ public class ServerRequestHandlerImpl implements ServerRequestHandler {
 			}
 		});
 		listenThread.start();
-		protocol.listen(port, responseHandler);
 	}
 
 	/*

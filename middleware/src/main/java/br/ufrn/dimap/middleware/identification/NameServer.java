@@ -62,10 +62,13 @@ public class NameServer {
 		while(true) {
 			logger.log(Level.INFO, "Server waiting...");
 			try {
-				try(Socket client = server.accept();
+				Socket client = server.accept();
+				logger.log(Level.INFO, "Client accepted...");
 					ObjectInputStream msg = new ObjectInputStream(client.getInputStream());
-					ObjectOutputStream output = new ObjectOutputStream(client.getOutputStream())) {
-					logger.log(Level.INFO, "Client accepted...");
+
+				logger.log(Level.INFO, "IS accepted...");
+				ObjectOutputStream output = new ObjectOutputStream(client.getOutputStream());
+				logger.log(Level.INFO, "OS accepted...");
 
 					Object[] data = null;
 
@@ -149,7 +152,7 @@ public class NameServer {
 
 					}
 
-				}
+
 
 			} catch (IOException | RemoteError e) {
 				e.printStackTrace();

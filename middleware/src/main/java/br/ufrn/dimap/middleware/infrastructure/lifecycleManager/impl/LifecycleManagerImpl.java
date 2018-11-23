@@ -2,6 +2,8 @@ package br.ufrn.dimap.middleware.infrastructure.lifecycleManager.impl;
 
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import br.ufrn.dimap.middleware.identification.AbsoluteObjectReference;
 import br.ufrn.dimap.middleware.identification.ObjectId;
@@ -24,13 +26,15 @@ import br.ufrn.dimap.middleware.remotting.interfaces.Invoker;
  * @author victoragnez
  * 
  * @version 1.0
- * @see Lifecycle Management
+ * @see
  */
 public class LifecycleManagerImpl implements LifecycleManager {
 
 	private final StaticLifecycle staticLifecycle;
 	private final PerRequestLifecycle perRequestLifeCycle;
 	private final Lookup defaultLookup;
+
+	private Map<AbsoluteObjectReference, Class<? extends Invoker>> loadedInvokerClasses;
 
 	/*
 	 * Instantiates a new lifecycle management.
@@ -39,30 +43,29 @@ public class LifecycleManagerImpl implements LifecycleManager {
 		staticLifecycle = new StaticLifecycleManager();
 		perRequestLifeCycle = new PerRequestLifecycleManager();
 		defaultLookup = DefaultLookup.getInstance();
+		loadedInvokerClasses = new HashMap<>();
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public Invoker getInvoker(AbsoluteObjectReference aor) throws RemoteError {		
-		Class<? extends Invoker> obj;
-		
-		ObjectId objectId = aor.getObjectId();
-	
-		
-		try {
-			obj = (Class<? extends Invoker>) defaultLookup.findById(objectId);
-		} catch (ClassNotFoundException | IOException e) {
-			throw new RemoteError(e);
-		}
-		
-		Invoker ret = null;
+	public Invoker getInvoker(AbsoluteObjectReference aor) throws RemoteError, IOException, ClassNotFoundException {
 
-		
-		LifecycleManager manager = getManager(obj);
-		
-		ret = manager.getInvoker(aor);
-		
-		return ret;
+		Class<? extends Invoker> implInvokerClass = null;
+
+		if (loadedInvokerClasses.containsKey(aor)) {
+			implInvokerClass = loadedInvokerClasses.get(aor);
+
+		} else {
+			implInvokerClass = defaultLookup.findAndLocallyInstall(aor.getObjectId());
+			loadedInvokerClasses.put(aor, implInvokerClass);
+			registerInvoker(aor, implInvokerClass);
+		}
+
+		if (implInvokerClass != null) {
+		    LifecycleManager lf = getManager(implInvokerClass);
+		    return lf.getInvoker(aor);
+		} else
+		    throw new RemoteError();
 	}
 
 	@Override

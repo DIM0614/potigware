@@ -12,10 +12,10 @@ import br.ufrn.dimap.middleware.identification.NetAddr;
 import br.ufrn.dimap.middleware.identification.ObjectId;
 import br.ufrn.dimap.middleware.installer.ClientInstaller;
 import br.ufrn.dimap.middleware.installer.InstallationConfig;
+import br.ufrn.dimap.middleware.remotting.interfaces.Invoker;
 import br.ufrn.dimap.middleware.remotting.interfaces.NamingInstaller;
 import br.ufrn.dimap.middleware.remotting.impl.DeploymentDescriptor;
 import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
-import br.ufrn.dimap.middleware.utils.IOUtils;
 import br.ufrn.dimap.middleware.utils.StringUtils;
 import br.ufrn.dimap.middleware.utils.classloader.DynamicClassLoader;
 
@@ -49,7 +49,7 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 	private Logger logger = Logger.getLogger(ClientInstaller.class.getName());
 
 	private DefaultLookup() throws RemoteError {
-		init(HOST, PORT);
+		//init(HOST, PORT);
 	}
 	/**
 	 * Wraps the instance
@@ -111,8 +111,9 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 	}
 	
 	
-	public void bind (String name, Object remoteObject, String host, int port) throws RemoteError, IOException {
-		Object data [] = new Object[5];
+	public void bind(String name, Object remoteObject, String host, int port) throws RemoteError, IOException {
+		init(HOST, PORT);
+	    Object data [] = new Object[5];
 		data[0] = "bind";
 		data[1] = name;
 		data[2] = remoteObject;
@@ -130,31 +131,38 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 	 */
 	public AbsoluteObjectReference find(String name) throws IOException, ClassNotFoundException {
 
-		AbsoluteObjectReference aor = null;
+        try {
+            init(HOST, PORT);
+        } catch (RemoteError remoteError) {
+            remoteError.printStackTrace();
+        }
+
+        AbsoluteObjectReference aor = null;
 
 		ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-			ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+        ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
 
-			Object data[] = new Object[2];
+        Object data[] = new Object[2];
 
-			data[0] = "find";
-			data[1] = name;
+        data[0] = "find";
+        data[1] = name;
 
 		oos.writeObject(data);
 		oos.flush();
 
-			logger.log(Level.INFO, "Find requested");
+        logger.log(Level.INFO, "Find requested");
 
-			try {
-				while (true) {
-					logger.log(Level.INFO, "Waiting server response...");
-					aor = (AbsoluteObjectReference) ois.readObject();
-				}
-			} catch (EOFException e) {}
+        try {
+            while (true) {
+                logger.log(Level.INFO, "Waiting server response...");
+                aor = (AbsoluteObjectReference) ois.readObject();
+            }
+        } catch (EOFException e) {}
 
 		logger.log(Level.INFO, "AOR received!");
 
 		oos.close();
+		ois.close();
 		socket.close();
 
 		return aor;
@@ -164,7 +172,8 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 	 * @see br.ufrn.dimap.middleware.identification.lookup.Lookup#findById(ObjectId)
 	 */	
 	public Object findById(ObjectId ObjectId) throws RemoteError, UnknownHostException, IOException, ClassNotFoundException {
-		Object data [] = new Object[2];
+		init(HOST, PORT);
+	    Object data [] = new Object[2];
 		data[0] = "findById";
 		data[1] = ObjectId;
 		((ObjectOutput) outToServer).writeObject(data);
@@ -176,13 +185,14 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 	 * Called by the middleware when it needs to load the classes needed
 	 * to instantiate the object.
 	 *
+	 * @return impl installed class
 	 * @param objId
 	 * @throws RemoteError
 	 * @throws IOException
 	 * @throws ClassNotFoundException
 	 */
 	@Override
-	public void findAndLocallyInstall(ObjectId objId) throws RemoteError, IOException, ClassNotFoundException {
+	public Class<? extends Invoker> findAndLocallyInstall(ObjectId objId) throws RemoteError, IOException, ClassNotFoundException {
 
 		init(HOST, PORT);
 
@@ -243,9 +253,11 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 		DynamicClassLoader dynamicClassLoader = DynamicClassLoader.getDynamicClassLoader();
 		dynamicClassLoader.loadClassFromFile(getClassname(interfName), getClassFileLocation(filesURL, interfName));
 		dynamicClassLoader.loadClassFromFile(getClassname(invokerName), getClassFileLocation(filesURL, invokerName));
-		dynamicClassLoader.loadClassFromFile(getClassname(implName), getClassFileLocation(filesURL, implName));
+		Class<? extends Invoker> implClass =  dynamicClassLoader.loadClassFromFile(getClassname(implName), getClassFileLocation(filesURL, implName));
 
 		logger.log(Level.INFO, "Implementation saved in the middleware");
+
+		return implClass;
 	}
 
 	/**
@@ -253,9 +265,11 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 	 *
 	 */
 	@Override
-	public void install(DeploymentDescriptor deploymentDescriptor, NetAddr middlewareAddress) throws IOException {
+	public void install(DeploymentDescriptor deploymentDescriptor, NetAddr middlewareAddress) throws IOException, RemoteError {
 		if(deploymentDescriptor != null) {
 			if(deploymentDescriptor.getInterfaceFile() != null && deploymentDescriptor.getInvokerFile() != null && deploymentDescriptor.getInvokerImplementation() != null){
+
+			    init(HOST, PORT);
 
 				ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
 

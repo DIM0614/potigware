@@ -6,6 +6,7 @@ import java.net.UnknownHostException;
 import br.ufrn.dimap.middleware.identification.AbsoluteObjectReference;
 import br.ufrn.dimap.middleware.identification.ObjectId;
 import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
+import br.ufrn.dimap.middleware.remotting.interfaces.Invoker;
 
 /**
  * Implements a Lookup Service as part of the distributed object middleware. 
@@ -65,5 +66,5 @@ public interface Lookup {
 	 * @param objName
 	 * @throws RemoteError
 	 */
-	void findAndLocallyInstall(ObjectId objId) throws RemoteError, IOException, ClassNotFoundException;
+	Class<? extends Invoker> findAndLocallyInstall(ObjectId objId) throws RemoteError, IOException, ClassNotFoundException;
 }

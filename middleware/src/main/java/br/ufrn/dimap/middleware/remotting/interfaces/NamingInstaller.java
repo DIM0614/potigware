@@ -6,6 +6,7 @@ import java.io.IOException;
 
 import br.ufrn.dimap.middleware.identification.NetAddr;
 import br.ufrn.dimap.middleware.remotting.impl.DeploymentDescriptor;
+import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
 import sun.nio.ch.Net;
 
 /**
@@ -15,5 +16,5 @@ import sun.nio.ch.Net;
  * @author vitorgreati
  */
 public interface NamingInstaller {
-    void install(final DeploymentDescriptor deploymentDescriptor, NetAddr middlewareAddress) throws IOException;
+    void install(final DeploymentDescriptor deploymentDescriptor, NetAddr middlewareAddress) throws IOException, RemoteError;
 }
