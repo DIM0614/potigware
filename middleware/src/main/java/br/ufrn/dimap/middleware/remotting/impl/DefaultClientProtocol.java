@@ -84,7 +84,7 @@ public class DefaultClientProtocol implements ClientProtocolPlugIn {
 	/**
 	 * Marshaller to deserialize messages
 	 */
-	protected final Marshaller marshaller = new XMLMarshaller();
+	protected final Marshaller marshaller = new JavaMarshaller();
 	
 	/**
 	 * Default constructor with maximum number of threads set to 1000
@@ -193,19 +193,19 @@ public class DefaultClientProtocol implements ClientProtocolPlugIn {
 			allConnections.add(con);
 		}
 		
-		DataOutputStream outToServer = con.getOutput();
-		DataInputStream inFromServer = con.getInput();
 		ByteArrayInputStream ret;
 		RemoteError error = null;
 		
 		byte[] byteMsg = msg.toByteArray();
 		
 		try {
+			DataOutputStream outToServer = con.getOutput();
 			outToServer.writeByte((byte)(waitResponse ? 'q' : 'a'));
 			outToServer.writeInt(byteMsg.length);
 			outToServer.write(byteMsg);
 			
 			if(waitResponse) {
+				DataInputStream inFromServer = con.getInput();
 				char kind = (char)inFromServer.read();
 				
 				if(kind != 'r' && kind != 'e') {
@@ -231,6 +231,8 @@ public class DefaultClientProtocol implements ClientProtocolPlugIn {
 				}
 			}
 			else {
+				DataInputStream inFromServer = con.getInput();
+				
 				char kind = (char)inFromServer.read();
 				
 				if(kind != 'c') {
@@ -276,6 +278,8 @@ public class DefaultClientProtocol implements ClientProtocolPlugIn {
 		try {
 			ByteArrayInputStream inputStream = sendAndCache(host, port, msg, true);
 			Object returnValue = this.marshaller.unmarshal(inputStream, Object.class);
+			if(returnValue instanceof VoidObject)
+				returnValue = null;
 			callback.onResult(returnValue);
 		} catch (ClassNotFoundException | IOException e) {
 			callback.onError(new RemoteError(e));
@@ -292,12 +296,12 @@ public class DefaultClientProtocol implements ClientProtocolPlugIn {
 	 */
 	protected void sendUDP(String host, int port, ByteArrayOutputStream msg) {
 		try {
-			DatagramSocket UDPSocket = new DatagramSocket();
+			DatagramSocket udpSocket = new DatagramSocket();
 			byte[] byteMsg = msg.toByteArray();
-			InetAddress IPAddress = InetAddress.getByName(host);
-			DatagramPacket packet = new DatagramPacket(byteMsg, byteMsg.length, IPAddress, port);
-			UDPSocket.send(packet);
-			UDPSocket.close();
+			InetAddress ipAddress = InetAddress.getByName(host);
+			DatagramPacket packet = new DatagramPacket(byteMsg, byteMsg.length, ipAddress, port);
+			udpSocket.send(packet);
+			udpSocket.close();
 		} catch(Exception e) { }
 	}
 	
@@ -313,6 +317,8 @@ public class DefaultClientProtocol implements ClientProtocolPlugIn {
 			ByteArrayInputStream inputStream = sendAndCache(host, port, msg, true);
 			try {
 				Object returnValue = this.marshaller.unmarshal(inputStream, Object.class);
+				if(returnValue instanceof VoidObject)
+					returnValue = null;
 				pollObject.storeResult(returnValue);
 			} catch(IOException | ClassNotFoundException e) {
 				throw new RemoteError(e);
@@ -447,11 +453,11 @@ public class DefaultClientProtocol implements ClientProtocolPlugIn {
 						
 			client = new Socket(host, port);
 			outToServer = new DataOutputStream(client.getOutputStream());
-			inFromServer = new DataInputStream(client.getInputStream());
 			
 			outToServer.writeInt(byteMsg.length);
 			outToServer.write(byteMsg);
 			
+			inFromServer = new DataInputStream(client.getInputStream());
 			int length = inFromServer.readInt();
 			byte[] byteAns = new byte[length];
 			

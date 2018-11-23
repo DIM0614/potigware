@@ -16,12 +16,12 @@ public class CallbackImpl implements Callback {
 	/**
 	 * Callback for the response result.
 	 */
-	private OnResultCallback onResult;
+	private final OnResultCallback onResult;
 
 	/**
 	 * Callback for remote error handling.
 	 */
-	private OnErrorCallback onError;
+	private final OnErrorCallback onError;
 
 	/**
 	 * Construtor for the default callback implementation.

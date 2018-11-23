@@ -4,7 +4,7 @@ import br.ufrn.dimap.middleware.identification.AbsoluteObjectReference;
 
 public abstract class ClientProxy {
 
-    private AbsoluteObjectReference absoluteObjectReference;
+    protected AbsoluteObjectReference absoluteObjectReference;
 
     public ClientProxy(AbsoluteObjectReference absoluteObjectReference) {
         this.absoluteObjectReference = absoluteObjectReference;

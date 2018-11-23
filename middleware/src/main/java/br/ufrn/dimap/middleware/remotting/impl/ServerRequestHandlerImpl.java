@@ -24,28 +24,30 @@ public class ServerRequestHandlerImpl implements ServerRequestHandler {
 	/**
 	 * The response handler
 	 */
-	private final ResponseHandler responseHandler = new ResponseHandlerImpl();
+	private final ResponseHandler responseHandler;
 	
 	private Thread listenThread;
 	
 	/**
 	 * Constructors, set port and protocol to default ones when not specified
+	 * @throws RemoteError if any error occurs
 	 */
-	public ServerRequestHandlerImpl() {
+	public ServerRequestHandlerImpl() throws RemoteError {
 		this(defaultPort, new DefaultServerProtocolTCP());
 	}
 	
-	public ServerRequestHandlerImpl(int port) {
+	public ServerRequestHandlerImpl(int port) throws RemoteError {
 		this(port, new DefaultServerProtocolTCP());
 	}
 	
-	public ServerRequestHandlerImpl(ServerProtocolPlugin protocol) {
+	public ServerRequestHandlerImpl(ServerProtocolPlugin protocol) throws RemoteError {
 		this(defaultPort, protocol);
 	}
 	
-	public ServerRequestHandlerImpl(int port, ServerProtocolPlugin protocol) {
+	public ServerRequestHandlerImpl(int port, ServerProtocolPlugin protocol) throws RemoteError {
 		this.port = port;
 		this.protocol = protocol;
+		this.responseHandler = new ResponseHandlerImpl();
 	}
 	
 	
@@ -63,7 +65,6 @@ public class ServerRequestHandlerImpl implements ServerRequestHandler {
 			}
 		});
 		listenThread.start();
-		protocol.listen(port, responseHandler);
 	}
 
 	/*

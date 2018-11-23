@@ -1,18 +1,26 @@
 package br.ufrn.dimap.middleware.identification.lookup;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutput;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.nio.file.Files;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import br.ufrn.dimap.middleware.identification.AbsoluteObjectReference;
+import br.ufrn.dimap.middleware.identification.NetAddr;
 import br.ufrn.dimap.middleware.identification.ObjectId;
+import br.ufrn.dimap.middleware.installer.ClientInstaller;
+import br.ufrn.dimap.middleware.installer.InstallationConfig;
+import br.ufrn.dimap.middleware.remotting.interfaces.Invoker;
+import br.ufrn.dimap.middleware.remotting.interfaces.NamingInstaller;
+import br.ufrn.dimap.middleware.remotting.impl.DeploymentDescriptor;
 import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
+import br.ufrn.dimap.middleware.utils.StringUtils;
+import br.ufrn.dimap.middleware.utils.classloader.DynamicClassLoader;
+
+import static br.ufrn.dimap.middleware.installer.InstallationConfig.getClassFileLocation;
+import static br.ufrn.dimap.middleware.installer.InstallationConfig.getClassname;
 
 /**
 
@@ -26,14 +34,22 @@ import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
  * according to their respective object IDs as well.
  * The singleton pattern is used to implement this class.
  * 
- * @author ireneginani thiagolucena
+ * @author ireneginani
+ * @author thiagolucena
+ * @author vinihcampos
  */
-public class DefaultLookup implements Lookup {
+public class DefaultLookup implements Lookup, NamingInstaller {
 	
 	private Socket socket;
-	private DataOutputStream outToServer;
-	private DataInputStream inFromServer;
-  
+
+	private static final String HOST = "localhost";
+	private static final int PORT = 8000;
+
+	private Logger logger = Logger.getLogger(ClientInstaller.class.getName());
+
+	private DefaultLookup() throws RemoteError {
+		//init(HOST, PORT);
+	}
 	/**
 	 * Wraps the instance
 	 */
@@ -45,7 +61,7 @@ public class DefaultLookup implements Lookup {
 	 * @author victoragnez
 	 */
   
-	public static Lookup getInstance() {
+	public static Lookup getInstance() throws RemoteError {
 		Wrapper<Lookup> w = instanceWrapper;
         if (w == null) { // check 1
         	synchronized (DefaultLookup.class) {
@@ -59,8 +75,8 @@ public class DefaultLookup implements Lookup {
         
         return w.getInstance();
 	}
-	
-	/**
+
+    /**
 	 * 
 	 * Wraps the instance to allow final modifier
 	 * 
@@ -83,49 +99,198 @@ public class DefaultLookup implements Lookup {
 	 * @see br.ufrn.dimap.middleware.identification.lookup.Lookup#bind(String, Object, String, int)
 	 */
 	
-	public void Connection(String host, int port) throws RemoteError {
+	public void init(String host, int port) throws RemoteError {
 		try {
 			this.socket = new Socket(host, port);
-			this.outToServer = new DataOutputStream(socket.getOutputStream());
-			this.inFromServer = new DataInputStream(socket.getInputStream());
 		} catch (IOException e) {
 			throw new RemoteError(e);
 		}
 	}
 	
 	
-	public void bind (String name, Object remoteObject, String host, int port) throws RemoteError, IOException {
-		Object data [] = new Object[5];
+	public void bind(String name, Object remoteObject, String host, int port) throws RemoteError, IOException {
+		init(HOST, PORT);
+	    Object data [] = new Object[5];
 		data[0] = "bind";
 		data[1] = name;
 		data[2] = remoteObject;
 		data[3] = host;
 		data[4] = port;
-		((ObjectOutput) outToServer).writeObject(data);
-		outToServer.flush();
+		ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+		
+		((ObjectOutput) oos).writeObject(data);
+		oos.flush();
 		
 	}
   
-  /**
+	/**
+	 *  Called by clients who need to know the location of a remote object.
+	 *
 	 * @see br.ufrn.dimap.middleware.identification.lookup.Lookup#find(String)
 	 */
-	public AbsoluteObjectReference find(String name) throws RemoteError, UnknownHostException, IOException, ClassNotFoundException {
-		String data  = "find " + name;
-		outToServer.writeChars(data);
-		outToServer.flush();
-		return (AbsoluteObjectReference) ((ObjectInput) inFromServer).readObject();
+	public AbsoluteObjectReference find(String name) throws IOException, ClassNotFoundException {
+
+        try {
+        	init(HOST, PORT);
+        } catch (RemoteError remoteError) {
+            remoteError.printStackTrace();
+        }
+        
+        
+        AbsoluteObjectReference aor = null;
+
+		ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+
+        Object data[] = new Object[2];
+
+        data[0] = "find";
+        data[1] = name;
+
+		oos.writeObject(data);
+		oos.flush();
+
+        logger.log(Level.INFO, "Find requested");
+
+        try {
+            while (true) {
+                logger.log(Level.INFO, "Waiting server response...");
+                ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+                aor = (AbsoluteObjectReference) ois.readObject();
+            }
+        } catch (EOFException e) {}
+
+		logger.log(Level.INFO, "AOR received!");
+
+		//oos.close();
+		//ois.close();
+		socket.close();
+
+		return aor;
 	}
   
-  /**
+   /**
 	 * @see br.ufrn.dimap.middleware.identification.lookup.Lookup#findById(ObjectId)
 	 */	
 	public Object findById(ObjectId ObjectId) throws RemoteError, UnknownHostException, IOException, ClassNotFoundException {
-		Object data [] = new Object[2];
+		init(HOST, PORT);
+	    Object data [] = new Object[2];
 		data[0] = "findById";
 		data[1] = ObjectId;
-		((ObjectOutput) outToServer).writeObject(data);
-		outToServer.flush();
-		return ((ObjectInput) inFromServer).readObject();
+		ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+		((ObjectOutput) oos).writeObject(data);
+		oos.flush();
+		return ((ObjectInput) new ObjectInputStream(socket.getInputStream())).readObject();
+	}
+
+	/**
+	 * Called by the middleware when it needs to load the classes needed
+	 * to instantiate the object.
+	 *
+	 * @return impl installed class
+	 * @param objId
+	 * @throws RemoteError
+	 * @throws IOException
+	 * @throws ClassNotFoundException
+	 */
+	@Override
+	public Class<? extends Invoker> findAndLocallyInstall(ObjectId objId) throws RemoteError, IOException, ClassNotFoundException {
+
+		init(HOST, PORT);
+
+		Object data[] = new Object[2];
+		data[0] = "findClasses";
+		data[1] = objId;
+
+		logger.log(Level.INFO, "Waiting for output stream...");
+
+		ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+
+		logger.log(Level.INFO, "Making request...");
+
+		oos.writeObject(data);
+		oos.flush();
+
+		logger.log(Level.INFO, "Waiting for naming server response...");
+
+		Object[] files = null;
+
+		try {
+			//while(true){				
+				logger.log(Level.INFO, "Waiting for input stream...");
+				
+				ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+				files = (Object[]) ois.readObject();
+			//}
+		} catch(EOFException e) {}
+
+		byte[] interfFile = (byte[]) files[1];
+		byte[] invokerFile = (byte[]) files[3];
+		byte[] implFile = (byte[]) files[5];
+
+		String interfName = (String) files[0];
+		String invokerName = (String) files[2];
+		String implName = (String) files[4];
+
+		String filesURL = InstallationConfig.getTargetDir() + "generated/middleware/";
+
+		logger.log(Level.INFO, "Storing interface file...");
+
+		try (FileOutputStream fos = new FileOutputStream(filesURL + interfName + ".class")) {
+			fos.write(interfFile);
+		}
+
+		logger.log(Level.INFO, "Storing invoker file...");
+		try (FileOutputStream fos = new FileOutputStream(filesURL + invokerName + ".class")) {
+			fos.write(invokerFile);
+		}
+
+		logger.log(Level.INFO, "Storing implementation file...");
+		try (FileOutputStream fos = new FileOutputStream(filesURL + implName + ".class")) {
+			fos.write(implFile);
+		}
+
+		logger.log(Level.INFO, "Dynamically loading files in the middleware...");
+		DynamicClassLoader dynamicClassLoader = DynamicClassLoader.getDynamicClassLoader();
+		dynamicClassLoader.loadClassFromFile(getClassname(interfName), getClassFileLocation(filesURL, interfName));
+		dynamicClassLoader.loadClassFromFile(getClassname(invokerName), getClassFileLocation(filesURL, invokerName));
+		Class<? extends Invoker> implClass =  dynamicClassLoader.loadClassFromFile(getClassname(implName), getClassFileLocation(filesURL, implName));
+
+		logger.log(Level.INFO, "Implementation saved in the middleware");
+
+		socket.close();
+		
+		return implClass;
+	}
+
+	/**
+	 * Install in the naming service the generated files.
+	 *
+	 */
+	@Override
+	public void install(DeploymentDescriptor deploymentDescriptor, NetAddr middlewareAddress) throws IOException, RemoteError {
+		if(deploymentDescriptor != null) {
+			if(deploymentDescriptor.getInterfaceFile() != null && deploymentDescriptor.getInvokerFile() != null && deploymentDescriptor.getInvokerImplementation() != null){
+
+			    init(HOST, PORT);
+
+				ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+
+				Object data[] = new Object[10];
+				data[0] = "install";
+				data[1] = StringUtils.getFileName(deploymentDescriptor.getInterfaceFile().getPath());
+				data[2] = Files.readAllBytes(deploymentDescriptor.getInterfaceFile().toPath());
+				data[3] = StringUtils.getFileName(deploymentDescriptor.getInvokerFile().getPath());
+				data[4] = Files.readAllBytes(deploymentDescriptor.getInvokerFile().toPath());
+				data[5] = StringUtils.getFileName(deploymentDescriptor.getInvokerImplementation().getPath());
+				data[6] = Files.readAllBytes(deploymentDescriptor.getInvokerImplementation().toPath());
+				data[7] = deploymentDescriptor.getRemoteObjectName();
+				data[8] = middlewareAddress.getHost();
+				data[9] = middlewareAddress.getPort();
+
+				oos.writeObject(data);
+				oos.flush();
+			}
+		}
 	}
 
 }
