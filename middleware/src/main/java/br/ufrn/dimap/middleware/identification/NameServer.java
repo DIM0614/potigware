@@ -102,7 +102,6 @@ public class NameServer {
 					String invokerName = (String) data[3];
 					String invokerImplName = (String) data[5];
 
-					// Reference obtained in stackoverlfow: https://stackoverflow.com/questions/4350084/byte-to-file-in-java
 					try (FileOutputStream fos = new FileOutputStream(filesURL + interfaceName + ".class")) {
 						fos.write((byte[]) data[2]);
 
