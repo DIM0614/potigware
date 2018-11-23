@@ -294,12 +294,12 @@ public class DefaultClientProtocol implements ClientProtocolPlugIn {
 	 */
 	protected void sendUDP(String host, int port, ByteArrayOutputStream msg) {
 		try {
-			DatagramSocket UDPSocket = new DatagramSocket();
+			DatagramSocket udpSocket = new DatagramSocket();
 			byte[] byteMsg = msg.toByteArray();
-			InetAddress IPAddress = InetAddress.getByName(host);
-			DatagramPacket packet = new DatagramPacket(byteMsg, byteMsg.length, IPAddress, port);
-			UDPSocket.send(packet);
-			UDPSocket.close();
+			InetAddress ipAddress = InetAddress.getByName(host);
+			DatagramPacket packet = new DatagramPacket(byteMsg, byteMsg.length, ipAddress, port);
+			udpSocket.send(packet);
+			udpSocket.close();
 		} catch(Exception e) { }
 	}
 	
