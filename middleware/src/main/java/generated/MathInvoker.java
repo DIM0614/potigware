@@ -28,10 +28,10 @@ public abstract class MathInvoker implements Math, Invoker {
       br.ufrn.dimap.middleware.remotting.impl.RemoteError {
     Object[] params = invocation.getInvocationData().getActualParams();
     if (invocation.getInvocationData().getOperationName().equals( "pi" )) {
-      return pi( (float) params[0] );
+      return pi((Float) params[0] );
     }
     if (invocation.getInvocationData().getOperationName().equals( "fibonacci" )) {
-      return fibonacci( (int) params[0],  (int) params[1] );
+      return fibonacci((Integer) params[0], (Integer) params[1] );
     }
     return null;
   }
