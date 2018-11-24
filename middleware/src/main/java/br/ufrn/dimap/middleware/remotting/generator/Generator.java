@@ -116,7 +116,7 @@ public class Generator {
                 ParameterSpec ps = ParameterSpec.builder(getType(paramType), paramName).build();
                 ((ArrayList<ParameterSpec>) parameters).add(ps);
 
-                stringParams += paramName;
+                stringParams += "(Object) " + paramName;
                 if(j + 1 < params.size())
                     stringParams += ",";
             }
@@ -129,7 +129,7 @@ public class Generator {
                     .addModifiers(Modifier.PUBLIC)
                     .returns(getType(methodReturn))
                     .addParameters(parameters)
-                    .addStatement("return " + getCastType(methodReturn) + " r.request(absoluteObjectReference,\"" + methodName + "\"," + stringParams + ")")
+                    .addStatement("return " + getCastType(methodReturn) + " r.request(absoluteObjectReference,\"" + methodName + "\", " + getClassType(methodReturn) + ", " + stringParams + ")")
                     .addJavadoc(methodDescription)
                     .addException(ClassName.get("", "br.ufrn.dimap.middleware.remotting.impl.RemoteError"))
                     .build();
@@ -139,7 +139,7 @@ public class Generator {
                     .returns(void.class)
                     .addParameters(parameters)
                     .addParameter(Callback.class, "callback")
-                    .addStatement("r.request(absoluteObjectReference,\"" + methodName + "\",callback," + stringParams + ")")
+                    .addStatement("r.request(absoluteObjectReference,\"" + methodName + "\",callback, " + getClassType(methodReturn) + ", " + stringParams + ")")
                     .addJavadoc(methodDescriptionCallback)
                     .addException(ClassName.get("", "br.ufrn.dimap.middleware.remotting.impl.RemoteError"))
                     .build();
@@ -149,7 +149,7 @@ public class Generator {
                     .returns(Object.class)
                     .addParameters(parameters)
                     .addParameter(InvocationAsynchronyPattern.class, "invocationAsyncPattern")
-                    .addStatement("return r.request(absoluteObjectReference,\"" + methodName + "\",invocationAsyncPattern," + stringParams + ")")
+                    .addStatement("return r.request(absoluteObjectReference,\"" + methodName + "\",invocationAsyncPattern, " + getClassType(methodReturn) + ", " + stringParams + ")")
                     .addJavadoc(methodDescriptionAsync)
                     .addException(ClassName.get("", "br.ufrn.dimap.middleware.remotting.impl.RemoteError"))
                     .build();
@@ -280,6 +280,15 @@ public class Generator {
             for(int i = 0; i < count; ++i)
                 squares += "[";
             return Class.forName(squares + "Ljava.lang." + base + ";");
+        }
+    }
+
+    private static String getClassType(String type){
+        String parts[] = type.split("\\[", 2);
+        if(parts.length == 1)
+            return getObjectType(type) + ".class";
+        else{
+            return getObjectType(parts[0]) + "[" + parts[1]  + ".class";
         }
     }
 

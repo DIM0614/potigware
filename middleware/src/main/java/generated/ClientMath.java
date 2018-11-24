@@ -26,7 +26,7 @@ public class ClientMath extends ClientProxy implements Math {
    * @param precision Desired precision
    * @return float */
   public Float pi(Float precision) throws br.ufrn.dimap.middleware.remotting.impl.RemoteError {
-    return (Float) r.request(absoluteObjectReference,"pi",precision);
+    return (Float) r.request(absoluteObjectReference,"pi", Float.class, (Object) precision);
   }
 
   /**
@@ -35,7 +35,7 @@ public class ClientMath extends ClientProxy implements Math {
    * @param precision Desired precision */
   public void pi(Float precision, Callback callback) throws
       br.ufrn.dimap.middleware.remotting.impl.RemoteError {
-    r.request(absoluteObjectReference,"pi",callback,precision);
+    r.request(absoluteObjectReference,"pi",callback, Float.class, (Object) precision);
   }
 
   /**
@@ -45,7 +45,7 @@ public class ClientMath extends ClientProxy implements Math {
    * @return Object */
   public Object pi(Float precision, InvocationAsynchronyPattern invocationAsyncPattern) throws
       br.ufrn.dimap.middleware.remotting.impl.RemoteError {
-    return r.request(absoluteObjectReference,"pi",invocationAsyncPattern,precision);
+    return r.request(absoluteObjectReference,"pi",invocationAsyncPattern, Float.class, (Object) precision);
   }
 
   /**
@@ -55,7 +55,7 @@ public class ClientMath extends ClientProxy implements Math {
    * @return int */
   public Integer fibonacci(Integer start, Integer i) throws
       br.ufrn.dimap.middleware.remotting.impl.RemoteError {
-    return (Integer) r.request(absoluteObjectReference,"fibonacci",start,i);
+    return (Integer) r.request(absoluteObjectReference,"fibonacci", Integer.class, (Object) start,(Object) i);
   }
 
   /**
@@ -65,7 +65,7 @@ public class ClientMath extends ClientProxy implements Math {
    * @param i Desired element */
   public void fibonacci(Integer start, Integer i, Callback callback) throws
       br.ufrn.dimap.middleware.remotting.impl.RemoteError {
-    r.request(absoluteObjectReference,"fibonacci",callback,start,i);
+    r.request(absoluteObjectReference,"fibonacci",callback, Integer.class, (Object) start,(Object) i);
   }
 
   /**
@@ -77,7 +77,7 @@ public class ClientMath extends ClientProxy implements Math {
   public Object fibonacci(Integer start, Integer i,
       InvocationAsynchronyPattern invocationAsyncPattern) throws
       br.ufrn.dimap.middleware.remotting.impl.RemoteError {
-    return r.request(absoluteObjectReference,"fibonacci",invocationAsyncPattern,start,i);
+    return r.request(absoluteObjectReference,"fibonacci",invocationAsyncPattern, Integer.class, (Object) start,(Object) i);
   }
 
   /**
@@ -86,7 +86,7 @@ public class ClientMath extends ClientProxy implements Math {
    * @param b denominator
    * @return void */
   public Void div(Integer a, Integer b) throws br.ufrn.dimap.middleware.remotting.impl.RemoteError {
-    return (Void) r.request(absoluteObjectReference,"div",a,b);
+    return (Void) r.request(absoluteObjectReference,"div",Void.class, a,b);
   }
 
   /**
@@ -96,7 +96,7 @@ public class ClientMath extends ClientProxy implements Math {
    * @param b denominator */
   public void div(Integer a, Integer b, Callback callback) throws
       br.ufrn.dimap.middleware.remotting.impl.RemoteError {
-    r.request(absoluteObjectReference,"div",callback,a,b);
+    r.request(absoluteObjectReference,"div",callback, Integer.class, a,b);
   }
 
   /**
@@ -107,7 +107,7 @@ public class ClientMath extends ClientProxy implements Math {
    * @return Object */
   public Object div(Integer a, Integer b, InvocationAsynchronyPattern invocationAsyncPattern) throws
       br.ufrn.dimap.middleware.remotting.impl.RemoteError {
-    return r.request(absoluteObjectReference,"div",invocationAsyncPattern,a,b);
+    return r.request(absoluteObjectReference,"div",invocationAsyncPattern,Integer.class, a,b);
   }
 
   /**
@@ -115,7 +115,7 @@ public class ClientMath extends ClientProxy implements Math {
    * @param vet array to be sorted
    * @return int[] */
   public Integer[] sort(Integer[] vet) throws br.ufrn.dimap.middleware.remotting.impl.RemoteError {
-    return (Integer[]) r.request(absoluteObjectReference,"sort",vet);
+    return (Integer[]) r.request(absoluteObjectReference,"sort",Integer[].class, vet);
   }
 
   /**
@@ -124,7 +124,7 @@ public class ClientMath extends ClientProxy implements Math {
    * @param vet array to be sorted */
   public void sort(Integer[] vet, Callback callback) throws
       br.ufrn.dimap.middleware.remotting.impl.RemoteError {
-    r.request(absoluteObjectReference,"sort",callback,vet);
+    r.request(absoluteObjectReference,"sort",callback, Void.class, vet);
   }
 
   /**
@@ -134,6 +134,6 @@ public class ClientMath extends ClientProxy implements Math {
    * @return Object */
   public Object sort(Integer[] vet, InvocationAsynchronyPattern invocationAsyncPattern) throws
       br.ufrn.dimap.middleware.remotting.impl.RemoteError {
-    return r.request(absoluteObjectReference,"sort",invocationAsyncPattern,vet);
+    return r.request(absoluteObjectReference,"sort",invocationAsyncPattern,Integer[].class, vet);
   }
 }

@@ -38,7 +38,8 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
 		this.clientRequestHandler = ClientRequestHandlerImpl.getInstance();
 	}
 
-	public Object request(AbsoluteObjectReference aor, String operationName, Object... parameters) throws RemoteError {
+	@Override
+	public Object request(AbsoluteObjectReference aor, String operationName, Class<?> returnType, Object... parameters) throws RemoteError {
 
         ByteArrayOutputStream outputStream = null;
         try {
@@ -47,7 +48,7 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
 
             ByteArrayInputStream inputStream = this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream);
 
-            Object returnValue = this.marshaller.unmarshal(inputStream, Object.class);
+            Object returnValue = this.marshaller.unmarshal(inputStream, returnType);
             
             if(returnValue instanceof VoidObject)
 				returnValue = null;
@@ -59,7 +60,8 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
         }
     }
 
-	public void request(AbsoluteObjectReference aor, String operationName, Callback callback, Object... parameters) throws RemoteError {
+    @Override
+	public void request(AbsoluteObjectReference aor, String operationName, Callback callback, Class<?> returnType, Object... parameters) throws RemoteError {
 
         ByteArrayOutputStream outputStream = null;
 
@@ -75,7 +77,10 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
 
     }
 
-	public Object request(AbsoluteObjectReference aor, String operationName, InvocationAsynchronyPattern invocationAsyncPattern, Object... parameters) throws RemoteError {
+    @Override
+	public Object request(AbsoluteObjectReference aor, String operationName,
+                          InvocationAsynchronyPattern invocationAsyncPattern,
+                          Class<?> returnType, Object... parameters) throws RemoteError {
 
         ByteArrayOutputStream outputStream = null;
         try {
