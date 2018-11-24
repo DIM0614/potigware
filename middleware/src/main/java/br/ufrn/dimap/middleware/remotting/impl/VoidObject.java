@@ -3,6 +3,8 @@
  */
 package br.ufrn.dimap.middleware.remotting.impl;
 
+import java.io.Serializable;
+
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -12,6 +14,8 @@ import javax.xml.bind.annotation.XmlRootElement;
  *
  */
 @XmlRootElement(name = "VoidObject")
-public final class VoidObject {
+public final class VoidObject implements Serializable{
+	private static final long serialVersionUID = 6850822633488035410L;
+
 	public VoidObject() {}
 }

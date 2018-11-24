@@ -140,6 +140,8 @@ public class DefaultServerProtocolTCP implements ServerProtocolPlugin {
 					
 					logger.log(Level.INFO, "Request resulted in exception...");
 					
+					e.printStackTrace();
+					
 					if(kind == 'q') {
 						String errorMessage = e.getMessage();
 						if(errorMessage == null) {

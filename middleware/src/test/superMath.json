@@ -1,0 +1,69 @@
+{
+    "name": "Math",
+    "description": "Provides mathematical methods",
+    "operations":
+        [
+            {
+                "name": "pi",
+                "description": "Returns the value of pi given a precision",
+                "return": "float",
+                "params":
+                    [
+                        {
+                            "name": "precision",
+                            "type": "float",
+                            "description": "Desired precision"
+                        }
+                    ]
+            },
+            {
+                "name": "fibonacci",
+                "description": "Returns the i-th element of the fibonacci sequence",
+                "return": "int",
+                "params":
+                    [
+                        {
+                            "name": "start",
+                            "type": "int",
+                            "description": "Starting number of the sequence"                    
+                        },
+                        {
+                            "name": "i",
+                            "type": "int",
+                            "description": "Desired element"
+                        }
+                    ]
+            }
+            {
+                "name": "div",
+                "description": "Divides two integers",
+                "return": "void",
+                "params":
+                    [
+                        {
+                            "name": "a",
+                            "type": "int",
+                            "description": "numerator"                    
+                        },
+                        {
+                            "name": "b",
+                            "type": "int",
+                            "description": "denominator"
+                        }
+                    ]
+            }
+            {
+                "name": "sort",
+                "description": "sorts an array of integers ",
+                "return": "int[]",
+                "params":
+                    [
+                        {
+                            "name": "vet",
+                            "type": "int[]",
+                            "description": "array to be sorted"
+                        }
+                    ]
+            }
+        ]
+}

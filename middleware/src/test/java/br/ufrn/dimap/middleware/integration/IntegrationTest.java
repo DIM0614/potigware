@@ -3,6 +3,7 @@ package br.ufrn.dimap.middleware.integration;
 import br.ufrn.dimap.middleware.remotting.async.CallbackBuilder;
 import br.ufrn.dimap.middleware.remotting.async.OnErrorCallback;
 import br.ufrn.dimap.middleware.remotting.async.OnResultCallback;
+import br.ufrn.dimap.middleware.remotting.impl.ClientRequestHandlerImpl;
 import br.ufrn.dimap.middleware.remotting.impl.ProxyCreator;
 import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
 import br.ufrn.dimap.middleware.remotting.interfaces.Callback;
@@ -25,10 +26,64 @@ public class IntegrationTest {
             math = (generated.ClientMath) ProxyCreator.getInstance().create("math", ClientMath.class);
 
             if (math != null) {
-
-            	System.out.println("Pi value: " + math.pi(0.1f));
-
-                System.out.println("Fib number value: " + math.fibonacci(0, 20));
+            	
+            	System.out.println("Test 1");
+            	
+            	try {
+            		System.out.println("Pi value: " + math.pi(0.1f));
+            	}
+            	catch(RemoteError e) {
+            		System.out.println(e.getMessage());
+            	}
+            	
+            	System.out.println("Test 2");
+            	
+            	try {
+            		System.out.println("Fib number value: " + math.fibonacci(1, 20));
+            	}
+            	catch(RemoteError e) {
+            		System.out.println(e.getMessage());
+            	}
+            	
+            	System.out.println("Test 3");
+            	
+            	try {
+            		System.out.println("Fib number value: " + math.fibonacci(1, 200));
+            	}
+            	catch(RemoteError e) {
+            		System.out.println(e.getMessage());
+            	}
+            	
+            	System.out.println("Test 4");
+                
+            	try {
+            		System.out.println("div: " + math.div(5, -2));
+            	}
+            	catch(RemoteError e) {
+            		System.out.println(e.getMessage());
+            	}
+            	
+            	System.out.println("Test 5");
+            	
+            	try {
+            		System.out.println("div: " + math.div(5, 0));
+            	}
+            	catch(RemoteError e) {
+            		System.out.println(e.getMessage());
+            	}
+            	
+            	System.out.println("Test 6");
+            	
+            	try {
+            		System.out.println("sort: " + math.sort(new Integer[] {3,1,2}));
+            	}
+            	catch(RemoteError e) {
+            		System.out.println(e.getMessage());
+            	}
+                
+            	ClientRequestHandlerImpl.getInstance().shutdown();
+            	
+                if(true) return;
 
                 CallbackBuilder callbackBuilder = new CallbackBuilder();
                 callbackBuilder.onError(error -> error.printStackTrace())
