@@ -21,7 +21,7 @@ public interface Requestor {
 	 * 
 	 * @return the return of the invoked operation
 	 */
-	Object request(AbsoluteObjectReference aor, String operationName, Object ... parameters)
+	Object request(AbsoluteObjectReference aor, String operationName, Class<?> returnType, Object ... parameters)
 			throws RemoteError;
 
 
@@ -33,7 +33,9 @@ public interface Requestor {
 	 *
 	 * @return the return of the invoked operation
 	 */
-	void request(AbsoluteObjectReference aor, String operationName, Callback callback, Object ... parameters)
+	void request(AbsoluteObjectReference aor, String operationName,
+				 Callback callback,
+				 Class<?> returnType, Object ... parameters)
 			throws RemoteError;
 
 	/**
@@ -45,6 +47,8 @@ public interface Requestor {
 	 *
 	 * @return null unless the invocationAsyncPattern is defined to be by poll object
 	 */
-	Object request(AbsoluteObjectReference aor, String operationName, InvocationAsynchronyPattern invocationAsyncPattern, Object ... parameters)
+	Object request(AbsoluteObjectReference aor, String operationName,
+				   InvocationAsynchronyPattern invocationAsyncPattern,
+				   Class<?> returnType, Object ... parameters)
 			throws RemoteError;
 }
