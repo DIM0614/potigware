@@ -1,30 +1,22 @@
 package br.ufrn.dimap.middleware.remotting.generator;
-
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 public class AppGenerator {
-    public static void main(String[] args) {
-        Generator generator = new Generator();
 
-        JSONParser parser = new JSONParser();
-        File directory = new File("./");
+    public static final String INTERFACE_DESCRIPTION = "/home/vinihcampos/Desktop/example.json";
+    public static final String PATH_TO_SAVE = "/home/vinihcampos/Documents/git-projects/github/middleware/middleware/src/main/java/";
+    public static final String PACKAGE_NAME = "br.ufrn.dimap.middleware.remotting.generator";
+
+
+    public static void main(String[] args) {
         try {
-            String jsonURL = "/home/vinihcampos/Desktop/example.json";
-            String interfaceURL = directory.getCanonicalPath() + "/src/main/java/";
-            Object obj = parser.parse(new FileReader(jsonURL));
-            JSONObject jsonObject = (JSONObject) obj;
-            Path path = Paths.get(interfaceURL);
-            generator.generateInterface(jsonObject, path, "br.ufrn.dimap.middleware.remotting.generator");
-            generator.generateProxy(jsonObject, path, "br.ufrn.dimap.middleware.remotting.generator");
-        } catch (IOException | ParseException e) {
+            Generator.generateFiles(INTERFACE_DESCRIPTION, PATH_TO_SAVE, PACKAGE_NAME);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
     }

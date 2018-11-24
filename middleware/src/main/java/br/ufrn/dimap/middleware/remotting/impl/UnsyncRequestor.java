@@ -1,12 +1,15 @@
 package br.ufrn.dimap.middleware.remotting.impl;
 
 import br.ufrn.dimap.middleware.identification.AbsoluteObjectReference;
+import br.ufrn.dimap.middleware.installer.ClientInstaller;
 import br.ufrn.dimap.middleware.remotting.interfaces.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.rmi.Remote;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Unsynchronized requestor to be used for
@@ -22,6 +25,9 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
 
     private ClientRequestHandler clientRequestHandler;
 
+    private Logger logger = Logger.getLogger(UnsyncRequestor.class.getName());
+
+
     public UnsyncRequestor() {
     	this.marshaller = new JavaMarshaller();
     	this.clientRequestHandler = ClientRequestHandlerImpl.getInstance();
@@ -32,7 +38,8 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
 		this.clientRequestHandler = ClientRequestHandlerImpl.getInstance();
 	}
 
-	public Object request(AbsoluteObjectReference aor, String operationName, Object... parameters) throws RemoteError {
+	@Override
+	public Object request(AbsoluteObjectReference aor, String operationName, Class<?> returnType, Object... parameters) throws RemoteError {
 
         ByteArrayOutputStream outputStream = null;
         try {
@@ -41,8 +48,11 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
 
             ByteArrayInputStream inputStream = this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream);
 
-            Object returnValue = this.marshaller.unmarshal(inputStream, Object.class);
-
+            Object returnValue = this.marshaller.unmarshal(inputStream, returnType);
+            
+            if(returnValue instanceof VoidObject)
+				returnValue = null;
+            
             return returnValue;
 
         } catch (IOException | ClassNotFoundException e) {
@@ -50,7 +60,8 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
         }
     }
 
-	public void request(AbsoluteObjectReference aor, String operationName, Callback callback, Object... parameters) throws RemoteError {
+    @Override
+	public void request(AbsoluteObjectReference aor, String operationName, Callback callback, Class<?> returnType, Object... parameters) throws RemoteError {
 
         ByteArrayOutputStream outputStream = null;
 
@@ -66,7 +77,10 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
 
     }
 
-	public Object request(AbsoluteObjectReference aor, String operationName, InvocationAsynchronyPattern invocationAsyncPattern, Object... parameters) throws RemoteError {
+    @Override
+	public Object request(AbsoluteObjectReference aor, String operationName,
+                          InvocationAsynchronyPattern invocationAsyncPattern,
+                          Class<?> returnType, Object... parameters) throws RemoteError {
 
         ByteArrayOutputStream outputStream = null;
         try {
