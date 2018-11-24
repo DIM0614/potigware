@@ -11,4 +11,6 @@
     - Type `localhost` for the host and `8001` for the port
 4. Write your client class, that will get a proxy to the methods via middleware. 
 
-There is an example embedded in the middleware that uses the json description present in the `src/test` folder.
+There is an example embedded in the middleware that uses the json description present in the `src/test` folder. 
+The generated code for it is in the `generated` package (outside the middleware package), the implementation
+is `MathImpl` and the usage is in `test/.../integration/IntegrationTest`.
