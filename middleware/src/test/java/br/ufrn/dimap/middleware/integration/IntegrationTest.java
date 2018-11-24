@@ -75,7 +75,12 @@ public class IntegrationTest {
             	System.out.println("Test 6");
             	
             	try {
-            		System.out.println("sort: " + math.sort(new Integer[] {3,1,2}));
+
+            		Integer[] array = math.sort(new Integer[] {3,1,2});
+            		System.out.print("sort: ");
+					for (Integer i : array) {
+						System.out.print(i + ",");
+					}
             	}
             	catch(RemoteError e) {
             		System.out.println(e.getMessage());
