@@ -10,9 +10,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import br.ufrn.dimap.middleware.extension.interfaces.ResponseHandler;
 import br.ufrn.dimap.middleware.extension.interfaces.ServerProtocolPlugin;
+import br.ufrn.dimap.middleware.remotting.exec.MiddlewareMain;
 
 /**
  * Default Server Protocol Plug-in to handle TCP connections. The default format of messages is:
@@ -40,11 +43,11 @@ public class DefaultServerProtocolTCP implements ServerProtocolPlugin {
 	private final Set<Socket> activeSockets = ConcurrentHashMap.newKeySet();
 	private ResponseHandler responseHandler;
 	private ServerSocket server;
+	private final Logger logger = Logger.getLogger(MiddlewareMain.class.getName());
 	
 	/**
 	 * Constructors set default maximum number of 
-	 * threads to 2000 and uses the ResponseHandlerImpl class
-	 * when not specified.
+	 * threads to 2000
 	 */
 	public DefaultServerProtocolTCP() {
 		this(2000);
@@ -74,10 +77,13 @@ public class DefaultServerProtocolTCP implements ServerProtocolPlugin {
 			return;
 		}
 		
+		logger.log(Level.INFO, "TCP Server ready...");
+		
 		while(!Thread.interrupted() && !server.isClosed()) {
 			Socket clientSocket;
 			try {
 				clientSocket = server.accept();
+				logger.log(Level.INFO, "New connection acepted...");
 			} catch (IOException e) {
 				continue;
 			}
@@ -106,6 +112,9 @@ public class DefaultServerProtocolTCP implements ServerProtocolPlugin {
 				int inSize = in.readInt();
 				byte[] msg = new byte[inSize];
 				in.readFully(msg);
+				
+				logger.log(Level.INFO, "New message read...");
+				
 				if(kind == 'a') {
 					if(out == null) {
 						out = new DataOutputStream(client.getOutputStream());
@@ -115,6 +124,9 @@ public class DefaultServerProtocolTCP implements ServerProtocolPlugin {
 				}
 				try {
 					byte[] ans = responseHandler.handleResponse(msg);
+					
+					logger.log(Level.INFO, "Successful request...");
+					
 					if(kind == 'q') {
 						if(out == null) {
 							out = new DataOutputStream(client.getOutputStream());
@@ -125,6 +137,9 @@ public class DefaultServerProtocolTCP implements ServerProtocolPlugin {
 						out.flush();
 					}
 				} catch(RemoteError e) {
+					
+					logger.log(Level.INFO, "Request resulted in exception...");
+					
 					if(kind == 'q') {
 						String errorMessage = e.getMessage();
 						if(errorMessage == null) {
