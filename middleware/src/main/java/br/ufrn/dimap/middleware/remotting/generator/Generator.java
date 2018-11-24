@@ -116,7 +116,7 @@ public class Generator {
                 ParameterSpec ps = ParameterSpec.builder(getType(paramType), paramName).build();
                 ((ArrayList<ParameterSpec>) parameters).add(ps);
 
-                stringParams += paramName;
+                stringParams += "(Object) " + paramName;
                 if(j + 1 < params.size())
                     stringParams += ",";
             }
