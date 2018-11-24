@@ -223,9 +223,9 @@ public class Generator {
                 String paramDescription = (String) param.get("description");            
                
                 if(j != params.size() -1)
-                	methodInReturn += " (" + paramType + ") params[" + j + "], ";
+                	methodInReturn += getCastType(paramType) + " params[" + j + "], ";
                 else
-                	methodInReturn += " (" + paramType + ") params[" + j + "] ";
+                	methodInReturn += getCastType(paramType) + " params[" + j + "] ";
                 methodDescription += "\n@param " + paramName + " " + paramDescription;
 
                 ParameterSpec ps = ParameterSpec.builder(getType(paramType), paramName).build();

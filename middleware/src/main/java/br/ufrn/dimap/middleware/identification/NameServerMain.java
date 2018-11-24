@@ -3,12 +3,9 @@ package br.ufrn.dimap.middleware.identification;
 import java.io.IOException;
 import java.util.logging.Logger;
 
-import br.ufrn.dimap.middleware.installer.ClientInstaller;
-import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
+public class NameServerMain {
 
-public class MainServer {
-
-	private static Logger logger = Logger.getLogger(MainServer.class.getName());
+	private static Logger logger = Logger.getLogger(NameServerMain.class.getName());
 
 	public static Logger getLogger() {
 		return logger;
