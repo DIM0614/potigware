@@ -13,6 +13,10 @@ import java.util.Objects;
  */
 public class InvocationContext implements Serializable {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1035907141514209168L;
 	private HashMap<String, Object> context;
 
 	public InvocationContext() {

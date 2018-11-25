@@ -1,10 +1,6 @@
 package br.ufrn.dimap.middleware.extension.interfaces;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-
 import br.ufrn.dimap.middleware.extension.impl.InvocationContext;
-import br.ufrn.dimap.middleware.remotting.impl.InvocationData;
 import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
 
 /**
@@ -19,7 +15,7 @@ import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
 
 public interface InvocationInterceptorSerialized {
 	
-	void beforeInvocation (ByteArrayInputStream inputStream, InvocationContext invocationContext) throws RemoteError;
+	byte[] beforeInvocation (byte[] inputStream, InvocationContext invocationContext) throws RemoteError;
 	
-	void afterInvocation (ByteArrayInputStream inputStream, InvocationContext invocationContext) throws RemoteError;
+	byte[] afterInvocation (byte[] inputStream, InvocationContext invocationContext) throws RemoteError;
 }
