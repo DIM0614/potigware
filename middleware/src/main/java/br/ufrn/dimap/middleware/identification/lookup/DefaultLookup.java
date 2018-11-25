@@ -40,7 +40,9 @@ import static br.ufrn.dimap.middleware.installer.InstallationConfig.getClassname
  */
 public class DefaultLookup implements Lookup, NamingInstaller {
     
-	private static final String NAMING_SERVER_HOST = "localhost";
+	//private static final String NAMING_SERVER_HOST = "localhost";
+	private static final String NAMING_SERVER_HOST = "35.230.92.188";
+
 	private static final int NAMING_SERVER_PORT = 8000;
 
 	private static final String MIDDLEWARE_FOLDER = "middleware";
@@ -202,9 +204,9 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 
 		logger.log(Level.INFO, "Dynamically loading files in the middleware...");
 		DynamicClassLoader dynamicClassLoader = DynamicClassLoader.getDynamicClassLoader();
-		dynamicClassLoader.loadClassFromFile(getClassname(interfName), getClassFileLocation(filesURL, MIDDLEWARE_FOLDER, interfName));
-		dynamicClassLoader.loadClassFromFile(getClassname(invokerName), getClassFileLocation(filesURL, MIDDLEWARE_FOLDER, invokerName));
-		Class<? extends Invoker> implClass =  dynamicClassLoader.loadClassFromFile(getClassname(implName), getClassFileLocation(filesURL, MIDDLEWARE_FOLDER, implName));
+		dynamicClassLoader.loadClassFromFile(getClassname(interfName), getClassFileLocation(InstallationConfig.getTargetDir(), MIDDLEWARE_FOLDER, interfName));
+		dynamicClassLoader.loadClassFromFile(getClassname(invokerName), getClassFileLocation(InstallationConfig.getTargetDir(), MIDDLEWARE_FOLDER, invokerName));
+		Class<? extends Invoker> implClass =  dynamicClassLoader.loadClassFromFile(getClassname(implName), getClassFileLocation(InstallationConfig.getTargetDir(), MIDDLEWARE_FOLDER, implName));
 
 		logger.log(Level.INFO, "Implementation saved in the middleware");
 
