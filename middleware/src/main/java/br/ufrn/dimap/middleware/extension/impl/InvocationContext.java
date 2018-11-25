@@ -3,10 +3,10 @@ package br.ufrn.dimap.middleware.extension.impl;
 import java.util.HashMap;
 
 /**
- * Store all the contextual information that need to be pass in every remote
+ * Store all the contextual information that needs to be pass in every remote
  * invocation.
  * 
- * @author pedroarthur-mf
+ * @author Pedro Arthur Medeiros
  *
  */
 public class InvocationContext {
@@ -25,4 +25,16 @@ public class InvocationContext {
 		return this.context.get(key);
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		return this.context.equals(obj);
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((context == null) ? 0 : context.hashCode());
+		return result;
+	}
 }

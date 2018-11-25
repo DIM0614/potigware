@@ -1,10 +1,10 @@
 package br.ufrn.dimap.middleware.remotting.impl;
 
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.xml.bind.annotation.XmlRootElement;
+
+import br.ufrn.dimap.middleware.extension.impl.InvocationContext;
 
 /**
  * Represents an invocation, including invocation data (aor, method,
@@ -21,14 +21,14 @@ public class Invocation implements Serializable {
 		super();
 	}
 
-	private Map<String, Object> context;
+	private InvocationContext context;
 
     public Invocation(InvocationData invocationData) {
         this.invocationData = invocationData;
-        this.context = new HashMap<String, Object>();
+        this.context = new InvocationContext();
     }
 
-    public Invocation(InvocationData invocationData, Map<String, Object> context) {
+    public Invocation(InvocationData invocationData, InvocationContext context) {
         this.invocationData = invocationData;
         this.context = context;
     }
@@ -41,11 +41,11 @@ public class Invocation implements Serializable {
         this.invocationData = invocationData;
     }
 
-    public Map<String, Object> getContext() {
+    public InvocationContext getContext() {
         return context;
     }
 
-    public void setContext(Map<String, Object> context) {
+    public void setContext(InvocationContext context) {
         this.context = context;
     }
 
