@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import br.ufrn.dimap.middleware.extension.impl.InvocationContext;
 import org.junit.Test;
 
 import br.ufrn.dimap.middleware.identification.AbsoluteObjectReference;
@@ -25,13 +26,11 @@ public class XMLMarshallerTest extends TestCase {
 		ObjectId id = new ObjectId("55ebd0d1-befa-4faa-8392-8723ccc9ddff");
 		AbsoluteObjectReference aor = new AbsoluteObjectReference(id, "localhost", 1234);
 		InvocationData data = new InvocationData(aor, "op1", "param1");
-		
-		Map<String, Object> cont = new HashMap<String, Object>();
-		cont.put("lala", new Integer(10));
-		cont.put("oook", new Integer(-3));
-		Invocation inv0 = new Invocation(data, cont);
+		InvocationContext ic = new InvocationContext();
+		ic.add("lala", new Integer(10));
+		ic.add("oook", new Integer(-3));
+		Invocation inv0 = new Invocation(data, ic);
 		Invocation inv1 = marshalUnmarshal(inv0);
-		
 		assertEquals(inv0, inv1);
 	}
 	

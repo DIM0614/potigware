@@ -5,6 +5,8 @@ import java.io.ByteArrayInputStream;
 import br.ufrn.dimap.middleware.identification.AbsoluteObjectReference;
 import br.ufrn.dimap.middleware.infrastructure.lifecycleManager.impl.LifecycleManagerImpl;
 import br.ufrn.dimap.middleware.infrastructure.lifecycleManager.interfaces.LifecycleManager;
+import br.ufrn.dimap.middleware.infrastructure.qos.BasicRemotingPatterns;
+import br.ufrn.dimap.middleware.infrastructure.qos.QoSObserver;
 import br.ufrn.dimap.middleware.remotting.interfaces.Invoker;
 import br.ufrn.dimap.middleware.remotting.interfaces.Marshaller;
 import br.ufrn.dimap.middleware.extension.interfaces.ResponseHandler;
@@ -19,9 +21,11 @@ public class ResponseHandlerImpl implements ResponseHandler {
 	
 	private final Marshaller marshaller = new JavaMarshaller(); 
 	private final LifecycleManager lifecycleManager;
+	private final QoSObserver qosObserver;
 	
 	public ResponseHandlerImpl() throws RemoteError {
 		lifecycleManager = new LifecycleManagerImpl();
+		qosObserver = new QoSObserver(BasicRemotingPatterns.ServerRequestHandler);
 	}
 	
 	/* (non-Javadoc)
@@ -38,6 +42,9 @@ public class ResponseHandlerImpl implements ResponseHandler {
 			invocation = marshaller.unmarshal(new ByteArrayInputStream(msg), Invocation.class);
 			invocationData = invocation.getInvocationData();
 			aor = invocationData.getAor();
+
+			qosObserver.started(invocation, msg.length);
+
 			invoker = lifecycleManager.getInvoker(aor);
 		} catch(Exception e) {
 			throw new RemoteError(e);
@@ -50,6 +57,7 @@ public class ResponseHandlerImpl implements ResponseHandler {
 			if(returnedData == null)
 				returnedData = new VoidObject();
 			lifecycleManager.invocationDone(aor, invoker);
+			qosObserver.done(invocation);
 			ret = marshaller.marshal(returnedData).toByteArray();
 		} catch(Exception e) {
 			throw new RemoteError(e);
