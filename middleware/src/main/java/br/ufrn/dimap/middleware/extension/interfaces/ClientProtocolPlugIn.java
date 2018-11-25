@@ -37,11 +37,12 @@ public interface ClientProtocolPlugIn {
 	 * @param port the port to be used
 	 * @param msg the data to be sent
 	 * @param callback the callback object to be called after
+	 * @param returnType teh return type
 	 * @return the server reply
 	 * @throws RemoteError if any error occurs
 	 */
 
-	public void send(String host, int port, ByteArrayOutputStream msg, Callback callback) throws RemoteError;
+	public void send(String host, int port, ByteArrayOutputStream msg, Callback callback, Class<?> returnType) throws RemoteError;
 
 	/**
 	 * Function used by the requestor and delegated by the client handler to send
@@ -69,10 +70,11 @@ public interface ClientProtocolPlugIn {
 	 * @param port the port to be used
 	 * @param msg the data to be sent
 	 * @param pollObject the pollObject to store the response from server
+	 * @param returnType the return type
 	 * @return the server reply
 	 * @throws RemoteError if pattern is SyncWithServer and any error occurs when trying to connect to server
 	 */
-	public void send(String host, int port, ByteArrayOutputStream msg, PollObject pollObject) throws RemoteError;
+	public void send(String host, int port, ByteArrayOutputStream msg, PollObject pollObject, Class<?> returnType) throws RemoteError;
 	
 	/**
 	 * Shutdown the plug-in. Called when Client Request Handler changes the protocol plug-in

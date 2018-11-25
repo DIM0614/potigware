@@ -1,8 +1,6 @@
 package br.ufrn.dimap.middleware.integration;
 
 import br.ufrn.dimap.middleware.remotting.async.CallbackBuilder;
-import br.ufrn.dimap.middleware.remotting.async.OnErrorCallback;
-import br.ufrn.dimap.middleware.remotting.async.OnResultCallback;
 import br.ufrn.dimap.middleware.remotting.impl.ClientRequestHandlerImpl;
 import br.ufrn.dimap.middleware.remotting.impl.ProxyCreator;
 import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
@@ -10,7 +8,6 @@ import br.ufrn.dimap.middleware.remotting.interfaces.Callback;
 import br.ufrn.dimap.middleware.remotting.interfaces.InvocationAsynchronyPattern;
 import br.ufrn.dimap.middleware.remotting.interfaces.PollObject;
 import generated.ClientMath;
-import jdk.nashorn.internal.ir.annotations.Ignore;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -55,6 +52,15 @@ public class IntegrationTest {
             	}
             	
             	System.out.println("Test 4");
+            	
+            	try {
+            		System.out.println("Fib number value: " + math.fibonacci(1, -2));
+            	}
+            	catch(RemoteError e) {
+            		System.out.println(e.getMessage());
+            	}
+            	
+            	System.out.println("Test 5");
                 
             	try {
             		System.out.println("div: " + math.div(5, -2));
@@ -63,7 +69,7 @@ public class IntegrationTest {
             		System.out.println(e.getMessage());
             	}
             	
-            	System.out.println("Test 5");
+            	System.out.println("Test 6");
             	
             	try {
             		System.out.println("div: " + math.div(5, 0));
@@ -72,7 +78,7 @@ public class IntegrationTest {
             		System.out.println(e.getMessage());
             	}
             	
-            	System.out.println("Test 6");
+            	System.out.println("Test 7");
             	
             	try {
 
@@ -81,6 +87,51 @@ public class IntegrationTest {
 					for (Integer i : array) {
 						System.out.print(i + ",");
 					}
+            	}
+            	catch(RemoteError e) {
+            		System.out.println(e.getMessage());
+            	}
+            	
+            	System.out.println("Test 8");
+            	
+            	try {
+
+            		Integer[] array = math.sort(new Integer[] {});
+            		System.out.print("sort: ");
+					for (Integer i : array) {
+						System.out.print(i + ",");
+					}
+					System.out.println("");
+            	}
+            	catch(RemoteError e) {
+            		System.out.println(e.getMessage());
+            	}
+            	
+            	System.out.println("Test 9");
+            	
+            	try {
+
+            		Integer[] array = math.sort(null);
+            		System.out.print("sort: ");
+					for (Integer i : array) {
+						System.out.print(i + ",");
+					}
+					System.out.println("");
+            	}
+            	catch(RemoteError e) {
+            		System.out.println(e.getMessage());
+            	}
+            	
+            	System.out.println("Test 10");
+            	
+            	try {
+
+            		Integer[] array = math.sort(new Integer[] {3,null,2});
+            		System.out.print("sort: ");
+					for (Integer i : array) {
+						System.out.print(i + ",");
+					}
+					System.out.println("");
             	}
             	catch(RemoteError e) {
             		System.out.println(e.getMessage());

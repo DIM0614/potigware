@@ -29,7 +29,7 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
 
 
     public UnsyncRequestor() {
-    	this.marshaller = new JavaMarshaller();
+    	this.marshaller = new XMLMarshaller();
     	this.clientRequestHandler = ClientRequestHandlerImpl.getInstance();
     }
 
@@ -69,7 +69,7 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
 
             outputStream = prepareInvocation(aor, operationName, parameters);
 
-            this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream, callback);
+            this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream, callback, returnType);
 
         } catch (IOException e) {
             throw new RemoteError(e);
@@ -98,7 +98,7 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
                 return null;
 			case POLL_OBJECT:
                 PollObject pollObject = new DefaultPollObject();
-                this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream, pollObject);
+                this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream, pollObject, returnType);
                 return pollObject;
 		}
 

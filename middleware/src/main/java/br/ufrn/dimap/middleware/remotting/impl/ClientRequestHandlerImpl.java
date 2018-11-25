@@ -79,9 +79,9 @@ public final class ClientRequestHandlerImpl implements ClientRequestHandler {
 	 * @see br.ufrn.dimap.middleware.remotting.interfaces.ClientRequestHandler#send(java.lang.String, int, java.io.ByteArrayOutputStream, br.ufrn.dimap.middleware.remotting.interfaces.Callback)
 	 */
 	@Override
-	public void send(String host, int port, ByteArrayOutputStream msg, Callback callback) throws RemoteError {
+	public void send(String host, int port, ByteArrayOutputStream msg, Callback callback, Class<?> returnType) throws RemoteError {
 		ClientProtocolPlugIn protocol = findProtocol(host, port);
-		protocol.send(host, port, msg, callback);
+		protocol.send(host, port, msg, callback, returnType);
 	}
 
 	/*
@@ -99,9 +99,9 @@ public final class ClientRequestHandlerImpl implements ClientRequestHandler {
 	 * @see br.ufrn.dimap.middleware.remotting.interfaces.ClientRequestHandler#send(java.lang.String, int, java.io.ByteArrayOutputStream, br.ufrn.dimap.middleware.remotting.interfaces.PollObject)
 	 */
 	@Override
-	public void send(String host, int port, ByteArrayOutputStream msg, PollObject pollObject) throws RemoteError {
+	public void send(String host, int port, ByteArrayOutputStream msg, PollObject pollObject, Class<?> returnType) throws RemoteError {
 		ClientProtocolPlugIn protocol = findProtocol(host, port);
-		protocol.send(host, port, msg, pollObject);
+		protocol.send(host, port, msg, pollObject, returnType);
 	}
 	
 	/**
