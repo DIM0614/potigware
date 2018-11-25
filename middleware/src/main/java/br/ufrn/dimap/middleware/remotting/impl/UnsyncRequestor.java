@@ -1,6 +1,8 @@
 package br.ufrn.dimap.middleware.remotting.impl;
 
 import br.ufrn.dimap.middleware.identification.AbsoluteObjectReference;
+import br.ufrn.dimap.middleware.infrastructure.qos.BasicRemotingPatterns;
+import br.ufrn.dimap.middleware.infrastructure.qos.QoSObserver;
 import br.ufrn.dimap.middleware.installer.ClientInstaller;
 import br.ufrn.dimap.middleware.remotting.interfaces.*;
 
@@ -27,7 +29,6 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
 
     private Logger logger = Logger.getLogger(UnsyncRequestor.class.getName());
 
-
     public UnsyncRequestor() {
     	this.marshaller = new JavaMarshaller();
     	this.clientRequestHandler = ClientRequestHandlerImpl.getInstance();
@@ -36,7 +37,7 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
     public UnsyncRequestor(Marshaller marshaller) {
     	this.marshaller = marshaller;
 		this.clientRequestHandler = ClientRequestHandlerImpl.getInstance();
-	}
+    }
 
 	@Override
 	public Object request(AbsoluteObjectReference aor, String operationName, Class<?> returnType, Object... parameters) throws RemoteError {
@@ -44,9 +45,14 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
         ByteArrayOutputStream outputStream = null;
         try {
 
-            outputStream = prepareInvocation(aor, operationName, parameters);
+            Invocation invocation = makeInvocation(aor, operationName, parameters);
+            outputStream = marshallInvocation(invocation);
+
+            clientRequestHandler.getQosObserver().started(invocation, 1000);
 
             ByteArrayInputStream inputStream = this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream);
+
+            clientRequestHandler.getQosObserver().done(invocation);
 
             Object returnValue = this.marshaller.unmarshal(inputStream, returnType);
             
@@ -67,9 +73,14 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
 
         try {
 
-            outputStream = prepareInvocation(aor, operationName, parameters);
+            Invocation invocation = makeInvocation(aor, operationName, parameters);
+            outputStream = marshallInvocation(invocation);
+
+            clientRequestHandler.getQosObserver().started(invocation, 1000);
 
             this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream, callback);
+
+            clientRequestHandler.getQosObserver().done(invocation);
 
         } catch (IOException e) {
             throw new RemoteError(e);
@@ -84,35 +95,44 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
 
         ByteArrayOutputStream outputStream = null;
         try {
-            outputStream = prepareInvocation(aor, operationName, parameters);
+            Invocation invocation = makeInvocation(aor, operationName, parameters);
+            outputStream = marshallInvocation(invocation);
+
+            clientRequestHandler.getQosObserver().started(invocation, 1000);
+
+            switch (invocationAsyncPattern) {
+                case FIRE_AND_FORGET:
+                    this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream, false);
+                    return null;
+                case SYNC_WITH_SERVER:
+                    this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream, true);
+                    return null;
+                case POLL_OBJECT:
+                    PollObject pollObject = new DefaultPollObject();
+                    this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream, pollObject);
+                    return pollObject;
+            }
+
+            clientRequestHandler.getQosObserver().done(invocation);
         } catch (IOException e) {
             throw new RemoteError(e);
         }
-
-        switch (invocationAsyncPattern) {
-			case FIRE_AND_FORGET:
-			    this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream, false);
-				return null;
-			case SYNC_WITH_SERVER:
-                this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream, true);
-                return null;
-			case POLL_OBJECT:
-                PollObject pollObject = new DefaultPollObject();
-                this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream, pollObject);
-                return pollObject;
-		}
-
 		throw new RemoteError("Failed to performe the request");
 	}
 
-	private ByteArrayOutputStream prepareInvocation(AbsoluteObjectReference aor, String operationName, Object... parameters) throws IOException {
-		InvocationData invocationData = new InvocationData(aor, operationName, parameters);
+	private Invocation makeInvocation(AbsoluteObjectReference aor, String operationName, Object... parameters) {
+        InvocationData invocationData = new InvocationData(aor, operationName, parameters);
 
-		Invocation invocation = new Invocation(invocationData);
+        Invocation invocation = new Invocation(invocationData);
 
-		ByteArrayOutputStream outputStream = this.marshaller.marshal(invocation);
+        return invocation;
+    }
 
-		return outputStream;
-	}
+    private ByteArrayOutputStream marshallInvocation(Invocation invocation) throws IOException {
+
+        ByteArrayOutputStream outputStream = this.marshaller.marshal(invocation);
+
+        return outputStream;
+    }
 
 }
