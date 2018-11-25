@@ -343,10 +343,10 @@ public final class MiddlewareConfig {
 		
 		while(true) {
 	        System.out.println("What do you want to do?");
-	        System.out.println("\t 1 - To activate a Interceptor in to a the Requester;");
-	        System.out.println("\t 2 - To disable a Interceptor in to a the Requester;");
-	        System.out.println("\t 3 - To activate a Interceptor in to a the Invoquer;");
-	        System.out.println("\t 4 - To disable a Interceptor in to a the Invoquer;");
+	        System.out.println("\t 1 - To activate a Interceptor for the marshalled data;");
+	        System.out.println("\t 2 - To disable a Interceptor for the marshalled data;");
+	        System.out.println("\t 3 - To activate a Interceptor before the invoker");
+	        System.out.println("\t 4 - To disable a Interceptor before the invoker;");
 	        System.out.println("Or press Q to stop que middleware;");
 	        
 	        String option = scan.next();
@@ -355,22 +355,22 @@ public final class MiddlewareConfig {
 	        String name;
 	        try {
 		        if(option == "1") {
-		        	System.out.println("Write the name of the Interceptor that you want to activate in to the Requestor");
+		        	System.out.println("Write the name of the Interceptor that you want to activate for the marshalled data");
 		        	name = scan.next();
 		        	interceptors.startServerRequestInterceptor(name);
 		        }
 		        else if(option == "2") {
-		        	System.out.println("Write the name of the Interceptor that you want to disable in to the Requestor");
+		        	System.out.println("Write the name of the Interceptor that you want to disable for the marshalled data");
 		        	name = scan.next();
 		        	interceptors.stopServerRequestInterceptor(name);
 		        }
 		        else if(option == "3") {
-		        	System.out.println("Write the name of the Interceptor that you want to activate in to the Invoquer");
+		        	System.out.println("Write the name of the Interceptor that you want to activate before the invoker");
 		        	name = scan.next();
 		        	interceptors.startServerInvocationInterceptor(name);
 		        }
 				else if(option == "4") {
-					System.out.println("Write the name of the Interceptor that you want to activate in to the Invoquer");
+					System.out.println("Write the name of the Interceptor that you want to disable before the invoker");
 					name = scan.next();
 					interceptors.stopServerInvocationInterceptor(name);
 				}
