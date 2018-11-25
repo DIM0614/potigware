@@ -6,6 +6,7 @@ package br.ufrn.dimap.middleware;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -316,5 +317,56 @@ public final class MiddlewareConfig {
 	    public T getInstance() {
 	        return instance;
 	    }
+	}
+	
+	/**	
+	 * Allow the change of the Interceptors that will be used during the execution of the middleware through the terminal.
+	 * 
+	 */
+	public static void interceptorsManager() {
+		while(true) {
+			Scanner scan = new Scanner(System.in);
+	        System.out.println("What do you want to do?");
+	        System.out.println("\t 1 - To activate a Interceptor in to a the Requester;");
+	        System.out.println("\t 2 - To disable a Interceptor in to a the Requester;");
+	        System.out.println("\t 3 - To activate a Interceptor in to a the Invoquer;");
+	        System.out.println("\t 4 - To disable a Interceptor in to a the Invoquer;");
+	        System.out.println("Or press Q to stop que middleware;");
+	        
+	        String option = scan.next();
+	       
+	        Interceptors interceptors = new Interceptors();
+	        String name;
+	        try {
+
+		        if(option == "1") {
+		        	System.out.println("Write the name of the Interceptor that you want to activate in to the Requestor");
+		        	name = scan.next();
+		        	interceptors.startServerRequestInterceptor(name);
+		        }
+		        else if(option == "2") {
+		        	System.out.println("Write the name of the Interceptor that you want to disable in to the Requestor");
+		        	name = scan.next();
+		        	interceptors.stopServerRequestInterceptor(name);
+		        }
+		        else if(option == "3") {
+		        	System.out.println("Write the name of the Interceptor that you want to activate in to the Invoquer");
+		        	name = scan.next();
+		        	interceptors.startServerInvocationInterceptor(name);
+		        }
+				else if(option == "4") {
+					System.out.println("Write the name of the Interceptor that you want to activate in to the Invoquer");
+					name = scan.next();
+					interceptors.stopServerInvocationInterceptor(name);
+				}
+				else if(option == "Q" || option == "q"){
+					System.out.println("Exiting...");
+					//TODO: Stop the middlewere
+					break;
+				}
+			} catch (MiddlewareConfigException e) {
+				System.out.println(e.getMessage() + ". Please, restart the process...\n\n");
+			}
+		}
 	}
 }
