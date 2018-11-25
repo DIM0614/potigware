@@ -257,18 +257,31 @@ public final class MiddlewareConfig {
 		        return w.getInstance();
 			}
 			
+			private final Map<String, ClientProtocolPlugIn> registeredClientProtocolPlugins = new ConcurrentHashMap<String, ClientProtocolPlugIn>();
 			private final Map<String, ClientProtocolPlugIn> clientProtocolPlugins = new ConcurrentHashMap<String, ClientProtocolPlugIn>();
 			private final Queue<ServerProtocolPlugin> serverProtocolPlugins = new ConcurrentLinkedQueue<>();
 
 			/**
-			 * Registers a new protocol plugin to be used when requesting an
-			 * object using the specified route as a client 
+			 * Registers a new client protocol plugin under a specified name
 			 *
-			 * @param route the route identifier of the object
+			 * @param name the name which identifies the plugin
 			 * @param protocolPlugin the plugin to be registered
 			 */
-			public void addClientProtocolPlugin(String route, ClientProtocolPlugIn protocolPlugin) {
-				clientProtocolPlugins.put(route, protocolPlugin);
+			public void registerClientProtocolPlugin(String name, ClientProtocolPlugIn protocolPlugin) {
+				registeredClientProtocolPlugins.put(name, protocolPlugin);
+			}
+			
+			/**
+			 * Sets a protocol plugin to be used for a specified
+			 * route  
+			 * 
+			 * @param route the route to be set
+			 * @param protocolName the name of the plugin to be used
+			 */
+			public void setClientProtocolPlugin(String route, String protocolName) throws MiddlewareConfigException {
+				ClientProtocolPlugIn cpp = registeredClientProtocolPlugins.get(protocolName);
+				if (cpp == null) throw new MiddlewareConfigException("The specified protocol plugin doesn't exist");
+				clientProtocolPlugins.put(route, cpp);
 			}
 			
 			/**
@@ -320,12 +333,15 @@ public final class MiddlewareConfig {
 	}
 	
 	/**	
-	 * Allow the change of the Interceptors that will be used during the execution of the middleware through the terminal.
+	 * Starts the server middleware server and listens for further commands
 	 * 
 	 */
-	public static void interceptorsManager() {
+	public static void startServer() {
+		// TODO: Start server 
+		
+		Scanner scan = new Scanner(System.in);
+		
 		while(true) {
-			Scanner scan = new Scanner(System.in);
 	        System.out.println("What do you want to do?");
 	        System.out.println("\t 1 - To activate a Interceptor in to a the Requester;");
 	        System.out.println("\t 2 - To disable a Interceptor in to a the Requester;");
@@ -338,7 +354,6 @@ public final class MiddlewareConfig {
 	        Interceptors interceptors = new Interceptors();
 	        String name;
 	        try {
-
 		        if(option == "1") {
 		        	System.out.println("Write the name of the Interceptor that you want to activate in to the Requestor");
 		        	name = scan.next();
@@ -368,5 +383,7 @@ public final class MiddlewareConfig {
 				System.out.println(e.getMessage() + ". Please, restart the process...\n\n");
 			}
 		}
+		
+		scan.close();
 	}
 }
