@@ -43,7 +43,7 @@ public class ResponseHandlerImpl implements ResponseHandler {
 			invocationData = invocation.getInvocationData();
 			aor = invocationData.getAor();
 
-			qosObserver.started(invocation, 1000);
+			qosObserver.started(invocation, msg.length);
 
 			invoker = lifecycleManager.getInvoker(aor);
 		} catch(Exception e) {
