@@ -48,7 +48,7 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
             Invocation invocation = makeInvocation(aor, operationName, parameters);
             outputStream = marshallInvocation(invocation);
 
-            clientRequestHandler.getQosObserver().started(invocation, 1000);
+            clientRequestHandler.getQosObserver().started(invocation, outputStream.size());
 
             ByteArrayInputStream inputStream = this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream);
 
@@ -76,7 +76,7 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
             Invocation invocation = makeInvocation(aor, operationName, parameters);
             outputStream = marshallInvocation(invocation);
 
-            clientRequestHandler.getQosObserver().started(invocation, 1000);
+            clientRequestHandler.getQosObserver().started(invocation, outputStream.size());
 
             this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream, callback);
 
@@ -98,7 +98,7 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
             Invocation invocation = makeInvocation(aor, operationName, parameters);
             outputStream = marshallInvocation(invocation);
 
-            clientRequestHandler.getQosObserver().started(invocation, 1000);
+            clientRequestHandler.getQosObserver().started(invocation, outputStream.size());
 
             switch (invocationAsyncPattern) {
                 case FIRE_AND_FORGET:
