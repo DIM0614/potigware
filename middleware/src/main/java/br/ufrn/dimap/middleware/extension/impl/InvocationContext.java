@@ -1,6 +1,8 @@
 package br.ufrn.dimap.middleware.extension.impl;
 
+import java.io.Serializable;
 import java.util.HashMap;
+import java.util.Objects;
 
 /**
  * Store all the contextual information that needs to be pass in every remote
@@ -9,7 +11,7 @@ import java.util.HashMap;
  * @author Pedro Arthur Medeiros
  *
  */
-public class InvocationContext {
+public class InvocationContext implements Serializable {
 
 	private HashMap<String, Object> context;
 
@@ -26,15 +28,15 @@ public class InvocationContext {
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		return this.context.equals(obj);
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		InvocationContext that = (InvocationContext) o;
+		return Objects.equals(context, that.context);
 	}
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((context == null) ? 0 : context.hashCode());
-		return result;
+		return Objects.hash(context);
 	}
 }
