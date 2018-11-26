@@ -21,6 +21,10 @@ public class GenerateLogInterceptor implements InvocationInterceptorUnserialized
 	private Logger logger;
 	FileHandler fh;
 	
+	/*
+	 * @param path_file Path to the file in which to log information in
+	 * @param append Append option 
+	 */
 	public GenerateLogInterceptor (String path_file, Boolean append) {
 		try {
 			fh = new FileHandler(path_file, append);
