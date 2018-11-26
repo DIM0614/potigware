@@ -3,6 +3,7 @@
  */
 package br.ufrn.dimap.middleware;
 
+import java.net.UnknownHostException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Queue;
@@ -13,6 +14,8 @@ import br.ufrn.dimap.middleware.extension.interfaces.ClientProtocolPlugIn;
 import br.ufrn.dimap.middleware.extension.interfaces.InvocationInterceptorSerialized;
 import br.ufrn.dimap.middleware.extension.interfaces.InvocationInterceptorUnserialized;
 import br.ufrn.dimap.middleware.extension.interfaces.ServerProtocolPlugin;
+import br.ufrn.dimap.middleware.remotting.impl.ClientRequestHandlerImpl;
+import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
 import br.ufrn.dimap.middleware.utils.Wrapper;
 
 /**
@@ -257,31 +260,21 @@ public final class MiddlewareConfig {
 	        return w.getInstance();
 		}
 		
-		private final Map<String, ClientProtocolPlugIn> registeredClientProtocolPlugins = new ConcurrentHashMap<String, ClientProtocolPlugIn>();
-		private final Map<String, ClientProtocolPlugIn> clientProtocolPlugins = new ConcurrentHashMap<String, ClientProtocolPlugIn>();
 		private final Queue<ServerProtocolPlugin> serverProtocolPlugins = new ConcurrentLinkedQueue<>();
 
 		/**
-		 * Registers a new client protocol plugin under a specified name
-		 *
-		 * @param name the name which identifies the plugin
-		 * @param protocolPlugin the plugin to be registered
+		 * Registers a new Client protocol plugin for a specified host and port
+		 * @param host
+		 * @param port
+		 * @param protocolPlugin
+		 * @throws MiddlewareConfigException
 		 */
-		public void registerClientProtocolPlugin(String name, ClientProtocolPlugIn protocolPlugin) {
-			registeredClientProtocolPlugins.put(name, protocolPlugin);
-		}
-		
-		/**
-		 * Sets a protocol plugin to be used for a specified
-		 * route  
-		 * 
-		 * @param route the route to be set
-		 * @param protocolName the name of the plugin to be used
-		 */
-		public void setClientProtocolPlugin(String route, String protocolName) throws MiddlewareConfigException {
-			ClientProtocolPlugIn cpp = registeredClientProtocolPlugins.get(protocolName);
-			if (cpp == null) throw new MiddlewareConfigException("The specified protocol plugin doesn't exist");
-			clientProtocolPlugins.put(route, cpp);
+		public void registerClientProtocolPlugin(String host, int port, ClientProtocolPlugIn protocolPlugin) throws MiddlewareConfigException {
+			try {
+				ClientRequestHandlerImpl.getInstance().setProtocol(host, port, protocolPlugin);
+			} catch (UnknownHostException | RemoteError e) {
+				throw new MiddlewareConfigException(e.getMessage());
+			}
 		}
 		
 		/**
@@ -291,17 +284,6 @@ public final class MiddlewareConfig {
 		 */
 		public void addServerProtocolPlugin(ServerProtocolPlugin protocolPlugin) {
 			serverProtocolPlugins.add(protocolPlugin);
-		}
-		
-		/**
-		 * Returns the protocol plugin to be used when acting as a client
-		 * for the object with the specified route 
-		 * 
-		 * @param route the route identifier of the object
-		 * @return the protocol plugin if registered, else null
-		 */
-		public ClientProtocolPlugIn getClientProtocolPlugin(String route) {
-			return clientProtocolPlugins.get(route);
 		}
 		
 		/**
