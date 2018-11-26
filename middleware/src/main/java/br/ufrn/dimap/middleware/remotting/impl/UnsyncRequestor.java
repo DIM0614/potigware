@@ -1,6 +1,8 @@
 package br.ufrn.dimap.middleware.remotting.impl;
 
 import br.ufrn.dimap.middleware.identification.AbsoluteObjectReference;
+import br.ufrn.dimap.middleware.infrastructure.qos.BasicRemotingPatterns;
+import br.ufrn.dimap.middleware.infrastructure.qos.QoSObserver;
 import br.ufrn.dimap.middleware.installer.ClientInstaller;
 import br.ufrn.dimap.middleware.remotting.interfaces.*;
 
@@ -27,7 +29,6 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
 
     private Logger logger = Logger.getLogger(UnsyncRequestor.class.getName());
 
-
     public UnsyncRequestor() {
     	this.marshaller = new JavaMarshaller();
     	this.clientRequestHandler = ClientRequestHandlerImpl.getInstance();
@@ -36,18 +37,24 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
     public UnsyncRequestor(Marshaller marshaller) {
     	this.marshaller = marshaller;
 		this.clientRequestHandler = ClientRequestHandlerImpl.getInstance();
-	}
+    }
 
-	public Object request(AbsoluteObjectReference aor, String operationName, Object... parameters) throws RemoteError {
+	@Override
+	public Object request(AbsoluteObjectReference aor, String operationName, Class<?> returnType, Object... parameters) throws RemoteError {
 
         ByteArrayOutputStream outputStream = null;
         try {
 
-            outputStream = prepareInvocation(aor, operationName, parameters);
+            Invocation invocation = makeInvocation(aor, operationName, parameters);
+            outputStream = marshallInvocation(invocation);
+
+            clientRequestHandler.getQosObserver().started(invocation, outputStream.size());
 
             ByteArrayInputStream inputStream = this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream);
 
-            Object returnValue = this.marshaller.unmarshal(inputStream, Object.class);
+            clientRequestHandler.getQosObserver().done(invocation);
+
+            Object returnValue = this.marshaller.unmarshal(inputStream, returnType);
             
             if(returnValue instanceof VoidObject)
 				returnValue = null;
@@ -59,15 +66,21 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
         }
     }
 
-	public void request(AbsoluteObjectReference aor, String operationName, Callback callback, Object... parameters) throws RemoteError {
+    @Override
+	public void request(AbsoluteObjectReference aor, String operationName, Callback callback, Class<?> returnType, Object... parameters) throws RemoteError {
 
         ByteArrayOutputStream outputStream = null;
 
         try {
 
-            outputStream = prepareInvocation(aor, operationName, parameters);
+            Invocation invocation = makeInvocation(aor, operationName, parameters);
+            outputStream = marshallInvocation(invocation);
+
+            clientRequestHandler.getQosObserver().started(invocation, outputStream.size());
 
             this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream, callback);
+
+            clientRequestHandler.getQosObserver().done(invocation);
 
         } catch (IOException e) {
             throw new RemoteError(e);
@@ -75,39 +88,51 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
 
     }
 
-	public Object request(AbsoluteObjectReference aor, String operationName, InvocationAsynchronyPattern invocationAsyncPattern, Object... parameters) throws RemoteError {
+    @Override
+	public Object request(AbsoluteObjectReference aor, String operationName,
+                          InvocationAsynchronyPattern invocationAsyncPattern,
+                          Class<?> returnType, Object... parameters) throws RemoteError {
 
         ByteArrayOutputStream outputStream = null;
         try {
-            outputStream = prepareInvocation(aor, operationName, parameters);
+            Invocation invocation = makeInvocation(aor, operationName, parameters);
+            outputStream = marshallInvocation(invocation);
+
+            clientRequestHandler.getQosObserver().started(invocation, outputStream.size());
+
+            switch (invocationAsyncPattern) {
+                case FIRE_AND_FORGET:
+                    this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream, false);
+                    return null;
+                case SYNC_WITH_SERVER:
+                    this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream, true);
+                    return null;
+                case POLL_OBJECT:
+                    PollObject pollObject = new DefaultPollObject();
+                    this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream, pollObject);
+                    return pollObject;
+            }
+
+            clientRequestHandler.getQosObserver().done(invocation);
         } catch (IOException e) {
             throw new RemoteError(e);
         }
-
-        switch (invocationAsyncPattern) {
-			case FIRE_AND_FORGET:
-			    this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream, false);
-				return null;
-			case SYNC_WITH_SERVER:
-                this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream, true);
-                return null;
-			case POLL_OBJECT:
-                PollObject pollObject = new DefaultPollObject();
-                this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream, pollObject);
-                return pollObject;
-		}
-
 		throw new RemoteError("Failed to performe the request");
 	}
 
-	private ByteArrayOutputStream prepareInvocation(AbsoluteObjectReference aor, String operationName, Object... parameters) throws IOException {
-		InvocationData invocationData = new InvocationData(aor, operationName, parameters);
+	private Invocation makeInvocation(AbsoluteObjectReference aor, String operationName, Object... parameters) {
+        InvocationData invocationData = new InvocationData(aor, operationName, parameters);
 
-		Invocation invocation = new Invocation(invocationData);
+        Invocation invocation = new Invocation(invocationData);
 
-		ByteArrayOutputStream outputStream = this.marshaller.marshal(invocation);
+        return invocation;
+    }
 
-		return outputStream;
-	}
+    private ByteArrayOutputStream marshallInvocation(Invocation invocation) throws IOException {
+
+        ByteArrayOutputStream outputStream = this.marshaller.marshal(invocation);
+
+        return outputStream;
+    }
 
 }

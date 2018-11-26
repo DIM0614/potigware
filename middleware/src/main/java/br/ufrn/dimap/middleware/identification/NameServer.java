@@ -1,8 +1,6 @@
 package br.ufrn.dimap.middleware.identification;
 
 import java.io.*;
-import java.net.Inet4Address;
-import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Files;
@@ -11,9 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import br.ufrn.dimap.middleware.installer.ClientInstaller;
 import br.ufrn.dimap.middleware.installer.InstallationConfig;
-import br.ufrn.dimap.middleware.remotting.impl.DeploymentDescriptor;
 import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
 
 public class NameServer {
@@ -34,7 +30,7 @@ public class NameServer {
 	private int port;
 	ServerSocket server;
 
-	private Logger logger = MainServer.getLogger();
+	private Logger logger = NameServerMain.getLogger();
 
 
 	/**
@@ -99,6 +95,9 @@ public class NameServer {
 						logger.log(Level.INFO, "Installing remotes...");
 
 						String filesURL = InstallationConfig.getTargetDir() + "generated/naming/";
+
+						// Create dir if not exists
+						new File(filesURL).mkdirs();
 
 						String interfaceName = (String) data[1];
 						String invokerName = (String) data[3];

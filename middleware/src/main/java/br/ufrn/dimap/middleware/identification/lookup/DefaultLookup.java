@@ -39,17 +39,17 @@ import static br.ufrn.dimap.middleware.installer.InstallationConfig.getClassname
  * @author vinihcampos
  */
 public class DefaultLookup implements Lookup, NamingInstaller {
-	
-	private Socket socket;
+    
+	private static final String NAMING_SERVER_HOST = "localhost";
+	//private static final String NAMING_SERVER_HOST = "35.230.92.188";
 
-	private static final String HOST = "localhost";
-	private static final int PORT = 8000;
+	private static final int NAMING_SERVER_PORT = 8000;
+
+	private static final String MIDDLEWARE_FOLDER = "middleware";
 
 	private Logger logger = Logger.getLogger(ClientInstaller.class.getName());
 
-	private DefaultLookup() throws RemoteError {
-		//init(HOST, PORT);
-	}
+	private DefaultLookup() {}
 	/**
 	 * Wraps the instance
 	 */
@@ -93,35 +93,6 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 	        return instance;
 	    }
 	}
-	
-	
-	/**
-	 * @see br.ufrn.dimap.middleware.identification.lookup.Lookup#bind(String, Object, String, int)
-	 */
-	
-	public void init(String host, int port) throws RemoteError {
-		try {
-			this.socket = new Socket(host, port);
-		} catch (IOException e) {
-			throw new RemoteError(e);
-		}
-	}
-	
-	
-	public void bind(String name, Object remoteObject, String host, int port) throws RemoteError, IOException {
-		init(HOST, PORT);
-	    Object data [] = new Object[5];
-		data[0] = "bind";
-		data[1] = name;
-		data[2] = remoteObject;
-		data[3] = host;
-		data[4] = port;
-		ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-		
-		((ObjectOutput) oos).writeObject(data);
-		oos.flush();
-		
-	}
   
 	/**
 	 *  Called by clients who need to know the location of a remote object.
@@ -130,12 +101,7 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 	 */
 	public AbsoluteObjectReference find(String name) throws IOException, ClassNotFoundException {
 
-        try {
-        	init(HOST, PORT);
-        } catch (RemoteError remoteError) {
-            remoteError.printStackTrace();
-        }
-        
+        Socket socket = new Socket(NAMING_SERVER_HOST, NAMING_SERVER_PORT);
         
         AbsoluteObjectReference aor = null;
 
@@ -161,25 +127,9 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 
 		logger.log(Level.INFO, "AOR received!");
 
-		//oos.close();
-		//ois.close();
 		socket.close();
 
 		return aor;
-	}
-  
-   /**
-	 * @see br.ufrn.dimap.middleware.identification.lookup.Lookup#findById(ObjectId)
-	 */	
-	public Object findById(ObjectId ObjectId) throws RemoteError, UnknownHostException, IOException, ClassNotFoundException {
-		init(HOST, PORT);
-	    Object data [] = new Object[2];
-		data[0] = "findById";
-		data[1] = ObjectId;
-		ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-		((ObjectOutput) oos).writeObject(data);
-		oos.flush();
-		return ((ObjectInput) new ObjectInputStream(socket.getInputStream())).readObject();
 	}
 
 	/**
@@ -195,7 +145,7 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 	@Override
 	public Class<? extends Invoker> findAndLocallyInstall(ObjectId objId) throws RemoteError, IOException, ClassNotFoundException {
 
-		init(HOST, PORT);
+        Socket socket = new Socket(NAMING_SERVER_HOST, NAMING_SERVER_PORT);
 
 		Object data[] = new Object[2];
 		data[0] = "findClasses";
@@ -235,6 +185,9 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 
 		logger.log(Level.INFO, "Storing interface file...");
 
+		// Create dir if not exists
+        new File(filesURL).mkdirs();
+
 		try (FileOutputStream fos = new FileOutputStream(filesURL + interfName + ".class")) {
 			fos.write(interfFile);
 		}
@@ -251,9 +204,9 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 
 		logger.log(Level.INFO, "Dynamically loading files in the middleware...");
 		DynamicClassLoader dynamicClassLoader = DynamicClassLoader.getDynamicClassLoader();
-		dynamicClassLoader.loadClassFromFile(getClassname(interfName), getClassFileLocation(filesURL, interfName));
-		dynamicClassLoader.loadClassFromFile(getClassname(invokerName), getClassFileLocation(filesURL, invokerName));
-		Class<? extends Invoker> implClass =  dynamicClassLoader.loadClassFromFile(getClassname(implName), getClassFileLocation(filesURL, implName));
+		dynamicClassLoader.loadClassFromFile(getClassname(interfName), getClassFileLocation(InstallationConfig.getTargetDir(), MIDDLEWARE_FOLDER, interfName));
+		dynamicClassLoader.loadClassFromFile(getClassname(invokerName), getClassFileLocation(InstallationConfig.getTargetDir(), MIDDLEWARE_FOLDER, invokerName));
+		Class<? extends Invoker> implClass =  dynamicClassLoader.loadClassFromFile(getClassname(implName), getClassFileLocation(InstallationConfig.getTargetDir(), MIDDLEWARE_FOLDER, implName));
 
 		logger.log(Level.INFO, "Implementation saved in the middleware");
 
@@ -271,7 +224,7 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 		if(deploymentDescriptor != null) {
 			if(deploymentDescriptor.getInterfaceFile() != null && deploymentDescriptor.getInvokerFile() != null && deploymentDescriptor.getInvokerImplementation() != null){
 
-			    init(HOST, PORT);
+                Socket socket = new Socket(NAMING_SERVER_HOST, NAMING_SERVER_PORT);
 
 				ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
 

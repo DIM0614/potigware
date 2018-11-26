@@ -1,6 +1,7 @@
 package br.ufrn.dimap.middleware.remotting.generator;
 
 import br.ufrn.dimap.middleware.identification.AbsoluteObjectReference;
+import br.ufrn.dimap.middleware.installer.InstallationConfig;
 import br.ufrn.dimap.middleware.remotting.impl.ClientProxy;
 import br.ufrn.dimap.middleware.remotting.impl.UnsyncRequestor;
 import br.ufrn.dimap.middleware.remotting.interfaces.Callback;
@@ -18,6 +19,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import javax.lang.model.element.Modifier;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -114,7 +116,7 @@ public class Generator {
                 ParameterSpec ps = ParameterSpec.builder(getType(paramType), paramName).build();
                 ((ArrayList<ParameterSpec>) parameters).add(ps);
 
-                stringParams += paramName;
+                stringParams += "(Object) " + paramName;
                 if(j + 1 < params.size())
                     stringParams += ",";
             }
@@ -127,7 +129,7 @@ public class Generator {
                     .addModifiers(Modifier.PUBLIC)
                     .returns(getType(methodReturn))
                     .addParameters(parameters)
-                    .addStatement("return " + getCastType(methodReturn) + " r.request(absoluteObjectReference,\"" + methodName + "\"," + stringParams + ")")
+                    .addStatement("return " + getCastType(methodReturn) + " r.request(absoluteObjectReference,\"" + methodName + "\", " + getClassType(methodReturn) + ", " + stringParams + ")")
                     .addJavadoc(methodDescription)
                     .addException(ClassName.get("", "br.ufrn.dimap.middleware.remotting.impl.RemoteError"))
                     .build();
@@ -137,7 +139,7 @@ public class Generator {
                     .returns(void.class)
                     .addParameters(parameters)
                     .addParameter(Callback.class, "callback")
-                    .addStatement("r.request(absoluteObjectReference,\"" + methodName + "\",callback," + stringParams + ")")
+                    .addStatement("r.request(absoluteObjectReference,\"" + methodName + "\",callback, " + getClassType(methodReturn) + ", " + stringParams + ")")
                     .addJavadoc(methodDescriptionCallback)
                     .addException(ClassName.get("", "br.ufrn.dimap.middleware.remotting.impl.RemoteError"))
                     .build();
@@ -147,7 +149,7 @@ public class Generator {
                     .returns(Object.class)
                     .addParameters(parameters)
                     .addParameter(InvocationAsynchronyPattern.class, "invocationAsyncPattern")
-                    .addStatement("return r.request(absoluteObjectReference,\"" + methodName + "\",invocationAsyncPattern," + stringParams + ")")
+                    .addStatement("return r.request(absoluteObjectReference,\"" + methodName + "\",invocationAsyncPattern, " + getClassType(methodReturn) + ", " + stringParams + ")")
                     .addJavadoc(methodDescriptionAsync)
                     .addException(ClassName.get("", "br.ufrn.dimap.middleware.remotting.impl.RemoteError"))
                     .build();
@@ -221,9 +223,9 @@ public class Generator {
                 String paramDescription = (String) param.get("description");            
                
                 if(j != params.size() -1)
-                	methodInReturn += " (" + paramType + ") params[" + j + "], ";
+                	methodInReturn += getCastType(paramType) + " params[" + j + "], ";
                 else
-                	methodInReturn += " (" + paramType + ") params[" + j + "] ";
+                	methodInReturn += getCastType(paramType) + " params[" + j + "] ";
                 methodDescription += "\n@param " + paramName + " " + paramDescription;
 
                 ParameterSpec ps = ParameterSpec.builder(getType(paramType), paramName).build();
@@ -231,7 +233,7 @@ public class Generator {
                 
                 
             }
-            	methodInReturn += ")";
+            methodInReturn += ")";
             invoke.addStatement(methodInReturn)
                   .endControlFlow();
 
@@ -248,39 +250,11 @@ public class Generator {
         }
 
         invoke.addStatement("return null");
-        
-        // Creating fields of aor and requestor
-        FieldSpec id = FieldSpec.builder(Integer.class, "id")
-                .addModifiers(Modifier.PRIVATE)
-                .build();
-
-        // Defining constructor of class
-        MethodSpec constructor = MethodSpec.constructorBuilder()
-                .addModifiers(Modifier.PUBLIC)
-                .addParameter(Integer.class, "id")
-                .addStatement("this.id = id")
-                .build();
-        
-        MethodSpec getId = MethodSpec.methodBuilder("getId")
-        				             .addModifiers(Modifier.PUBLIC)
-        				             .returns(Integer.class)
-        				             .addStatement("return id")
-        				             .build();
-        
-        MethodSpec setId = MethodSpec.methodBuilder("setId")
-	             .addModifiers(Modifier.PUBLIC)
-	             .addParameter(Integer.class, "id")
-	             .addStatement("this.id =  id")
-	             .build();
 
         String invokerName = className + "Invoker";
 
         TypeSpec classType = TypeSpec.classBuilder(invokerName)
                 .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
-                .addField(id)
-                .addMethod(constructor)
-                .addMethod(getId)
-                .addMethod(setId)
                 .addMethods(methods)
                 .addMethod(invoke.build())
                 .addJavadoc(classDescription)
@@ -306,6 +280,15 @@ public class Generator {
             for(int i = 0; i < count; ++i)
                 squares += "[";
             return Class.forName(squares + "Ljava.lang." + base + ";");
+        }
+    }
+
+    private static String getClassType(String type){
+        String parts[] = type.split("\\[", 2);
+        if(parts.length == 1)
+            return getObjectType(type) + ".class";
+        else{
+            return getObjectType(parts[0]) + "[" + parts[1]  + ".class";
         }
     }
 
@@ -376,6 +359,10 @@ public class Generator {
         JSONParser parser = new JSONParser();
         Object obj = parser.parse(new FileReader(interfaceDescriptionURL));
         JSONObject jsonObject = (JSONObject) obj;
+
+        // Create dir if not exists
+        new File(InstallationConfig.getClasspathLocation(pathToSave)).mkdirs();
+
         Path path = Paths.get(pathToSave);
         String interfName = generateInterface(jsonObject, path, packageName);
         String proxyName = generateProxy(jsonObject, path, packageName);

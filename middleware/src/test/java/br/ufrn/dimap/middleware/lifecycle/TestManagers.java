@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import br.ufrn.dimap.middleware.identification.AbsoluteObjectReference;
-import br.ufrn.dimap.middleware.identification.MainServer;
+import br.ufrn.dimap.middleware.identification.NameServerMain;
 import br.ufrn.dimap.middleware.identification.lookup.DefaultLookup;
 import br.ufrn.dimap.middleware.identification.lookup.Lookup;
 import br.ufrn.dimap.middleware.infrastructure.lifecycleManager.impl.LifecycleManagerImpl;
@@ -123,15 +123,15 @@ public class TestManagers {
 	
 	public static void main(String[] args) throws Exception {
 		new Thread(() -> {
-			MainServer.main(null);
+			NameServerMain.main(null);
 		}).start();
 		Thread.sleep(2000);
 		Lookup server = DefaultLookup.getInstance();
-		server.bind("s1", StaticClass1.class, "", 0);
+		//server.bind("s1", StaticClass1.class, "", 0);
 		System.out.println("s1 binded");
-		server.bind("s2", StaticClass2.class, "", 0);
+		//server.bind("s2", StaticClass2.class, "", 0);
 		System.out.println("s2 binded");
-		server.bind("p1", PerRequest1.class, "", 0);
+		//server.bind("p1", PerRequest1.class, "", 0);
 		System.out.println("p1 binded");
 		AbsoluteObjectReference s1 = server.find("s1");
 		System.out.println("s1 found");

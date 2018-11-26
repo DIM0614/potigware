@@ -10,18 +10,17 @@ import br.ufrn.dimap.middleware.remotting.interfaces.NamingInstaller;
 import br.ufrn.dimap.middleware.utils.Wrapper;
 import br.ufrn.dimap.middleware.utils.classloader.DynamicClassLoader;
 
-import com.sun.security.ntlm.Client;
 import org.json.simple.parser.ParseException;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Objects;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static br.ufrn.dimap.middleware.installer.InstallationConfig.getClassFileLocation;
 import static br.ufrn.dimap.middleware.installer.InstallationConfig.getClassname;
+import static br.ufrn.dimap.middleware.installer.InstallationConfig.getSourcecodeFilePath;
 import static br.ufrn.dimap.middleware.utils.compiler.JavaCompilerUtils.compile;
 
 /**
@@ -100,7 +99,8 @@ public class ClientInstaller {
         Class invokerClass = dynamicClassLoader.loadClassFromFile(getClassname(filesInfo.getInvokerName()), getClassFileLocation(targetDir, filesInfo.getInvokerName()));
         Class clientProxyClass = (Class<? extends ClientProxy>) dynamicClassLoader.loadClassFromFile(getClassname(filesInfo.getProxyName()), getClassFileLocation(targetDir, filesInfo.getProxyName()));
 
-        logger.log(Level.INFO,"Interface and abstract invoker are now available");
+        logger.log(Level.INFO,"Interface and abstract invoker source code are now available");
+        logger.log(Level.INFO,"WARNING: The generated stub files mustn't be changed because these files are just a guideline for the concrete invoker implementation. ");
 
         return new InstallationResult(invokerClass, clientProxyClass, filesInfo);
     }
@@ -126,7 +126,7 @@ public class ClientInstaller {
 
         logger.log(Level.INFO,"Compiling implementation..");
 
-        compile(InstallationConfig.getTargetDir(), InstallationConfig.getSourcecodeFilePath(implementationName));
+        compile(targetDir, getSourcecodeFilePath(filesInfo.getInterfName()), getSourcecodeFilePath(filesInfo.getInvokerName()), getSourcecodeFilePath(filesInfo.getProxyName()), getSourcecodeFilePath(implementationName));
 
         logger.log(Level.INFO,"Loading implementation..");
 
@@ -164,7 +164,7 @@ public class ClientInstaller {
 
             logger.log(Level.INFO,"Compiling the invoker implementation.");
 
-			compile(InstallationConfig.getTargetDir(), InstallationConfig.getSourcecodeFilePath(implementationName));
+			compile(InstallationConfig.getTargetDir(), getSourcecodeFilePath(implementationName));
 
             logger.log(Level.INFO,"Loading the stub and the invoker implementation.");
 
@@ -218,9 +218,9 @@ public class ClientInstaller {
      * @param filesInfo the result of the dynamic class generation.
      */
     private void compileClassFiles(String targetDir, Generator.GeneratedFilesInfo filesInfo) {
-        String interfaceSourceCode = InstallationConfig.getSourcecodeFilePath(filesInfo.getInterfName());
-        String invokerSourceCode = InstallationConfig.getSourcecodeFilePath(filesInfo.getInvokerName());
-        String proxySourcecode = InstallationConfig.getSourcecodeFilePath(filesInfo.getProxyName());
+        String interfaceSourceCode = getSourcecodeFilePath(filesInfo.getInterfName());
+        String invokerSourceCode = getSourcecodeFilePath(filesInfo.getInvokerName());
+        String proxySourcecode = getSourcecodeFilePath(filesInfo.getProxyName());
 
         compile(targetDir, interfaceSourceCode, invokerSourceCode, proxySourcecode);
     }
@@ -264,7 +264,7 @@ public class ClientInstaller {
 
                         implName = scanner.nextLine();
 
-                        String providedPath = InstallationConfig.getTargetDir() + InstallationConfig.getSourcecodeFilePath(implName);
+                        String providedPath = InstallationConfig.getTargetDir() + getSourcecodeFilePath(implName);
 
                         if (!(new File(providedPath).exists())) {
                             System.out.println("(X) This implementation file doesn't exist! Provide " +
@@ -277,13 +277,13 @@ public class ClientInstaller {
 
                     String objName = scanner.nextLine();
 
-                    System.out.println("Finally, provide the middleware network location:");
-
+                    System.out.println("\nFinally, provide the middleware network location:");
+                    System.out.print("host: ");
                     String host = scanner.nextLine();
-
+                    System.out.print("port: ");
                     Integer port = scanner.nextInt();
 
-                    System.out.println("Installing...");
+                    System.out.println("\nInstalling...");
 
                     try {
 
@@ -311,20 +311,6 @@ public class ClientInstaller {
             }
         }
 
-        //try {
-
-            //String idlPath = Objects.requireNonNull(args[0], "The IDL path should be provided.");
-            //String invokerName = Objects.requireNonNull(args[1], "The invoker name should be provided.");
-            //String remoteObjectName = Objects.requireNonNull(args[2],"The remote object name should be provided.");
-
-            //InstallationResult installationResult = ClientInstaller.getInstance().install(idlPath, remoteObjectName,invokerName);
-
-            //Class clientProxyClass = installationResult.getClientProxyClass();
-            //Class invokerClass = installationResult.getInvokerClass();
-
-        //} catch (Exception e)//InstallationException e) {
-        //    Logger.getLogger(ClientInstaller.class.getName()).log(Level.SEVERE,e.getMessage(),e);
-        //}
     }
 
 }
