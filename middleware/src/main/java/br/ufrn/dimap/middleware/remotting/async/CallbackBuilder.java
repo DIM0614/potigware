@@ -7,7 +7,7 @@ package br.ufrn.dimap.middleware.remotting.async;
  * @author Adelino Afonso
  * @author Jhonathan Cabral
  * @author Jonathan Rocha
- * @author Yuri Reinaldo 
+ * @author Yuri Reinaldo  
  */
 public class CallbackBuilder{
 
