@@ -33,7 +33,7 @@ public class XMLMarshallerTest extends TestCase {
 		ic.add("lala", 10);
 		ic.add("oook", -3);
 		
-		Set<Class> context = new HashSet<Class>();
+		Set<Class<?>> context = new HashSet<Class<?>>();
 		for (Object p : data.getActualParams()) {
 			context.add(p.getClass());
 		}
@@ -77,7 +77,7 @@ public class XMLMarshallerTest extends TestCase {
 		assertTrue(Arrays.equals(a0, a1));
 	}
 	
-	public <T> T marshalUnmarshal(T object, Set<Class> context) throws IOException, ClassNotFoundException {
+	public <T> T marshalUnmarshal(T object, Set<Class<?>> context) throws IOException, ClassNotFoundException {
 		if (object == null)
 			return null;
 		

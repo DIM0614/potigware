@@ -34,7 +34,7 @@ public class JavaMarshaller implements Marshaller {
 	}
 	
 	@Override
-	public <T> ByteArrayOutputStream marshal(T object, Set<Class> context) throws IOException {
+	public <T> ByteArrayOutputStream marshal(T object, Set<Class<?>> context) throws IOException {
 		return this.marshal(object);
 	}
 
@@ -52,7 +52,7 @@ public class JavaMarshaller implements Marshaller {
 	}
 	
 	@Override
-	public <T> T unmarshal(ByteArrayInputStream byteStream, Class<T> tgtClass, Set<Class> context) throws IOException, ClassNotFoundException {
+	public <T> T unmarshal(ByteArrayInputStream byteStream, Class<T> tgtClass, Set<Class<?>> context) throws IOException, ClassNotFoundException {
 		return this.unmarshal(byteStream, tgtClass);
 	}
 }

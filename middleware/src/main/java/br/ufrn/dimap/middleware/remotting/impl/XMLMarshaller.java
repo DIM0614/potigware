@@ -46,7 +46,7 @@ public class XMLMarshaller implements Marshaller {
 	}
 
 	@Override
-	public <T> ByteArrayOutputStream marshal(T object, Set<Class> context) throws IOException {
+	public <T> ByteArrayOutputStream marshal(T object, Set<Class<?>> context) throws IOException {
 		
 		Object marshalObject = null;
 		Class<T> objClass = (Class<T>) object.getClass();
@@ -86,7 +86,7 @@ public class XMLMarshaller implements Marshaller {
 	}
 
 	@Override
-	public <T> T unmarshal(ByteArrayInputStream byteStream, Class<T> tgtClass, Set<Class> context) throws IOException, ClassNotFoundException {
+	public <T> T unmarshal(ByteArrayInputStream byteStream, Class<T> tgtClass, Set<Class<?>> context) throws IOException, ClassNotFoundException {
 		T result = null;
 		
 		try {

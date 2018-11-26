@@ -23,7 +23,7 @@ public interface Marshaller {
 	 *  				but are not statically visible from Class<T>
 	 * @return 	byte stream representation of object
 	 */
-	public <T> ByteArrayOutputStream marshal(T object, Set<Class> context) throws IOException;
+	public <T> ByteArrayOutputStream marshal(T object, Set<Class<?>> context) throws IOException;
 	public <T> ByteArrayOutputStream marshal(T object) throws IOException;
 	
 	/**
@@ -37,6 +37,6 @@ public interface Marshaller {
 	 *  				but are not statically visible from Class<T>
 	 * @return 	object represented by inputStream
 	 */
-	public <T> T unmarshal(ByteArrayInputStream inputStream, Class<T> tgtClass, Set<Class> context) throws IOException, ClassNotFoundException;
+	public <T> T unmarshal(ByteArrayInputStream inputStream, Class<T> tgtClass, Set<Class<?>> context) throws IOException, ClassNotFoundException;
 	public <T> T unmarshal(ByteArrayInputStream inputStream, Class<T> tgtClass) throws IOException, ClassNotFoundException;
 }
