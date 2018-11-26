@@ -3,7 +3,7 @@ package br.ufrn.dimap.middleware.remotting.interfaces;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.List;
+import java.util.Set;
 
 /**
  * Represents a Marshaller, which is used for
@@ -23,7 +23,7 @@ public interface Marshaller {
 	 *  				but are not statically visible from Class<T>
 	 * @return 	byte stream representation of object
 	 */
-	public <T> ByteArrayOutputStream marshal(T object, List<Class> context) throws IOException;
+	public <T> ByteArrayOutputStream marshal(T object, Set<Class> context) throws IOException;
 	public <T> ByteArrayOutputStream marshal(T object) throws IOException;
 	
 	/**
@@ -37,6 +37,6 @@ public interface Marshaller {
 	 *  				but are not statically visible from Class<T>
 	 * @return 	object represented by inputStream
 	 */
-	public <T> T unmarshal(ByteArrayInputStream inputStream, Class<T> tgtClass, List<Class> context) throws IOException, ClassNotFoundException;
+	public <T> T unmarshal(ByteArrayInputStream inputStream, Class<T> tgtClass, Set<Class> context) throws IOException, ClassNotFoundException;
 	public <T> T unmarshal(ByteArrayInputStream inputStream, Class<T> tgtClass) throws IOException, ClassNotFoundException;
 }

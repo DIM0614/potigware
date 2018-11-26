@@ -3,8 +3,7 @@ package br.ufrn.dimap.middleware.remotting.impl;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Set;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -43,11 +42,11 @@ public class XMLMarshaller implements Marshaller {
 	
 	@Override
 	public <T> ByteArrayOutputStream marshal(T object) throws IOException {
-		return this.marshal(object, new ArrayList<Class>());
+		return this.marshal(object, null);
 	}
 
 	@Override
-	public <T> ByteArrayOutputStream marshal(T object, List<Class> context) throws IOException {
+	public <T> ByteArrayOutputStream marshal(T object, Set<Class> context) throws IOException {
 		
 		Object marshalObject = null;
 		Class<T> objClass = (Class<T>) object.getClass();
@@ -64,7 +63,7 @@ public class XMLMarshaller implements Marshaller {
 		ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
 		try {
 			JAXBContext jc;
-			if (!context.isEmpty()) {
+			if (context != null && !context.isEmpty()) {
 				context.add(objClass);
 				jc = JAXBContext.newInstance(context.toArray(new Class[0]));
 			} else {
@@ -83,16 +82,16 @@ public class XMLMarshaller implements Marshaller {
 	
 	@Override
 	public <T> T unmarshal(ByteArrayInputStream byteStream, Class<T> tgtClass) throws IOException, ClassNotFoundException {
-		return this.unmarshal(byteStream, tgtClass, new ArrayList<Class>());
+		return this.unmarshal(byteStream, tgtClass, null);
 	}
 
 	@Override
-	public <T> T unmarshal(ByteArrayInputStream byteStream, Class<T> tgtClass, List<Class> context) throws IOException, ClassNotFoundException {
+	public <T> T unmarshal(ByteArrayInputStream byteStream, Class<T> tgtClass, Set<Class> context) throws IOException, ClassNotFoundException {
 		T result = null;
 		
 		try {
 			JAXBContext jc;
-			if (!context.isEmpty()) {
+			if (context != null && !context.isEmpty()) {
 				context.add(tgtClass);
 				jc = JAXBContext.newInstance(context.toArray(new Class[0]));
 			} else {

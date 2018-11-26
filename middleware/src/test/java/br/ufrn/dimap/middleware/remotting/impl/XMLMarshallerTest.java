@@ -5,7 +5,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import br.ufrn.dimap.middleware.extension.impl.InvocationContext;
 import org.junit.Test;
@@ -31,13 +33,13 @@ public class XMLMarshallerTest extends TestCase {
 		ic.add("lala", 10);
 		ic.add("oook", -3);
 		
-		ArrayList<Class> context = new ArrayList<Class>();
+		Set<Class> context = new HashSet<Class>();
 		for (Object p : data.getActualParams()) {
 			context.add(p.getClass());
 		}
 		Invocation inv0 = new Invocation(data, ic);
 		Invocation inv1 = marshalUnmarshal(inv0, context);
-
+		
 		assertEquals(inv0, inv1);
 	}
 	
@@ -75,21 +77,28 @@ public class XMLMarshallerTest extends TestCase {
 		assertTrue(Arrays.equals(a0, a1));
 	}
 	
-	public <T> T marshalUnmarshal(T object, List<Class> context) throws IOException, ClassNotFoundException {
+	public <T> T marshalUnmarshal(T object, Set<Class> context) throws IOException, ClassNotFoundException {
 		if (object == null)
 			return null;
 		
 		ByteArrayOutputStream baos;
 		Class<T> objClass = (Class<T>) object.getClass();
 				
-		baos = marshaller.marshal(object, context);
+		if (context == null)
+			baos = marshaller.marshal(object);
+		else
+			baos = marshaller.marshal(object, context);
+		
 		ByteArrayInputStream bais = new ByteArrayInputStream(
 				baos.toByteArray());
+		
+		if (context == null)
+			return marshaller.unmarshal(bais, objClass);
 		return marshaller.unmarshal(bais, objClass, context);
 	}
 	
 	public <T> T marshalUnmarshal(T object) throws IOException, ClassNotFoundException {
-		return marshalUnmarshal(object, new ArrayList<Class>());
+		return marshalUnmarshal(object, null);
 	}
 
 }

@@ -5,7 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.List;
+import java.util.Set;
 
 import br.ufrn.dimap.middleware.remotting.interfaces.Marshaller;
 
@@ -34,7 +34,7 @@ public class JavaMarshaller implements Marshaller {
 	}
 	
 	@Override
-	public <T> ByteArrayOutputStream marshal(T object, List<Class> context) throws IOException {
+	public <T> ByteArrayOutputStream marshal(T object, Set<Class> context) throws IOException {
 		return this.marshal(object);
 	}
 
@@ -52,7 +52,7 @@ public class JavaMarshaller implements Marshaller {
 	}
 	
 	@Override
-	public <T> T unmarshal(ByteArrayInputStream byteStream, Class<T> tgtClass, List<Class> context) throws IOException, ClassNotFoundException {
+	public <T> T unmarshal(ByteArrayInputStream byteStream, Class<T> tgtClass, Set<Class> context) throws IOException, ClassNotFoundException {
 		return this.unmarshal(byteStream, tgtClass);
 	}
 }
