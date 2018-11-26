@@ -26,6 +26,7 @@ public class GenerateLogInterceptor implements InvocationInterceptorUnserialized
 	 */
 	public GenerateLogInterceptor (String path_file, Boolean append) {
 		try {
+			logger = Logger.getLogger("GenerateLogInterceptor");
 			fh = new FileHandler(path_file, append);
 			logger.addHandler(fh);
 			SimpleFormatter formatter = new SimpleFormatter();  
