@@ -7,6 +7,10 @@ package br.ufrn.dimap.middleware.remotting.async;
  * @see br.ufrn.dimap.middleware.remotting.async.CallbackImpl
  *
  * @author Daniel Smith
+ * @author Adelino Afonso
+ * @author Jhonathan Cabral
+ * @author Jonathan Rocha
+ * @author Yuri Reinaldo  
  */
 @FunctionalInterface
 public interface OnResultCallback {
