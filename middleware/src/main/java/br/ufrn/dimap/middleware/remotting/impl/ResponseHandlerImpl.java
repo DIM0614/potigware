@@ -56,9 +56,10 @@ public class ResponseHandlerImpl implements ResponseHandler {
 				}
 			}
 			
-			qosObserver.started(invocation, msg.length);
 			invocation = marshaller.unmarshal(new ByteArrayInputStream(msg), Invocation.class, params);
-			
+
+			qosObserver.started(invocation, msg.length);
+
 		} catch(Exception e) {
 			throw new RemoteError(e);
 		}
