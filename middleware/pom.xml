@@ -71,5 +71,10 @@
             <version>RELEASE</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+		    <groupId>org.apache.jmeter</groupId>
+		    <artifactId>ApacheJMeter_java</artifactId>
+		    <version>5.0</version>
+		</dependency>
     </dependencies>
 </project>
