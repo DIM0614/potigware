@@ -40,6 +40,8 @@ public class GenerateLogInterceptor implements InvocationInterceptorUnserialized
 
 	@Override
 	public void intercept(InvocationData invocationData, InvocationContext invocationContext) throws RemoteError {
+		System.out.println("asdasdasdas interceptor");
+		
 		String msg;
 		String operationName = invocationData.getOperationName();
 		AbsoluteObjectReference aor = invocationData.getAor();

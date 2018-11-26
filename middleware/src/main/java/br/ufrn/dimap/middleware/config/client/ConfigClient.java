@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Scanner;
 
+import br.ufrn.dimap.middleware.remotting.impl.ClientRequestHandlerImpl;
 import br.ufrn.dimap.middleware.remotting.impl.ProxyCreator;
 import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
 import generated.ClientInterceptorConfig;
@@ -61,5 +62,6 @@ public class ConfigClient {
 		}
 		
 		scan.close();
+		ClientRequestHandlerImpl.getInstance().shutdown();
 	}
 }
