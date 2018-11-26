@@ -4,6 +4,10 @@ package br.ufrn.dimap.middleware.remotting.async;
  * Builder class for the default callback implementation.
  *
  * @author Daniel Smith
+ * @author Adelino Afonso
+ * @author Jhonathan Cabral
+ * @author Jonathan Rocha
+ * @author Yuri Reinaldo  
  */
 public class CallbackBuilder{
 
