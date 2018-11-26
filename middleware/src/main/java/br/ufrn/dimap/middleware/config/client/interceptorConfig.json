@@ -6,7 +6,7 @@
             {
                 "name": "startInvocationInterceptor",
                 "description": "Starts an invocation interceptor with the specified name",
-                "return": "boolean",
+                "return": "bool",
                 "params":
                     [
                         {
@@ -19,7 +19,7 @@
             {
                 "name": "stopInvocationInterceptor",
                 "description": "Stops an invocation interceptor with the specified name",
-                "return": "boolean",
+                "return": "bool",
                 "params":
                     [
                         {
@@ -32,7 +32,7 @@
             {
                 "name": "startRequestInterceptor",
                 "description": "Starts a request interceptor with the specified name",
-                "return": "boolean",
+                "return": "bool",
                 "params":
                     [
                         {
@@ -45,7 +45,7 @@
             {
                 "name": "stopRequestInterceptor",
                 "description": "Stops a request interceptor with the specified name",
-                "return": "boolean",
+                "return": "bool",
                 "params":
                     [
                         {
