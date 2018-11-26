@@ -15,7 +15,7 @@ public class NameServerMain {
 		NameServer server = new NameServer(8000);
 		try {
 			server.startServer();
-			server.receiveMessage();
+			server.receiveMessages();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
