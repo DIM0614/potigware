@@ -15,6 +15,5 @@ import br.ufrn.dimap.middleware.extension.impl.InvocationContext;
 
 public interface InvocationInterceptorUnserialized {	
 	void beforeInvocation (InvocationData invocationData, InvocationContext invocationContext) throws RemoteError;
-	
 	void afterInvocation (InvocationData invocationData, InvocationContext invocationContext) throws RemoteError;
 }

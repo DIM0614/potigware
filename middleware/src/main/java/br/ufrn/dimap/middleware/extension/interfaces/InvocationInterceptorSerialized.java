@@ -18,8 +18,6 @@ import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
  */
 
 public interface InvocationInterceptorSerialized {
-	
 	void beforeInvocation (ByteArrayInputStream inputStream, InvocationContext invocationContext) throws RemoteError;
-	
 	void afterInvocation (ByteArrayInputStream inputStream, InvocationContext invocationContext) throws RemoteError;
 }
