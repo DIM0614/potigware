@@ -3,6 +3,8 @@ package br.ufrn.dimap.middleware.remotting.impl;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -15,10 +17,10 @@ import javax.xml.transform.stream.StreamSource;
 import br.ufrn.dimap.middleware.remotting.interfaces.Marshaller;
 
 /**
- * Marshaller that uses XML as marshalling format, making use
+ * Marshaller that uses XML as marshaling format, making use
  * of JAXB (Java Architecture for XML Binding).
  * 
- * The class of the "root" object to be marshalled should be
+ * The class of the "root" object to be marshaled should be
  * annotated with XmlRootElement. See javax.xml.bind
  * documentation for details.
  * 
@@ -32,15 +34,20 @@ import br.ufrn.dimap.middleware.remotting.interfaces.Marshaller;
  * by the XMLAccessorType annotation. 
  * 
  * Note also that JAXB requires a default constructor 
- * (public constructor with no arguments) in all marshalled
- * objects for unmarshalling.
+ * (public constructor with no arguments) in all marshaled
+ * objects for unmarshaling.
  * 
  * @author carlosemv
  */
 public class XMLMarshaller implements Marshaller {
-
+	
 	@Override
 	public <T> ByteArrayOutputStream marshal(T object) throws IOException {
+		return this.marshal(object, new ArrayList<Class>());
+	}
+
+	@Override
+	public <T> ByteArrayOutputStream marshal(T object, List<Class> context) throws IOException {
 		
 		Object marshalObject = null;
 		Class<T> objClass = (Class<T>) object.getClass();
@@ -56,7 +63,13 @@ public class XMLMarshaller implements Marshaller {
 
 		ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
 		try {
-			JAXBContext jc = JAXBContext.newInstance(objClass);
+			JAXBContext jc;
+			if (!context.isEmpty()) {
+				context.add(objClass);
+				jc = JAXBContext.newInstance(context.toArray(new Class[0]));
+			} else {
+				jc = JAXBContext.newInstance(objClass);
+			}
 			javax.xml.bind.Marshaller marshaller = jc.createMarshaller();
 			
 			marshaller.marshal(marshalObject, byteStream);
@@ -67,13 +80,25 @@ public class XMLMarshaller implements Marshaller {
 		
 		return byteStream;
 	}
-
+	
 	@Override
 	public <T> T unmarshal(ByteArrayInputStream byteStream, Class<T> tgtClass) throws IOException, ClassNotFoundException {
+		return this.unmarshal(byteStream, tgtClass, new ArrayList<Class>());
+	}
+
+	@Override
+	public <T> T unmarshal(ByteArrayInputStream byteStream, Class<T> tgtClass, List<Class> context) throws IOException, ClassNotFoundException {
 		T result = null;
 		
 		try {
-			JAXBContext jc = JAXBContext.newInstance(tgtClass);
+			JAXBContext jc;
+			if (!context.isEmpty()) {
+				context.add(tgtClass);
+				jc = JAXBContext.newInstance(context.toArray(new Class[0]));
+			} else {
+				jc = JAXBContext.newInstance(tgtClass);
+			}
+			javax.xml.bind.Marshaller marshaller = jc.createMarshaller();
 			Unmarshaller unmarshaller = jc.createUnmarshaller();
 
 			if (tgtClass.getAnnotation(XmlRootElement.class) == null) {

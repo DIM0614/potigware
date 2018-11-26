@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.List;
 
 import br.ufrn.dimap.middleware.remotting.interfaces.Marshaller;
 
@@ -31,6 +32,11 @@ public class JavaMarshaller implements Marshaller {
 		
 		return byteStream;
 	}
+	
+	@Override
+	public <T> ByteArrayOutputStream marshal(T object, List<Class> context) throws IOException {
+		return this.marshal(object);
+	}
 
 	/**
 	 * Uses ObjectInputStream to deserialize a byte stream into an Object
@@ -43,5 +49,10 @@ public class JavaMarshaller implements Marshaller {
 		ObjectInputStream objectStream = new ObjectInputStream(byteStream);
 		T obj = (T) objectStream.readObject();
 		return obj;
+	}
+	
+	@Override
+	public <T> T unmarshal(ByteArrayInputStream byteStream, Class<T> tgtClass, List<Class> context) throws IOException, ClassNotFoundException {
+		return this.unmarshal(byteStream, tgtClass);
 	}
 }

@@ -3,13 +3,14 @@ package br.ufrn.dimap.middleware.remotting.interfaces;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Represents a Marshaller, which is used for
- * generating (marshalling) and interpreting (unmarshalling)
+ * generating (marshaling) and interpreting (unmarshaling)
  * byte stream representations of objects to be transmitted
  * over the network, optionally converting them to a structured
- * marshalling format beforehand (e.g. XML, CDR, etc).
+ * marshaling format beforehand (e.g. XML, CDR, etc).
  * 
  * @author carlosemv
  */
@@ -17,9 +18,12 @@ public interface Marshaller {
 	/**
 	 * Generates byte stream that represents object.
 	 * 
-	 * @param object 	the object to be marshalled
+	 * @param object 	the object to be marshaled
+	 * @param context	All classes that will be marshaled
+	 *  				but are not statically visible from Class<T>
 	 * @return 	byte stream representation of object
 	 */
+	public <T> ByteArrayOutputStream marshal(T object, List<Class> context) throws IOException;
 	public <T> ByteArrayOutputStream marshal(T object) throws IOException;
 	
 	/**
@@ -27,9 +31,12 @@ public interface Marshaller {
 	 * of the same Marshaller implementation into its
 	 * corresponding object.
 	 * 
-	 * @param inputStream	marshalled object as byte stream
-	 * @param tgtClass	class of object to be unmarshalled
+	 * @param inputStream	marshaled object as byte stream
+	 * @param tgtClass	class of object to be unmarshaled
+	 * @param context	All classes that will be unmarshaled
+	 *  				but are not statically visible from Class<T>
 	 * @return 	object represented by inputStream
 	 */
+	public <T> T unmarshal(ByteArrayInputStream inputStream, Class<T> tgtClass, List<Class> context) throws IOException, ClassNotFoundException;
 	public <T> T unmarshal(ByteArrayInputStream inputStream, Class<T> tgtClass) throws IOException, ClassNotFoundException;
 }
