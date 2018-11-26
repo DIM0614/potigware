@@ -128,7 +128,9 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
     private ByteArrayOutputStream marshallInvocation(Invocation invocation) throws IOException {
     	Set<Class<?>> context = new HashSet<Class<?>>();
     	for (Object p : invocation.getInvocationData().getActualParams()) {
-    		context.add(p.getClass());
+    		if(p != null) {
+    			context.add(p.getClass());
+    		}
     	}
 
         ByteArrayOutputStream outputStream = this.marshaller.marshal(invocation, context);
