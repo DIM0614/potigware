@@ -48,6 +48,8 @@ public class TesteBasico extends AbstractJavaSamplerClient implements Serializab
             sampleResult.sampleEnd();
             sampleResult.setResponseMessage(e.getMessage());
             sampleResult.setSuccessful(false);
+            
+            return sampleResult;
 		}
         
         sampleResult.sampleEnd();
