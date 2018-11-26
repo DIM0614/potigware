@@ -83,7 +83,7 @@ public class ResponseHandlerImpl implements ResponseHandler, ServerInterceptorRu
 	@Override
 	public byte[] runRequestInterceptors(byte[] msg, InvocationContext context)
 			throws RemoteError {
-		for (InvocationInterceptorSerialized iis : MiddlewareConfig.Interceptors.getInstance().getClientRequestInteceptors()) {
+		for (InvocationInterceptorSerialized iis : MiddlewareConfig.Interceptors.getInstance().getServerRequestInteceptors()) {
 			msg = iis.intercept(msg, context);
 		}
 		return msg;
@@ -91,7 +91,7 @@ public class ResponseHandlerImpl implements ResponseHandler, ServerInterceptorRu
 
 	@Override
 	public void runInvocationInterceptors(InvocationData invocationData, InvocationContext context) throws RemoteError {
-		for (InvocationInterceptorUnserialized iiu : MiddlewareConfig.Interceptors.getInstance().getClientInvocationInteceptors()) {
+		for (InvocationInterceptorUnserialized iiu : MiddlewareConfig.Interceptors.getInstance().getServerInvocationInteceptors()) {
 			iiu.intercept(invocationData, context);
 		}
 	}
