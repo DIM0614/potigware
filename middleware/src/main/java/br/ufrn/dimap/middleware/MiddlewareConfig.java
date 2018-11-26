@@ -196,7 +196,7 @@ public final class MiddlewareConfig {
 		 * they must be applied
 		 * @return the interceptor collection
 		 */
-		public Collection<InvocationInterceptorUnserialized> getClientInvocationInteceptors() {
+		public Queue<InvocationInterceptorUnserialized> getClientInvocationInteceptors() {
 			return clientInvocationInteceptors;
 		}
 
@@ -205,7 +205,7 @@ public final class MiddlewareConfig {
 		 * they must be applied
 		 * @return the interceptor collection
 		 */
-		public Collection<InvocationInterceptorUnserialized> getServerInvocationInteceptors() {
+		public Queue<InvocationInterceptorUnserialized> getServerInvocationInteceptors() {
 			return serverInvocationInteceptors;
 		}
 
@@ -214,7 +214,7 @@ public final class MiddlewareConfig {
 		 * they must be applied
 		 * @return the interceptor collection
 		 */
-		public Collection<InvocationInterceptorSerialized> getClientRequestInteceptors() {
+		public Queue<InvocationInterceptorSerialized> getClientRequestInteceptors() {
 			return clientRequestInteceptors;
 		}
 
@@ -223,7 +223,7 @@ public final class MiddlewareConfig {
 		 * they must be applied
 		 * @return the interceptor collection
 		 */
-		public Collection<InvocationInterceptorSerialized> getServerRequestInteceptors() {
+		public Queue<InvocationInterceptorSerialized> getServerRequestInteceptors() {
 			return serverRequestInteceptors;
 		}
 	}
