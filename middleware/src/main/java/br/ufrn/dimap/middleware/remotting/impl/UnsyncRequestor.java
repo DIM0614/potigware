@@ -27,7 +27,7 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
     private Logger logger = Logger.getLogger(UnsyncRequestor.class.getName());
 
     public UnsyncRequestor() {
-    	this.marshaller = new JavaMarshaller();
+    	this.marshaller = new XMLMarshaller();
     	this.clientRequestHandler = ClientRequestHandlerImpl.getInstance();
     }
 
