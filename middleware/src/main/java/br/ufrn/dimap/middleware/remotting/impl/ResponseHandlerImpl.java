@@ -41,7 +41,7 @@ public class ResponseHandlerImpl implements ResponseHandler {
 		AbsoluteObjectReference aor;
 		Invoker invoker;
 		@SuppressWarnings("rawtypes")
-		Set<Class > params = new HashSet<Class>();
+		Set<Class<?>> params = new HashSet<Class<?>>();
 		
 		try {
 			invocation = marshaller.unmarshal(new ByteArrayInputStream(msg), Invocation.class);
