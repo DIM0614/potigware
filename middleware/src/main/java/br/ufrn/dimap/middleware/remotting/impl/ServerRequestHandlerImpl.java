@@ -21,7 +21,12 @@ public class ServerRequestHandlerImpl implements ServerRequestHandler {
 	private final int port;
 	
 	/**
-	 * Communication protocol
+	 * default protocol plugin
+	 */
+	private final ServerProtocolPlugin defaultProtocol;
+	
+	/**
+	 * Extra communication protocols
 	 */
 	private final List<ServerProtocolPlugin> protocols;
 	
@@ -41,8 +46,9 @@ public class ServerRequestHandlerImpl implements ServerRequestHandler {
 	}
 	
 	public ServerRequestHandlerImpl(int port) throws RemoteError {
+		defaultProtocol = new DefaultServerProtocolTCP(); 
+		
 		protocols = new ArrayList<>();
-		protocols.add(new DefaultServerProtocolTCP());
 		protocols.addAll(MiddlewareConfig.ProtocolPlugins.getInstance().getServerProtocolPlugins());
 		
 		listenThreads = new ArrayList<>();
@@ -56,19 +62,26 @@ public class ServerRequestHandlerImpl implements ServerRequestHandler {
 	 */
 	@Override
 	public void init() throws RemoteError {
-		int initialPort = this.port;
+		Thread defaultListenThread = new Thread(() -> {
+			try {
+				defaultProtocol.listen(port, responseHandler);
+			} catch (RemoteError e) {
+				e.printStackTrace();
+				throw new RuntimeException(e);
+			}
+		});
+		defaultListenThread.start();
+		listenThreads.add(defaultListenThread);
 		
 		for (ServerProtocolPlugin spp : protocols) {
-			int currentPort = initialPort;
 			Thread listenThread = new Thread(() -> {
 				try {
-					spp.listen(currentPort, responseHandler);
+					spp.listen(spp.getPort(), responseHandler);
 				} catch (RemoteError e) {
 					e.printStackTrace();
 					throw new RuntimeException(e);
 				}
 			});
-			initialPort++;
 			listenThread.start();
 			listenThreads.add(listenThread);
 		}
@@ -81,6 +94,7 @@ public class ServerRequestHandlerImpl implements ServerRequestHandler {
 	 */
 	@Override
 	public void shutdown() throws RemoteError {
+		defaultProtocol.shutdown();
 		for (ServerProtocolPlugin spp: protocols) {
 			spp.shutdown();
 		}

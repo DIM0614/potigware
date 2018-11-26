@@ -11,6 +11,13 @@ import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
  */
 
 public interface ServerProtocolPlugin {
+	
+	/**
+	 * Returns the port set to the protocol 
+	 * @return the port
+	 */
+	public int getPort();
+	
 	/**
 	 * Makes the plugin start listening for incoming connections.
 	 * 

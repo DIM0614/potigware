@@ -44,6 +44,7 @@ public class DefaultServerProtocolTCP implements ServerProtocolPlugin {
 	private ResponseHandler responseHandler;
 	private ServerSocket server;
 	private final Logger logger = Logger.getLogger(MiddlewareMain.class.getName());
+	private int port;
 	
 	/**
 	 * Constructors set default maximum number of 
@@ -190,6 +191,11 @@ public class DefaultServerProtocolTCP implements ServerProtocolPlugin {
 				s.close();
 			} catch (Exception e) { }
 		}
+	}
+
+	@Override
+	public int getPort() {
+		return port;
 	}
 
 }
