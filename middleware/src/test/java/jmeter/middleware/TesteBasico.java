@@ -43,6 +43,7 @@ public class TesteBasico extends AbstractJavaSamplerClient implements Serializab
         String r = "";
 		try {
 			r = math.pi(0.1f).toString();
+            System.out.println(r);
 		} catch (Exception e) {
             sampleResult.sampleEnd();
             sampleResult.setResponseMessage(e.getMessage());
