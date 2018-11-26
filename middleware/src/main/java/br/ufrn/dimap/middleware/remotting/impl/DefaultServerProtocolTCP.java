@@ -194,7 +194,7 @@ public class DefaultServerProtocolTCP implements ServerProtocolPlugin {
 	}
 
 	@Override
-	public int getPort() {
+	public int getDefaultPort() {
 		return port;
 	}
 

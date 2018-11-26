@@ -76,7 +76,7 @@ public class ServerRequestHandlerImpl implements ServerRequestHandler {
 		for (ServerProtocolPlugin spp : protocols) {
 			Thread listenThread = new Thread(() -> {
 				try {
-					spp.listen(spp.getPort(), responseHandler);
+					spp.listen(spp.getDefaultPort(), responseHandler);
 				} catch (RemoteError e) {
 					e.printStackTrace();
 					throw new RuntimeException(e);

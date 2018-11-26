@@ -98,7 +98,7 @@ public class DefaultServerProtocolUDP implements ServerProtocolPlugin {
 	}
 
 	@Override
-	public int getPort() {
+	public int getDefaultPort() {
 		return port;
 	}
 
