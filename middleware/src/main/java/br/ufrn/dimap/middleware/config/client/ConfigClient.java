@@ -1,29 +1,21 @@
 package br.ufrn.dimap.middleware.config.client;
 
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Scanner;
 
+import br.ufrn.dimap.middleware.MiddlewareConfig;
+import br.ufrn.dimap.middleware.config.client.interceptorConfig.ClientInterceptorConfig;
+import br.ufrn.dimap.middleware.identification.AbsoluteObjectReference;
 import br.ufrn.dimap.middleware.remotting.impl.ClientRequestHandlerImpl;
-import br.ufrn.dimap.middleware.remotting.impl.ProxyCreator;
 import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
-import generated.ClientInterceptorConfig;
 
 public class ConfigClient {
 	public static void main(String[] args) throws RemoteError{
 		Scanner scan = new Scanner(System.in);
 		
-		// swap program below for naming lookup
-		generated.ClientInterceptorConfig interceptorConfig;
-		try {
-			interceptorConfig = (generated.ClientInterceptorConfig) ProxyCreator.getInstance().create("intConfig", ClientInterceptorConfig.class);
-		} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException
-				| ClassNotFoundException | RemoteError | IOException e) {
-			e.printStackTrace();
-			scan.close();
-			return;
-		}
+		AbsoluteObjectReference aor = MiddlewareConfig.getConfigaor();
 		
+		ClientInterceptorConfig interceptorConfig = new ClientInterceptorConfig(aor);
+				
 		while(true) {
 	        System.out.println("What do you want to do?");
 	        System.out.println("\t 1 - To activate a Interceptor for the marshalled data;");

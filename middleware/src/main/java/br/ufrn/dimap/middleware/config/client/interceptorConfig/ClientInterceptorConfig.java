@@ -1,4 +1,4 @@
-package generated;
+package br.ufrn.dimap.middleware.config.client.interceptorConfig;
 
 import br.ufrn.dimap.middleware.identification.AbsoluteObjectReference;
 import br.ufrn.dimap.middleware.remotting.impl.ClientProxy;

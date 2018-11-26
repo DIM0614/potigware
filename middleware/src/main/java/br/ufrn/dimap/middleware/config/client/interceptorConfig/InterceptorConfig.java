@@ -1,4 +1,4 @@
-package generated;
+package br.ufrn.dimap.middleware.config.client.interceptorConfig;
 
 import java.lang.Boolean;
 import java.lang.String;

@@ -18,8 +18,8 @@ public class MiddlewareMain {
 
         try {
 
-        	MiddlewareConfig.Interceptors.getInstance().registerInvocationInterceptor("int", new GenerateLogInterceptor("unserialized.txt", true));
-        	MiddlewareConfig.Interceptors.getInstance().registerRequestInterceptor("int", new GenerateLogSerializedInterceptor("serialized.txt", true));
+        	MiddlewareConfig.Interceptors.getInstance().registerInvocationInterceptor("logInterceptor", new GenerateLogInterceptor("unserialized.txt", true));
+        	MiddlewareConfig.Interceptors.getInstance().registerRequestInterceptor("logSerialInterceptor", new GenerateLogSerializedInterceptor("serialized.txt", true));
 
             ServerRequestHandler reqhander = new ServerRequestHandlerImpl(MIDDLEWARE_PORT);
 

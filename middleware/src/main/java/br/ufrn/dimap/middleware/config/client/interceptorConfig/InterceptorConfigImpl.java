@@ -1,4 +1,4 @@
-package generated;
+package br.ufrn.dimap.middleware.config.client.interceptorConfig;
 
 import br.ufrn.dimap.middleware.MiddlewareConfig;
 import br.ufrn.dimap.middleware.MiddlewareConfigException;
