@@ -1,5 +1,9 @@
 package br.ufrn.dimap.middleware.remotting.impl;
 
+import br.ufrn.dimap.middleware.MiddlewareConfig;
+import br.ufrn.dimap.middleware.extension.impl.InvocationContext;
+import br.ufrn.dimap.middleware.extension.interfaces.InvocationInterceptorSerialized;
+import br.ufrn.dimap.middleware.extension.interfaces.InvocationInterceptorUnserialized;
 import br.ufrn.dimap.middleware.identification.AbsoluteObjectReference;
 import br.ufrn.dimap.middleware.infrastructure.qos.BasicRemotingPatterns;
 import br.ufrn.dimap.middleware.infrastructure.qos.QoSObserver;
@@ -46,7 +50,14 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
         try {
 
             Invocation invocation = makeInvocation(aor, operationName, parameters);
+            
+            // Run invocation interceptors
+            runInvocationInterceptors(invocation.getInvocationData(), invocation.getContext());
+            
             outputStream = marshallInvocation(invocation);
+            
+            // Run request interceptors
+            outputStream = runRequestInterceptors(outputStream, invocation.getContext());
 
             clientRequestHandler.getQosObserver().started(invocation, outputStream.size());
 
@@ -74,7 +85,14 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
         try {
 
             Invocation invocation = makeInvocation(aor, operationName, parameters);
+            
+            // Run invocation interceptors
+            runInvocationInterceptors(invocation.getInvocationData(), invocation.getContext());
+            
             outputStream = marshallInvocation(invocation);
+            
+            // Run request interceptors
+            outputStream = runRequestInterceptors(outputStream, invocation.getContext());
 
             clientRequestHandler.getQosObserver().started(invocation, outputStream.size());
 
@@ -96,7 +114,14 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
         ByteArrayOutputStream outputStream = null;
         try {
             Invocation invocation = makeInvocation(aor, operationName, parameters);
+         
+            // Run invocation interceptors
+            runInvocationInterceptors(invocation.getInvocationData(), invocation.getContext());
+            
             outputStream = marshallInvocation(invocation);
+            
+            // Run request interceptors
+            outputStream = runRequestInterceptors(outputStream, invocation.getContext());
 
             clientRequestHandler.getQosObserver().started(invocation, outputStream.size());
 
@@ -134,5 +159,29 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
 
         return outputStream;
     }
+
+	@Override
+	public ByteArrayOutputStream runRequestInterceptors(ByteArrayOutputStream msg, InvocationContext context)
+			throws RemoteError {
+		byte[] byteMsg = msg.toByteArray();
+		for (InvocationInterceptorSerialized iis : MiddlewareConfig.Interceptors.getInstance().getClientRequestInteceptors()) {
+			byteMsg = iis.intercept(byteMsg, context);
+		}
+		
+		ByteArrayOutputStream output = new ByteArrayOutputStream();
+		try {
+			output.write(byteMsg);
+		} catch (IOException e) {
+			throw new RemoteError();
+		}
+		return output;
+	}
+
+	@Override
+	public void runInvocationInterceptors(InvocationData invocationData, InvocationContext context) throws RemoteError {
+		for (InvocationInterceptorUnserialized iiu : MiddlewareConfig.Interceptors.getInstance().getClientInvocationInteceptors()) {
+			iiu.intercept(invocationData, context);
+		}
+	}
 
 }
