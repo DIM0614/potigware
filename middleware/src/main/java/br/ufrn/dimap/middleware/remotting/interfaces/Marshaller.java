@@ -2,7 +2,6 @@ package br.ufrn.dimap.middleware.remotting.interfaces;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.Set;
 
 import br.ufrn.dimap.middleware.remotting.impl.MarshalException;

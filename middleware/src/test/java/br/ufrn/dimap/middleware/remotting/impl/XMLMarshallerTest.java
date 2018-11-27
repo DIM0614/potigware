@@ -2,11 +2,8 @@ package br.ufrn.dimap.middleware.remotting.impl;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import br.ufrn.dimap.middleware.extension.impl.InvocationContext;
