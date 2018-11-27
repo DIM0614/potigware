@@ -25,16 +25,23 @@ public class JavaMarshaller implements Marshaller {
 	 * @param object an Object that must implement the Java.io.Serializable interface
 	 */
 	@Override
-	public <T> ByteArrayOutputStream marshal(T object) throws IOException {
+	public <T> ByteArrayOutputStream marshal(T object) throws MarshalException {
 		ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-		ObjectOutputStream objectStream = new ObjectOutputStream(byteStream);
-		objectStream.writeObject(object);
+
+		try {
+			ObjectOutputStream objectStream = new ObjectOutputStream(byteStream);
+			objectStream.writeObject(object);
+		} catch (Exception e) {
+			MarshalException me = new MarshalException(e, this);
+			me.setTargetObject(object);
+			throw me;
+		}
 		
 		return byteStream;
 	}
 	
 	@Override
-	public <T> ByteArrayOutputStream marshal(T object, Set<Class<?>> context) throws IOException {
+	public <T> ByteArrayOutputStream marshal(T object, Set<Class<?>> context) throws MarshalException {
 		return this.marshal(object);
 	}
 
@@ -45,14 +52,22 @@ public class JavaMarshaller implements Marshaller {
 	 * @param tgtClass is not used, result is cast to Object
 	 */
 	@Override
-	public <T> T unmarshal(ByteArrayInputStream byteStream, Class<T> tgtClass) throws IOException, ClassNotFoundException {
-		ObjectInputStream objectStream = new ObjectInputStream(byteStream);
-		T obj = (T) objectStream.readObject();
+	public <T> T unmarshal(ByteArrayInputStream byteStream, Class<T> tgtClass) throws UnmarshalException {
+		T obj = null;
+		try {
+			ObjectInputStream objectStream = new ObjectInputStream(byteStream);
+			obj = (T) objectStream.readObject();
+		} catch (Exception e) {
+			UnmarshalException ue = new UnmarshalException(e, this);
+			ue.setInputStream(byteStream);
+			ue.setTargetClass(tgtClass);
+			throw ue;
+		}
 		return obj;
 	}
 	
 	@Override
-	public <T> T unmarshal(ByteArrayInputStream byteStream, Class<T> tgtClass, Set<Class<?>> context) throws IOException, ClassNotFoundException {
+	public <T> T unmarshal(ByteArrayInputStream byteStream, Class<T> tgtClass, Set<Class<?>> context) throws UnmarshalException {
 		return this.unmarshal(byteStream, tgtClass);
 	}
 }
