@@ -49,4 +49,15 @@ public interface PollObject {
 	 * @param error the RemoteError
 	 */
 	public void onError(RemoteError error);
+	
+	/**
+	 * Get expected type for result, if previously set
+	 */
+	public Class<?> getResultType();
+	
+	/**
+	 * Set expected result type
+	 * @param resultType the expected type
+	 */
+	public void setResultType(Class<?> resultType);
 }

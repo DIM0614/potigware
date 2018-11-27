@@ -131,6 +131,7 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
                     return null;
                 case POLL_OBJECT:
                     PollObject pollObject = new DefaultPollObject();
+                    pollObject.setResultType(returnType);
                     this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream, pollObject);
                     return pollObject;
             }
