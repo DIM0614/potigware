@@ -93,7 +93,7 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
 
             clientRequestHandler.getQosObserver().started(invocation, outputStream.size());
 
-            this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream, callback);
+            this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream, callback, returnType);
 
             clientRequestHandler.getQosObserver().done(invocation);
 
@@ -132,7 +132,7 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
                 case POLL_OBJECT:
                     PollObject pollObject = new DefaultPollObject();
                     pollObject.setResultType(returnType);
-                    this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream, pollObject);
+                    this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream, pollObject, returnType);
                     return pollObject;
             }
 

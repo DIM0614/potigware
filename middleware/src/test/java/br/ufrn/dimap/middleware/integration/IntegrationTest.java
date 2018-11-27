@@ -1,15 +1,13 @@
 package br.ufrn.dimap.middleware.integration;
 
 import br.ufrn.dimap.middleware.remotting.async.CallbackBuilder;
-import br.ufrn.dimap.middleware.remotting.async.OnErrorCallback;
-import br.ufrn.dimap.middleware.remotting.async.OnResultCallback;
+import br.ufrn.dimap.middleware.remotting.impl.ClientRequestHandlerImpl;
 import br.ufrn.dimap.middleware.remotting.impl.ProxyCreator;
 import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
 import br.ufrn.dimap.middleware.remotting.interfaces.Callback;
 import br.ufrn.dimap.middleware.remotting.interfaces.InvocationAsynchronyPattern;
 import br.ufrn.dimap.middleware.remotting.interfaces.PollObject;
 import generated.ClientMath;
-import jdk.nashorn.internal.ir.annotations.Ignore;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;

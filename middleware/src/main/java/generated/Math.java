@@ -2,6 +2,7 @@ package generated;
 
 import java.lang.Float;
 import java.lang.Integer;
+import java.lang.Void;
 
 /**
  * Provides mathematical methods */
@@ -19,4 +20,17 @@ public interface Math {
    * @return int */
   Integer fibonacci(Integer start, Integer i) throws
       br.ufrn.dimap.middleware.remotting.impl.RemoteError;
+
+  /**
+   * Divides two integers
+   * @param a numerator
+   * @param b denominator
+   * @return void */
+  Void div(Integer a, Integer b) throws br.ufrn.dimap.middleware.remotting.impl.RemoteError;
+
+  /**
+   * sorts an array of integers 
+   * @param vet array to be sorted
+   * @return int[] */
+  Integer[] sort(Integer[] vet) throws br.ufrn.dimap.middleware.remotting.impl.RemoteError;
 }
