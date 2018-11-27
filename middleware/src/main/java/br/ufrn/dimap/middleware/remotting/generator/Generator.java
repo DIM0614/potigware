@@ -194,6 +194,7 @@ public class Generator {
     private static String generateInvoker(JSONObject file, Path path, String packageName) throws IOException, ClassNotFoundException {
     	String className = (String )file.get("name");
         String classDescription = (String )file.get("description");
+        String invokerName = className + "Invoker";
 
         Builder invoke = MethodSpec.methodBuilder("invoke")
         		.returns(Object.class)
@@ -212,8 +213,9 @@ public class Generator {
             
             String methodInReturn    = "return " + methodName + "(";
             
-            invoke.beginControlFlow("if (invocation.getInvocationData().getOperationName().equals( \"" + methodName + "\" ))" );
-            	  
+            String control = (i == 0) ? "if " : "else if ";
+            invoke.beginControlFlow(control + "(invocation.getInvocationData().getOperationName().equals( \"" + methodName + "\" ))" );
+            
             JSONArray params = (JSONArray) method.get("params");
             Iterable<ParameterSpec> parameters = new ArrayList<ParameterSpec>();
             for (int j = 0; j < params.size(); j++) {
@@ -248,10 +250,11 @@ public class Generator {
                     .build();
             ((ArrayList<MethodSpec>) methods).add(ms);
         }
-
-        invoke.addStatement("return null");
-
-        String invokerName = className + "Invoker";
+        
+        invoke.beginControlFlow("else ");
+        ClassName remoteError = ClassName.get("", "br.ufrn.dimap.middleware.remotting.impl.RemoteError");
+        invoke.addStatement("throw new " + remoteError + "(\"No operation named \\\"\"+invocation.getInvocationData().getOperationName()+\"\\\" in " + invokerName + "\")");
+        invoke.endControlFlow();
 
         TypeSpec classType = TypeSpec.classBuilder(invokerName)
                 .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
