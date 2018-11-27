@@ -4,6 +4,9 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Objects;
 
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAccessType;
+
 /**
  * Store all the contextual information that needs to be pass in every remote
  * invocation.
@@ -11,8 +14,13 @@ import java.util.Objects;
  * @author Pedro Arthur Medeiros
  *
  */
+@XmlAccessorType(XmlAccessType.FIELD)
 public class InvocationContext implements Serializable {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1035907141514209168L;
 	private HashMap<String, Object> context;
 
 	public InvocationContext() {

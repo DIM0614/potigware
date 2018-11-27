@@ -4,10 +4,11 @@ import java.util.Arrays;
 
 import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
 
-public class MathImpl extends MathInvoker implements Math {
+public class MathAdvImpl extends MathAdvInvoker implements MathAdv {
 
 	@Override 
 	public Float pi(Float precision) throws RemoteError {
+		System.out.println(precision);
 		float ret = 0;
 		for(int i = 0; ; i++) {
 			float pr = ret;
@@ -20,6 +21,7 @@ public class MathImpl extends MathInvoker implements Math {
 
 	@Override
 	public Integer fibonacci(Integer start, Integer i) throws RemoteError {
+		System.out.println(start + ", " + i);
 		if(i < 1) {
 			throw new IllegalArgumentException("index should be positive");
 		}
@@ -32,5 +34,21 @@ public class MathImpl extends MathInvoker implements Math {
 		return ret;
 	}
 
-}
+	@Override
+	public Void div(Integer a, Integer b) throws RemoteError {
+		System.out.println(a + ", " + b);
+		a /= b;
+		return null;
+	}
 
+	@Override
+	public Integer[] sort(Integer[] vet) throws RemoteError {
+		for(Integer i : vet) {
+			System.out.println(i + ", ");
+		}
+		System.out.println("");
+		Arrays.sort(vet);
+		return vet;
+	}
+
+}

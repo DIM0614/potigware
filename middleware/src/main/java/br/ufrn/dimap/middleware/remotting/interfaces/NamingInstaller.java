@@ -7,7 +7,6 @@ import java.io.IOException;
 import br.ufrn.dimap.middleware.identification.NetAddr;
 import br.ufrn.dimap.middleware.remotting.impl.DeploymentDescriptor;
 import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
-import sun.nio.ch.Net;
 
 /**
  * Should be implemented by lookups for registering

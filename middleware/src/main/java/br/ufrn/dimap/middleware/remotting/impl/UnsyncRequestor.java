@@ -1,16 +1,17 @@
 package br.ufrn.dimap.middleware.remotting.impl;
 
+import br.ufrn.dimap.middleware.MiddlewareConfig;
+import br.ufrn.dimap.middleware.extension.impl.InvocationContext;
+import br.ufrn.dimap.middleware.extension.interfaces.InvocationInterceptorSerialized;
+import br.ufrn.dimap.middleware.extension.interfaces.InvocationInterceptorUnserialized;
 import br.ufrn.dimap.middleware.identification.AbsoluteObjectReference;
-import br.ufrn.dimap.middleware.infrastructure.qos.BasicRemotingPatterns;
-import br.ufrn.dimap.middleware.infrastructure.qos.QoSObserver;
-import br.ufrn.dimap.middleware.installer.ClientInstaller;
 import br.ufrn.dimap.middleware.remotting.interfaces.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.rmi.Remote;
-import java.util.logging.Level;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Logger;
 
 /**
@@ -30,7 +31,7 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
     private Logger logger = Logger.getLogger(UnsyncRequestor.class.getName());
 
     public UnsyncRequestor() {
-    	this.marshaller = new JavaMarshaller();
+    	this.marshaller = new XMLMarshaller();
     	this.clientRequestHandler = ClientRequestHandlerImpl.getInstance();
     }
 
@@ -46,7 +47,14 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
         try {
 
             Invocation invocation = makeInvocation(aor, operationName, parameters);
+            
+            // Run invocation interceptors
+            runInvocationInterceptors(invocation.getInvocationData(), invocation.getContext());
+            
             outputStream = marshallInvocation(invocation);
+            
+            // Run request interceptors
+            outputStream = runRequestInterceptors(outputStream, invocation.getContext());
 
             clientRequestHandler.getQosObserver().started(invocation, outputStream.size());
 
@@ -61,7 +69,7 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
             
             return returnValue;
 
-        } catch (IOException | ClassNotFoundException e) {
+        } catch (MarshallerException e) {
             throw new RemoteError(e);
         }
     }
@@ -74,15 +82,22 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
         try {
 
             Invocation invocation = makeInvocation(aor, operationName, parameters);
+            
+            // Run invocation interceptors
+            runInvocationInterceptors(invocation.getInvocationData(), invocation.getContext());
+            
             outputStream = marshallInvocation(invocation);
+            
+            // Run request interceptors
+            outputStream = runRequestInterceptors(outputStream, invocation.getContext());
 
             clientRequestHandler.getQosObserver().started(invocation, outputStream.size());
 
-            this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream, callback);
+            this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream, callback, returnType);
 
             clientRequestHandler.getQosObserver().done(invocation);
 
-        } catch (IOException e) {
+        } catch (MarshallerException e) {
             throw new RemoteError(e);
         }
 
@@ -96,7 +111,14 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
         ByteArrayOutputStream outputStream = null;
         try {
             Invocation invocation = makeInvocation(aor, operationName, parameters);
+         
+            // Run invocation interceptors
+            runInvocationInterceptors(invocation.getInvocationData(), invocation.getContext());
+            
             outputStream = marshallInvocation(invocation);
+            
+            // Run request interceptors
+            outputStream = runRequestInterceptors(outputStream, invocation.getContext());
 
             clientRequestHandler.getQosObserver().started(invocation, outputStream.size());
 
@@ -109,12 +131,13 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
                     return null;
                 case POLL_OBJECT:
                     PollObject pollObject = new DefaultPollObject();
-                    this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream, pollObject);
+                    pollObject.setResultType(returnType);
+                    this.clientRequestHandler.send(aor.getHost(), aor.getPort(), outputStream, pollObject, returnType);
                     return pollObject;
             }
 
             clientRequestHandler.getQosObserver().done(invocation);
-        } catch (IOException e) {
+        } catch (MarshallerException e) {
             throw new RemoteError(e);
         }
 		throw new RemoteError("Failed to performe the request");
@@ -128,11 +151,41 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
         return invocation;
     }
 
-    private ByteArrayOutputStream marshallInvocation(Invocation invocation) throws IOException {
+    private ByteArrayOutputStream marshallInvocation(Invocation invocation) throws MarshalException {
+    	Set<Class<?>> context = new HashSet<Class<?>>();
+    	for (Object p : invocation.getInvocationData().getActualParams()) {
+    		if(p != null) {
+    			context.add(p.getClass());
+    		}
+    	}
 
-        ByteArrayOutputStream outputStream = this.marshaller.marshal(invocation);
+        ByteArrayOutputStream outputStream = this.marshaller.marshal(invocation, context);
 
         return outputStream;
     }
+
+	@Override
+	public ByteArrayOutputStream runRequestInterceptors(ByteArrayOutputStream msg, InvocationContext context)
+			throws RemoteError {
+		byte[] byteMsg = msg.toByteArray();
+		for (InvocationInterceptorSerialized iis : MiddlewareConfig.Interceptors.getInstance().getClientRequestInteceptors()) {
+			byteMsg = iis.intercept(byteMsg, context);
+		}
+		
+		ByteArrayOutputStream output = new ByteArrayOutputStream();
+		try {
+			output.write(byteMsg);
+		} catch (IOException e) {
+			throw new RemoteError();
+		}
+		return output;
+	}
+
+	@Override
+	public void runInvocationInterceptors(InvocationData invocationData, InvocationContext context) throws RemoteError {
+		for (InvocationInterceptorUnserialized iiu : MiddlewareConfig.Interceptors.getInstance().getClientInvocationInteceptors()) {
+			iiu.intercept(invocationData, context);
+		}
+	}
 
 }

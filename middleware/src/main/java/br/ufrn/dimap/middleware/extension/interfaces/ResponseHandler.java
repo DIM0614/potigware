@@ -22,5 +22,4 @@ public interface ResponseHandler {
 	 * @throws RemoteError if any error occurs
 	 */
 	public byte[] handleResponse(byte[] msg) throws RemoteError;
-
 }

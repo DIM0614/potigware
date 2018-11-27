@@ -84,7 +84,7 @@ public class DefaultClientProtocol implements ClientProtocolPlugIn {
 	/**
 	 * Marshaller to deserialize messages
 	 */
-	protected final Marshaller marshaller = new JavaMarshaller();
+	protected final Marshaller marshaller = new XMLMarshaller();
 	
 	/**
 	 * Default constructor with maximum number of threads set to 1000
@@ -138,8 +138,8 @@ public class DefaultClientProtocol implements ClientProtocolPlugIn {
 	 * @see br.ufrn.dimap.middleware.remotting.interfaces.ClientProtocolPlugin#send(java.lang.String, int, java.io.ByteArrayOutputStream, br.ufrn.dimap.middleware.remotting.interfaces.Callback)
 	 */
 	@Override
-	public void send(String host, int port, ByteArrayOutputStream msg, Callback callback) throws RemoteError {
-		tasksExecutor.submit(() -> sendAndCallback(host, port, msg, callback) );
+	public void send(String host, int port, ByteArrayOutputStream msg, Callback callback, Class<?> returnType) throws RemoteError {
+		tasksExecutor.submit(() -> sendAndCallback(host, port, msg, callback, returnType) );
 	}
 
 	
@@ -159,9 +159,9 @@ public class DefaultClientProtocol implements ClientProtocolPlugIn {
 	}
 	
 	@Override
-	public void send(String host, int port, ByteArrayOutputStream msg, PollObject pollObject)
+	public void send(String host, int port, ByteArrayOutputStream msg, PollObject pollObject, Class<?> returnType)
 			throws RemoteError {
-		tasksExecutor.submit(() -> sendAndPollObject(host, port, msg, pollObject) );
+		tasksExecutor.submit(() -> sendAndPollObject(host, port, msg, pollObject, returnType) );
 	}
 
 	/**
@@ -273,15 +273,16 @@ public class DefaultClientProtocol implements ClientProtocolPlugIn {
 	 * @param port the port to send the data
 	 * @param msg the message to be sent
 	 * @param callback callback object whose method will be called after the request
+	 * @param returnType the return type
 	 */
-	protected void sendAndCallback(String host, int port, ByteArrayOutputStream msg, Callback callback) {
+	protected void sendAndCallback(String host, int port, ByteArrayOutputStream msg, Callback callback, Class<?> returnType) {
 		try {
 			ByteArrayInputStream inputStream = sendAndCache(host, port, msg, true);
-			Object returnValue = this.marshaller.unmarshal(inputStream, Object.class);
+			Object returnValue = this.marshaller.unmarshal(inputStream, returnType);
 			if(returnValue instanceof VoidObject)
 				returnValue = null;
 			callback.onResult(returnValue);
-		} catch (ClassNotFoundException | IOException e) {
+		} catch (MarshallerException e) {
 			callback.onError(new RemoteError(e));
 		} catch (RemoteError e) {
 			callback.onError(e);
@@ -311,16 +312,17 @@ public class DefaultClientProtocol implements ClientProtocolPlugIn {
 	 * @param port the port to send the data
 	 * @param msg the message to be sent
 	 * @param pollObject the pollObject to store the response
+	 * @param returnType the return type
 	 */
-	protected void sendAndPollObject(String host, int port, ByteArrayOutputStream msg, PollObject pollObject) {
+	protected void sendAndPollObject(String host, int port, ByteArrayOutputStream msg, PollObject pollObject, Class<?> returnType) {
 		try {
 			ByteArrayInputStream inputStream = sendAndCache(host, port, msg, true);
 			try {
-				Object returnValue = this.marshaller.unmarshal(inputStream, Object.class);
+				Object returnValue = this.marshaller.unmarshal(inputStream, returnType);
 				if(returnValue instanceof VoidObject)
 					returnValue = null;
 				pollObject.storeResult(returnValue);
-			} catch(IOException | ClassNotFoundException e) {
+			} catch(MarshallerException e) {
 				throw new RemoteError(e);
 			}
 		} catch (RemoteError e) {

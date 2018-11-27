@@ -1,6 +1,9 @@
 package br.ufrn.dimap.middleware.remotting.impl;
 
 import java.io.ByteArrayInputStream;
+import java.lang.reflect.Method;
+import java.util.HashSet;
+import java.util.Set;
 
 import br.ufrn.dimap.middleware.identification.AbsoluteObjectReference;
 import br.ufrn.dimap.middleware.infrastructure.lifecycleManager.impl.LifecycleManagerImpl;
@@ -9,7 +12,12 @@ import br.ufrn.dimap.middleware.infrastructure.qos.BasicRemotingPatterns;
 import br.ufrn.dimap.middleware.infrastructure.qos.QoSObserver;
 import br.ufrn.dimap.middleware.remotting.interfaces.Invoker;
 import br.ufrn.dimap.middleware.remotting.interfaces.Marshaller;
+import br.ufrn.dimap.middleware.MiddlewareConfig;
+import br.ufrn.dimap.middleware.extension.impl.InvocationContext;
+import br.ufrn.dimap.middleware.extension.interfaces.InvocationInterceptorSerialized;
+import br.ufrn.dimap.middleware.extension.interfaces.InvocationInterceptorUnserialized;
 import br.ufrn.dimap.middleware.extension.interfaces.ResponseHandler;
+import br.ufrn.dimap.middleware.extension.interfaces.ServerInterceptorRunner;
 
 /**
  * Handles requests from clients.
@@ -17,9 +25,9 @@ import br.ufrn.dimap.middleware.extension.interfaces.ResponseHandler;
  * @author victoragnez
  *
  */
-public class ResponseHandlerImpl implements ResponseHandler {
+public class ResponseHandlerImpl implements ResponseHandler, ServerInterceptorRunner {
 	
-	private final Marshaller marshaller = new JavaMarshaller(); 
+	private final Marshaller marshaller = new XMLMarshaller(); 
 	private final LifecycleManager lifecycleManager;
 	private final QoSObserver qosObserver;
 	
@@ -37,15 +45,33 @@ public class ResponseHandlerImpl implements ResponseHandler {
 		InvocationData invocationData;
 		AbsoluteObjectReference aor;
 		Invoker invoker;
+		@SuppressWarnings("rawtypes")
+		Set<Class<?>> params = new HashSet<Class<?>>();
 		
 		try {
+			// Running request interceptor with fake invocation data due to marshalization limitations
+			msg = runRequestInterceptors(msg, new InvocationContext());
+			
 			invocation = marshaller.unmarshal(new ByteArrayInputStream(msg), Invocation.class);
+			
+			// Running invocation interceptor
+			runInvocationInterceptors(invocation.getInvocationData(), invocation.getContext());
+			
 			invocationData = invocation.getInvocationData();
 			aor = invocationData.getAor();
 
+			invoker = lifecycleManager.getInvoker(aor);
+			
+			for(Method m : invoker.getClass().getMethods()) {
+				for(Class<?> c : m.getParameterTypes()) {
+					params.add(c);
+				}
+			}
+			
+			invocation = marshaller.unmarshal(new ByteArrayInputStream(msg), Invocation.class, params);
+
 			qosObserver.started(invocation, msg.length);
 
-			invoker = lifecycleManager.getInvoker(aor);
 		} catch(Exception e) {
 			throw new RemoteError(e);
 		}
@@ -66,5 +92,21 @@ public class ResponseHandlerImpl implements ResponseHandler {
 		}
 		
 		return ret;
+	}
+
+	@Override
+	public byte[] runRequestInterceptors(byte[] msg, InvocationContext context)
+			throws RemoteError {
+		for (InvocationInterceptorSerialized iis : MiddlewareConfig.Interceptors.getInstance().getServerRequestInteceptors()) {
+			msg = iis.intercept(msg, context);
+		}
+		return msg;
+	}
+
+	@Override
+	public void runInvocationInterceptors(InvocationData invocationData, InvocationContext context) throws RemoteError {
+		for (InvocationInterceptorUnserialized iiu : MiddlewareConfig.Interceptors.getInstance().getServerInvocationInteceptors()) {
+			iiu.intercept(invocationData, context);
+		}
 	}
 }

@@ -9,6 +9,7 @@ import br.ufrn.dimap.middleware.remotting.interfaces.Requestor;
 import java.lang.Float;
 import java.lang.Integer;
 import java.lang.Object;
+import java.lang.Void;
 
 /**
  * Provides mathematical methods */
@@ -77,5 +78,62 @@ public class ClientMath extends ClientProxy implements Math {
       InvocationAsynchronyPattern invocationAsyncPattern) throws
       br.ufrn.dimap.middleware.remotting.impl.RemoteError {
     return r.request(absoluteObjectReference,"fibonacci",invocationAsyncPattern, Integer.class, (Object) start,(Object) i);
+  }
+
+  /**
+   * Divides two integers
+   * @param a numerator
+   * @param b denominator
+   * @return void */
+  public Void div(Integer a, Integer b) throws br.ufrn.dimap.middleware.remotting.impl.RemoteError {
+    return (Void) r.request(absoluteObjectReference,"div", Void.class, (Object) a,(Object) b);
+  }
+
+  /**
+   * Divides two integers
+   * @param callback
+   * @param a numerator
+   * @param b denominator */
+  public void div(Integer a, Integer b, Callback callback) throws
+      br.ufrn.dimap.middleware.remotting.impl.RemoteError {
+    r.request(absoluteObjectReference,"div",callback, Void.class, (Object) a,(Object) b);
+  }
+
+  /**
+   * Divides two integers
+   * @param invocationAsyncPattern
+   * @param a numerator
+   * @param b denominator
+   * @return Object */
+  public Object div(Integer a, Integer b, InvocationAsynchronyPattern invocationAsyncPattern) throws
+      br.ufrn.dimap.middleware.remotting.impl.RemoteError {
+    return r.request(absoluteObjectReference,"div",invocationAsyncPattern, Void.class, (Object) a,(Object) b);
+  }
+
+  /**
+   * sorts an array of integers 
+   * @param vet array to be sorted
+   * @return int[] */
+  public Integer[] sort(Integer[] vet) throws br.ufrn.dimap.middleware.remotting.impl.RemoteError {
+    return (Integer[]) r.request(absoluteObjectReference,"sort", Integer[].class, (Object) vet);
+  }
+
+  /**
+   * sorts an array of integers 
+   * @param callback
+   * @param vet array to be sorted */
+  public void sort(Integer[] vet, Callback callback) throws
+      br.ufrn.dimap.middleware.remotting.impl.RemoteError {
+    r.request(absoluteObjectReference,"sort",callback, Integer[].class, (Object) vet);
+  }
+
+  /**
+   * sorts an array of integers 
+   * @param invocationAsyncPattern
+   * @param vet array to be sorted
+   * @return Object */
+  public Object sort(Integer[] vet, InvocationAsynchronyPattern invocationAsyncPattern) throws
+      br.ufrn.dimap.middleware.remotting.impl.RemoteError {
+    return r.request(absoluteObjectReference,"sort",invocationAsyncPattern, Integer[].class, (Object) vet);
   }
 }
