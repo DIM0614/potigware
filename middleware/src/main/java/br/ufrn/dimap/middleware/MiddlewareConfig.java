@@ -30,7 +30,7 @@ import br.ufrn.dimap.middleware.utils.Wrapper;
  */
 public final class MiddlewareConfig {
 
-//	private static final AbsoluteObjectReference configAor = new AbsoluteObjectReference(new ObjectId("e5d57a7b-75bd-4648-814d-3ea9d083c526"), "middleware ip", 8001);
+//	private static final AbsoluteObjectReference configAor = new AbsoluteObjectReference(new ObjectId("e5d57a7b-75bd-4648-814d-3ea9d083c526"), "35.231.37.80", 8001);
 	private static final AbsoluteObjectReference configAor = new AbsoluteObjectReference(new ObjectId("e5d57a7b-75bd-4648-814d-3ea9d083c526"), "localhost", 8001);
 	
 	public static AbsoluteObjectReference getConfigaor() {
