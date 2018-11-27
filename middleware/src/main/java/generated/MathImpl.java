@@ -32,17 +32,5 @@ public class MathImpl extends MathInvoker implements Math {
 		return ret;
 	}
 
-	@Override
-	public Void div(Integer a, Integer b) throws RemoteError {
-		a /= b;
-		return null;
-	}
-
-	@Override
-	public Integer[] sort(Integer[] vet) throws RemoteError {
-		Arrays.sort(vet);
-		return vet;
-	}
-
 }
 

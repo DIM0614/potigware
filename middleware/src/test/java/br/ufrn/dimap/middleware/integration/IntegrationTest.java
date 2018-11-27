@@ -23,123 +23,12 @@ public class IntegrationTest {
             math = (generated.ClientMath) ProxyCreator.getInstance().create("math", ClientMath.class);
 
             if (math != null) {
-            	
-            	System.out.println("Test 1");
-            	
-            	try {
-            		System.out.println("Pi value: " + math.pi(0.1f));
-            	}
-            	catch(RemoteError e) {
-            		System.out.println(e.getMessage());
-            	}
-            	
-            	System.out.println("Test 2");
-            	
-            	try {
-            		System.out.println("Fib number value: " + math.fibonacci(1, 20));
-            	}
-            	catch(RemoteError e) {
-            		System.out.println(e.getMessage());
-            	}
-            	
-            	System.out.println("Test 3");
-            	
-            	try {
-            		System.out.println("Fib number value: " + math.fibonacci(1, 200));
-            	}
-            	catch(RemoteError e) {
-            		System.out.println(e.getMessage());
-            	}
-            	
-            	System.out.println("Test 4");
-            	
-            	try {
-            		System.out.println("Fib number value: " + math.fibonacci(1, -2));
-            	}
-            	catch(RemoteError e) {
-            		System.out.println(e.getMessage());
-            	}
-            	
-            	System.out.println("Test 5");
-                
-            	try {
-            		System.out.println("div: " + math.div(5, -2));
-            	}
-            	catch(RemoteError e) {
-            		System.out.println(e.getMessage());
-            	}
-            	
-            	System.out.println("Test 6");
-            	
-            	try {
-            		System.out.println("div: " + math.div(5, 0));
-            	}
-            	catch(RemoteError e) {
-            		System.out.println(e.getMessage());
-            	}
-            	
-            	System.out.println("Test 7");
-            	
-            	try {
 
-            		Integer[] array = math.sort(new Integer[] {3,1,2});
-            		System.out.print("sort: ");
-					for (Integer i : array) {
-						System.out.print(i + ",");
-					}
-            	}
-            	catch(RemoteError e) {
-            		System.out.println(e.getMessage());
-            	}
-            	
-            	System.out.println("Test 8");
-            	
-            	try {
+                for (int i = 1; i < 20; ++i) {
+            	    System.out.println("Pi value: " + math.pi(0.1f));
+                }
 
-            		Integer[] array = math.sort(new Integer[] {});
-            		System.out.print("sort: ");
-					for (Integer i : array) {
-						System.out.print(i + ",");
-					}
-					System.out.println("");
-            	}
-            	catch(RemoteError e) {
-            		System.out.println(e.getMessage());
-            	}
-            	
-            	System.out.println("Test 9");
-            	
-            	try {
-
-            		Integer[] array = math.sort(null);
-            		System.out.print("sort: ");
-					for (Integer i : array) {
-						System.out.print(i + ",");
-					}
-					System.out.println("");
-            	}
-            	catch(RemoteError e) {
-            		System.out.println(e.getMessage());
-            	}
-            	
-            	System.out.println("Test 10");
-            	
-            	try {
-
-            		Integer[] array = math.sort(new Integer[] {3,null,2});
-            		System.out.print("sort: ");
-					for (Integer i : array) {
-						System.out.print(i + ",");
-					}
-					System.out.println("");
-            	}
-            	catch(RemoteError e) {
-            		System.out.println(e.getMessage());
-            	}
-                
-            	ClientRequestHandlerImpl.getInstance().shutdown();
-            	
-                if(true) return;
+                System.out.println("Fib number value: " + math.fibonacci(0, 20));
 
                 CallbackBuilder callbackBuilder = new CallbackBuilder();
                 callbackBuilder.onError(error -> error.printStackTrace())

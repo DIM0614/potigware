@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import br.ufrn.dimap.middleware.extension.interfaces.ClientProtocolPlugIn;
+import br.ufrn.dimap.middleware.infrastructure.qos.BasicRemotingPatterns;
+import br.ufrn.dimap.middleware.infrastructure.qos.QoSObserver;
 import br.ufrn.dimap.middleware.remotting.interfaces.*;
 
 /**
@@ -22,7 +24,14 @@ public final class ClientRequestHandlerImpl implements ClientRequestHandler {
 	 * Default protocol of communication
 	 */
 	private ClientProtocolPlugIn defaultProtocol;
-	
+
+	/**
+	 *
+	 * QoS observer
+	 *
+	 */
+	private final QoSObserver qosObserver;
+
 	/**
 	 * alternatives protocol plug-ins, depending on the route.
 	 */
@@ -39,6 +48,7 @@ public final class ClientRequestHandlerImpl implements ClientRequestHandler {
 	private ClientRequestHandlerImpl() {
 		this.defaultProtocol = new DefaultClientProtocol();
 		alternativePlugins = new ConcurrentHashMap<String,ClientProtocolPlugIn>();
+		this.qosObserver = new QoSObserver(BasicRemotingPatterns.ClientRequestHandler);
 	}
 	
 	/**
@@ -262,7 +272,12 @@ public final class ClientRequestHandlerImpl implements ClientRequestHandler {
 			plugin.shutdown();
 		}
 	}
-	
+
+	@Override
+	public QoSObserver getQosObserver() {
+		return this.qosObserver;
+	}
+
 	/**
 	 * 
 	 * Wraps the instance to allow final modifier

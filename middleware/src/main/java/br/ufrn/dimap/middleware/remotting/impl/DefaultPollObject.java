@@ -18,6 +18,11 @@ public class DefaultPollObject implements PollObject {
 	private Object result;
 	
 	/**
+	 * result type
+	 */
+	private Class<?> resultType;
+	
+	/**
 	 * Error if occurred
 	 */
 	private RemoteError error;
@@ -64,6 +69,16 @@ public class DefaultPollObject implements PollObject {
 		else {
 			return null;
 		}
+	}
+	
+	@Override
+	public Class<?> getResultType() {
+		return this.resultType;
+	}
+	
+	@Override
+	public void setResultType(Class<?> resultType) {
+		this.resultType = resultType;
 	}
 	
 	/*

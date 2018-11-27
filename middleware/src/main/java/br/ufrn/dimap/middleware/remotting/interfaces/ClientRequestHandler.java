@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.net.UnknownHostException;
 
 import br.ufrn.dimap.middleware.extension.interfaces.ClientProtocolPlugIn;
+import br.ufrn.dimap.middleware.infrastructure.qos.QoSObserver;
 import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
 
 /**
@@ -126,5 +127,7 @@ public interface ClientRequestHandler {
 	 * @throws RemoteError if any error occurs when shutdown
 	 */
 	public void shutdown() throws RemoteError;
+
+	public QoSObserver getQosObserver();
 
 }

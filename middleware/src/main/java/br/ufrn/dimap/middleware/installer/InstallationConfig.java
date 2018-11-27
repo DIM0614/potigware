@@ -24,6 +24,10 @@ public class InstallationConfig {
         return String.format("file:%s/%s/%s.class", targetDir, DEFAULT_COMPILER_TARGET_PACKAGE, classname);
     }
 
+    public static String getClassFileLocation(String targetDir, String entityFolder, String classname) {
+        return String.format("file:%s/%s/%s/%s.class", targetDir, DEFAULT_COMPILER_TARGET_PACKAGE, entityFolder, classname);
+    }
+
     public static String getClassname(String classname) {
         return String.format("%s.%s", DEFAULT_COMPILER_TARGET_PACKAGE, classname);
     }

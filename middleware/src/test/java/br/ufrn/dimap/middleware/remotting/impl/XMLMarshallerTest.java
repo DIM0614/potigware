@@ -2,11 +2,11 @@ package br.ufrn.dimap.middleware.remotting.impl;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.HashSet;
+import java.util.Set;
 
+import br.ufrn.dimap.middleware.extension.impl.InvocationContext;
 import org.junit.Test;
 
 import br.ufrn.dimap.middleware.identification.AbsoluteObjectReference;
@@ -21,22 +21,27 @@ public class XMLMarshallerTest extends TestCase {
 	}
 	
 	@Test
-	public void testInvocationMarshaling() throws ClassNotFoundException, IOException {
+	public void testInvocationMarshaling() throws MarshallerException {
 		ObjectId id = new ObjectId("55ebd0d1-befa-4faa-8392-8723ccc9ddff");
 		AbsoluteObjectReference aor = new AbsoluteObjectReference(id, "localhost", 1234);
-		InvocationData data = new InvocationData(aor, "op1", "param1");
+		InvocationData data = new InvocationData(aor, "op1");
+		data.setActualParams(new Object[] {new Integer[] {3,2,1}});
+		InvocationContext ic = new InvocationContext();
+		ic.add("lala", 10);
+		ic.add("oook", -3);
 		
-		Map<String, Object> cont = new HashMap<String, Object>();
-		cont.put("lala", new Integer(10));
-		cont.put("oook", new Integer(-3));
-		Invocation inv0 = new Invocation(data, cont);
-		Invocation inv1 = marshalUnmarshal(inv0);
+		Set<Class<?>> context = new HashSet<Class<?>>();
+		for (Object p : data.getActualParams()) {
+			context.add(p.getClass());
+		}
+		Invocation inv0 = new Invocation(data, ic);
+		Invocation inv1 = marshalUnmarshal(inv0, context);
 		
 		assertEquals(inv0, inv1);
 	}
 	
 	@Test
-	public void testPrimitivesMarshaling() throws ClassNotFoundException, IOException {
+	public void testPrimitivesMarshaling() throws MarshallerException {
 		boolean b = false;
 		char c = '@';
 		int i = -33;
@@ -50,36 +55,47 @@ public class XMLMarshallerTest extends TestCase {
  	}
 	
 	@Test
-	public void testVoidObjectMarshaling() throws ClassNotFoundException, IOException {
+	public void testVoidObjectMarshaling() throws MarshallerException {
 		VoidObject v0 = new VoidObject();
 		VoidObject v1 = marshalUnmarshal(v0);
 	}
 	
 	@Test
-	public void testNullMarshaling() throws ClassNotFoundException, IOException {
+	public void testNullMarshaling() throws MarshallerException {
 		Object n0 = null;
 		Object n1 = marshalUnmarshal(n0);
 		assertEquals(n0, n1);
  	}
 	
 	@Test
-	public void testArrayMarshaling() throws ClassNotFoundException, IOException {
+	public void testArrayMarshaling() throws MarshallerException {
 		int[] a0 = {-1, 0, Integer.MAX_VALUE, Integer.MIN_VALUE};
 		int[] a1 = marshalUnmarshal(a0);
 		assertTrue(Arrays.equals(a0, a1));
 	}
 	
-	public <T> T marshalUnmarshal(T object) throws IOException, ClassNotFoundException {
+	public <T> T marshalUnmarshal(T object, Set<Class<?>> context) throws MarshallerException {
 		if (object == null)
 			return null;
 		
 		ByteArrayOutputStream baos;
 		Class<T> objClass = (Class<T>) object.getClass();
 				
-		baos = marshaller.marshal(object);
+		if (context == null)
+			baos = marshaller.marshal(object);
+		else
+			baos = marshaller.marshal(object, context);
+		
 		ByteArrayInputStream bais = new ByteArrayInputStream(
 				baos.toByteArray());
-		return marshaller.unmarshal(bais, objClass);
+		
+		if (context == null)
+			return marshaller.unmarshal(bais, objClass);
+		return marshaller.unmarshal(bais, objClass, context);
+	}
+	
+	public <T> T marshalUnmarshal(T object) throws MarshallerException {
+		return marshalUnmarshal(object, null);
 	}
 
 }

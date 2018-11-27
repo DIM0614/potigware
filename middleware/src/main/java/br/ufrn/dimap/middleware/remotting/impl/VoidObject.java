@@ -6,6 +6,7 @@ package br.ufrn.dimap.middleware.remotting.impl;
 import java.io.Serializable;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import java.io.Serializable;
 
 /**
  * Object created to wrap null returns and make it possible to marshal

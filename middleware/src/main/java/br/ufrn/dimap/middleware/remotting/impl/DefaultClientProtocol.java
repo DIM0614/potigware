@@ -282,7 +282,7 @@ public class DefaultClientProtocol implements ClientProtocolPlugIn {
 			if(returnValue instanceof VoidObject)
 				returnValue = null;
 			callback.onResult(returnValue);
-		} catch (ClassNotFoundException | IOException e) {
+		} catch (MarshallerException e) {
 			callback.onError(new RemoteError(e));
 		} catch (RemoteError e) {
 			callback.onError(e);
@@ -322,7 +322,7 @@ public class DefaultClientProtocol implements ClientProtocolPlugIn {
 				if(returnValue instanceof VoidObject)
 					returnValue = null;
 				pollObject.storeResult(returnValue);
-			} catch(IOException | ClassNotFoundException e) {
+			} catch(MarshallerException e) {
 				throw new RemoteError(e);
 			}
 		} catch (RemoteError e) {

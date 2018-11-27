@@ -1,0 +1,59 @@
+{
+    "name": "InterceptorConfig",
+    "description": "Config interface for the middleware server interceptors",
+    "operations":
+        [
+            {
+                "name": "startInvocationInterceptor",
+                "description": "Starts an invocation interceptor with the specified name",
+                "return": "bool",
+                "params":
+                    [
+                        {
+                            "name": "name",
+                            "type": "string",
+                            "description": "name of the interceptor"
+                        }
+                    ]
+            },
+            {
+                "name": "stopInvocationInterceptor",
+                "description": "Stops an invocation interceptor with the specified name",
+                "return": "bool",
+                "params":
+                    [
+                        {
+                            "name": "name",
+                            "type": "string",
+                            "description": "name of the interceptor"
+                        }
+                    ]
+            },
+            {
+                "name": "startRequestInterceptor",
+                "description": "Starts a request interceptor with the specified name",
+                "return": "bool",
+                "params":
+                    [
+                        {
+                            "name": "name",
+                            "type": "string",
+                            "description": "name of the interceptor"
+                        }
+                    ]
+            },
+            {
+                "name": "stopRequestInterceptor",
+                "description": "Stops a request interceptor with the specified name",
+                "return": "bool",
+                "params":
+                    [
+                        {
+                            "name": "name",
+                            "type": "string",
+                            "description": "name of the interceptor"
+                        }
+                    ]
+            }
+        ]
+}

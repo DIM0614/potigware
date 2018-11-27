@@ -34,7 +34,7 @@ public class JavaCompilerUtils {
         List<String> filesToCompile = strings.stream()
                 .map(string -> new File(root, string).getPath())
                 .collect(Collectors.toList());
-
+        
         int result = getJavaCompiler().run(null, null, System.out, filesToCompile.toArray(new String[filesToCompile.size()]));
 
         if(result != COMPILER_SUCCESS){

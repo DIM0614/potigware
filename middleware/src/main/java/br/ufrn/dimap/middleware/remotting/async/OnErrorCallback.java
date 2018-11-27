@@ -6,6 +6,10 @@ import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
  * Represents an callback action to be invoked in occurrence of an error in the middleware.
  *
  * @author Daniel Smith
+ * @author Adelino Afonso
+ * @author Jhonathan Cabral
+ * @author Jonathan Rocha
+ * @author Yuri Reinaldo  
  */
 @FunctionalInterface
 public interface OnErrorCallback {
