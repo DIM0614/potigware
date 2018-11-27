@@ -2,11 +2,8 @@ package br.ufrn.dimap.middleware.remotting.impl;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import br.ufrn.dimap.middleware.extension.impl.InvocationContext;
@@ -24,7 +21,7 @@ public class XMLMarshallerTest extends TestCase {
 	}
 	
 	@Test
-	public void testInvocationMarshaling() throws ClassNotFoundException, IOException {
+	public void testInvocationMarshaling() throws MarshallerException {
 		ObjectId id = new ObjectId("55ebd0d1-befa-4faa-8392-8723ccc9ddff");
 		AbsoluteObjectReference aor = new AbsoluteObjectReference(id, "localhost", 1234);
 		InvocationData data = new InvocationData(aor, "op1");
@@ -44,7 +41,7 @@ public class XMLMarshallerTest extends TestCase {
 	}
 	
 	@Test
-	public void testPrimitivesMarshaling() throws ClassNotFoundException, IOException {
+	public void testPrimitivesMarshaling() throws MarshallerException {
 		boolean b = false;
 		char c = '@';
 		int i = -33;
@@ -58,26 +55,26 @@ public class XMLMarshallerTest extends TestCase {
  	}
 	
 	@Test
-	public void testVoidObjectMarshaling() throws ClassNotFoundException, IOException {
+	public void testVoidObjectMarshaling() throws MarshallerException {
 		VoidObject v0 = new VoidObject();
 		VoidObject v1 = marshalUnmarshal(v0);
 	}
 	
 	@Test
-	public void testNullMarshaling() throws ClassNotFoundException, IOException {
+	public void testNullMarshaling() throws MarshallerException {
 		Object n0 = null;
 		Object n1 = marshalUnmarshal(n0);
 		assertEquals(n0, n1);
  	}
 	
 	@Test
-	public void testArrayMarshaling() throws ClassNotFoundException, IOException {
+	public void testArrayMarshaling() throws MarshallerException {
 		int[] a0 = {-1, 0, Integer.MAX_VALUE, Integer.MIN_VALUE};
 		int[] a1 = marshalUnmarshal(a0);
 		assertTrue(Arrays.equals(a0, a1));
 	}
 	
-	public <T> T marshalUnmarshal(T object, Set<Class<?>> context) throws IOException, ClassNotFoundException {
+	public <T> T marshalUnmarshal(T object, Set<Class<?>> context) throws MarshallerException {
 		if (object == null)
 			return null;
 		
@@ -97,7 +94,7 @@ public class XMLMarshallerTest extends TestCase {
 		return marshaller.unmarshal(bais, objClass, context);
 	}
 	
-	public <T> T marshalUnmarshal(T object) throws IOException, ClassNotFoundException {
+	public <T> T marshalUnmarshal(T object) throws MarshallerException {
 		return marshalUnmarshal(object, null);
 	}
 

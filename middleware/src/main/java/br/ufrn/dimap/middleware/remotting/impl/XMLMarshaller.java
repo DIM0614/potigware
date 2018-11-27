@@ -2,11 +2,9 @@ package br.ufrn.dimap.middleware.remotting.impl;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.Set;
 
 import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -34,34 +32,43 @@ import br.ufrn.dimap.middleware.remotting.interfaces.Marshaller;
  * 
  * Note also that JAXB requires a default constructor 
  * (public constructor with no arguments) in all marshaled
- * objects for unmarshaling.
+ * objects for unmarshalling.
  * 
  * @author carlosemv
  */
 public class XMLMarshaller implements Marshaller {
 	
 	@Override
-	public <T> ByteArrayOutputStream marshal(T object) throws IOException {
+	public <T> ByteArrayOutputStream marshal(T object) throws MarshalException {
 		return this.marshal(object, null);
 	}
 
 	@Override
-	public <T> ByteArrayOutputStream marshal(T object, Set<Class<?>> context) throws IOException {
+	public <T> ByteArrayOutputStream marshal(T object, Set<Class<?>> context) throws MarshalException {
 		
 		Object marshalObject = null;
-		Class<T> objClass = (Class<T>) object.getClass();
-		
-		if (object.getClass().getAnnotation(XmlRootElement.class) == null) {
-			QName qName = new QName("root");
-			JAXBElement<T> objElement = new JAXBElement<T>(qName, objClass, object);
-			
-			marshalObject = (Object) objElement;
-		} else {
-			marshalObject = (Object) object;
-		}
-
-		ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+		Class<T> objClass = null;
 		try {
+			objClass = (Class<T>) object.getClass();
+		} catch (NullPointerException e) {
+			IllegalArgumentException illegal = new IllegalArgumentException(
+					"Object to be marshalled cannot be null", e);
+			throw new MarshalException(illegal, this, object, context);
+		}
+		
+		ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+		
+		try {
+		
+			if (object.getClass().getAnnotation(XmlRootElement.class) == null) {
+				QName qName = new QName("root");
+				JAXBElement<T> objElement = new JAXBElement<T>(qName, objClass, object);
+				
+				marshalObject = (Object) objElement;
+			} else {
+				marshalObject = (Object) object;
+			}
+
 			JAXBContext jc;
 			if (context != null && !context.isEmpty()) {
 				context.add(objClass);
@@ -72,21 +79,20 @@ public class XMLMarshaller implements Marshaller {
 			javax.xml.bind.Marshaller marshaller = jc.createMarshaller();
 			
 			marshaller.marshal(marshalObject, byteStream);
-		} catch (JAXBException e) {
-			e.printStackTrace();
-			throw new IOException(e);
+		} catch (Exception e) {
+			throw new MarshalException(e, this, object, context);
 		}
 		
 		return byteStream;
 	}
 	
 	@Override
-	public <T> T unmarshal(ByteArrayInputStream byteStream, Class<T> tgtClass) throws IOException, ClassNotFoundException {
+	public <T> T unmarshal(ByteArrayInputStream byteStream, Class<T> tgtClass) throws UnmarshalException {
 		return this.unmarshal(byteStream, tgtClass, null);
 	}
 
 	@Override
-	public <T> T unmarshal(ByteArrayInputStream byteStream, Class<T> tgtClass, Set<Class<?>> context) throws IOException, ClassNotFoundException {
+	public <T> T unmarshal(ByteArrayInputStream byteStream, Class<T> tgtClass, Set<Class<?>> context) throws UnmarshalException {
 		T result = null;
 		
 		try {
@@ -106,9 +112,8 @@ public class XMLMarshaller implements Marshaller {
 			} else {
 				result = (T) unmarshaller.unmarshal(byteStream);
 			}
-		} catch (JAXBException e) {
-			e.printStackTrace();
-			throw new IOException(e);
+		} catch (Exception e) {
+			throw new UnmarshalException(e, this, byteStream, tgtClass, context);
 		}
 		
 		return result;

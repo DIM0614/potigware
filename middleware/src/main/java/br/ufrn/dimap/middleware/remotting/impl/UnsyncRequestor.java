@@ -69,7 +69,7 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
             
             return returnValue;
 
-        } catch (IOException | ClassNotFoundException e) {
+        } catch (MarshallerException e) {
             throw new RemoteError(e);
         }
     }
@@ -97,7 +97,7 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
 
             clientRequestHandler.getQosObserver().done(invocation);
 
-        } catch (IOException e) {
+        } catch (MarshallerException e) {
             throw new RemoteError(e);
         }
 
@@ -136,7 +136,7 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
             }
 
             clientRequestHandler.getQosObserver().done(invocation);
-        } catch (IOException e) {
+        } catch (MarshallerException e) {
             throw new RemoteError(e);
         }
 		throw new RemoteError("Failed to performe the request");
@@ -150,7 +150,7 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
         return invocation;
     }
 
-    private ByteArrayOutputStream marshallInvocation(Invocation invocation) throws IOException {
+    private ByteArrayOutputStream marshallInvocation(Invocation invocation) throws MarshalException {
     	Set<Class<?>> context = new HashSet<Class<?>>();
     	for (Object p : invocation.getInvocationData().getActualParams()) {
     		if(p != null) {
