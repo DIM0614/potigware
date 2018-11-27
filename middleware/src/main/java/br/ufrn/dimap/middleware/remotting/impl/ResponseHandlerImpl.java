@@ -27,7 +27,7 @@ import br.ufrn.dimap.middleware.extension.interfaces.ServerInterceptorRunner;
  */
 public class ResponseHandlerImpl implements ResponseHandler, ServerInterceptorRunner {
 	
-	private final Marshaller marshaller = new XMLMarshaller(); 
+	private final Marshaller marshaller = new JavaMarshaller();//new XMLMarshaller();
 	private final LifecycleManager lifecycleManager;
 	private final QoSObserver qosObserver;
 	

@@ -7,7 +7,7 @@ import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
 import br.ufrn.dimap.middleware.remotting.interfaces.Callback;
 import br.ufrn.dimap.middleware.remotting.interfaces.InvocationAsynchronyPattern;
 import br.ufrn.dimap.middleware.remotting.interfaces.PollObject;
-import generated.ClientMath;
+//import generated.ClientMath;
 import generated.ClientMathAdv;
 
 import java.io.IOException;

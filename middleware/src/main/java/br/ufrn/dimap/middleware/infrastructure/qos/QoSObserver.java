@@ -8,7 +8,7 @@ import br.ufrn.dimap.middleware.remotting.impl.Invocation;
 
 public class QoSObserver implements Observer {
 	
-	private static final int maxSizeSet = 5;
+	private static final int maxSizeSet = 1000;
 	private final ConcurrentMap<Invocation, LogInvocation> map;
 	private final Set<LogInvocation> set;
 	private final BasicRemotingPatterns pattern;

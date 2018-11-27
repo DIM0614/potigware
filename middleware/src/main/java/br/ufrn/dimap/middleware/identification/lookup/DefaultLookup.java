@@ -39,8 +39,8 @@ import static br.ufrn.dimap.middleware.installer.InstallationConfig.getClassname
  */
 public class DefaultLookup implements Lookup, NamingInstaller {
     
-	private static final String NAMING_SERVER_HOST = "localhost";
-	//private static final String NAMING_SERVER_HOST = "35.230.92.188";
+	//private static final String NAMING_SERVER_HOST = "localhost";
+	private static final String NAMING_SERVER_HOST = "35.230.92.188";
 
 	private static final int NAMING_SERVER_PORT = 8000;
 

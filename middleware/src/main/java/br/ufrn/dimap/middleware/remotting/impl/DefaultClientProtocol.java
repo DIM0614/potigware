@@ -84,7 +84,7 @@ public class DefaultClientProtocol implements ClientProtocolPlugIn {
 	/**
 	 * Marshaller to deserialize messages
 	 */
-	protected final Marshaller marshaller = new XMLMarshaller();
+	protected final Marshaller marshaller = new JavaMarshaller();//new XMLMarshaller();
 	
 	/**
 	 * Default constructor with maximum number of threads set to 1000
