@@ -14,3 +14,13 @@
 There is an example embedded in the middleware that uses the json description present in the `src/test` folder. 
 The generated code for it is in the `generated` package (outside the middleware package), the implementation
 is `MathImpl` and the usage is in `test/.../integration/IntegrationTest`.
+
+## Google Compute Engine instance
+
+### Naming service
+
+35.230.92.188:8000
+
+### Potigware
+
+35.231.37.80:8001
