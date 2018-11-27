@@ -4,7 +4,7 @@ import java.util.Arrays;
 
 import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
 
-public class MathAdvImpl extends MathInvoker implements MathAdv {
+public class MathAdvImpl extends MathAdvInvoker implements MathAdv {
 
 	@Override 
 	public Float pi(Float precision) throws RemoteError {
