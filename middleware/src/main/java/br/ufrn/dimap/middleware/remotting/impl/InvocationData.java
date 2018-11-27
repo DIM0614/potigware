@@ -72,7 +72,7 @@ public class InvocationData implements Serializable {
 		if (getClass() != obj.getClass())
 			return false;
 		InvocationData other = (InvocationData) obj;
-		if (!Arrays.equals(actualParams, other.actualParams))
+		if (!Arrays.deepEquals(actualParams, other.actualParams))
 			return false;
 		if (aor == null) {
 			if (other.aor != null)

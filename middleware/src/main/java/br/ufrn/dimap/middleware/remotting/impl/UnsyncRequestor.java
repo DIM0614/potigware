@@ -5,16 +5,13 @@ import br.ufrn.dimap.middleware.extension.impl.InvocationContext;
 import br.ufrn.dimap.middleware.extension.interfaces.InvocationInterceptorSerialized;
 import br.ufrn.dimap.middleware.extension.interfaces.InvocationInterceptorUnserialized;
 import br.ufrn.dimap.middleware.identification.AbsoluteObjectReference;
-import br.ufrn.dimap.middleware.infrastructure.qos.BasicRemotingPatterns;
-import br.ufrn.dimap.middleware.infrastructure.qos.QoSObserver;
-import br.ufrn.dimap.middleware.installer.ClientInstaller;
 import br.ufrn.dimap.middleware.remotting.interfaces.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.rmi.Remote;
-import java.util.logging.Level;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Logger;
 
 /**
@@ -34,7 +31,7 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
     private Logger logger = Logger.getLogger(UnsyncRequestor.class.getName());
 
     public UnsyncRequestor() {
-    	this.marshaller = new JavaMarshaller();
+    	this.marshaller = new XMLMarshaller();
     	this.clientRequestHandler = ClientRequestHandlerImpl.getInstance();
     }
 
@@ -154,8 +151,14 @@ public class UnsyncRequestor implements br.ufrn.dimap.middleware.remotting.inter
     }
 
     private ByteArrayOutputStream marshallInvocation(Invocation invocation) throws IOException {
+    	Set<Class<?>> context = new HashSet<Class<?>>();
+    	for (Object p : invocation.getInvocationData().getActualParams()) {
+    		if(p != null) {
+    			context.add(p.getClass());
+    		}
+    	}
 
-        ByteArrayOutputStream outputStream = this.marshaller.marshal(invocation);
+        ByteArrayOutputStream outputStream = this.marshaller.marshal(invocation, context);
 
         return outputStream;
     }
