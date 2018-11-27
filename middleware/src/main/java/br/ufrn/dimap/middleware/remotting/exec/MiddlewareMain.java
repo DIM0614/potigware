@@ -3,6 +3,7 @@ package br.ufrn.dimap.middleware.remotting.exec;
 import br.ufrn.dimap.middleware.MiddlewareConfig;
 import br.ufrn.dimap.middleware.extension.impl.GenerateLogInterceptor;
 import br.ufrn.dimap.middleware.extension.impl.GenerateLogSerializedInterceptor;
+import br.ufrn.dimap.middleware.extension.impl.VerifyContextInvokerInterceptor;
 import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
 import br.ufrn.dimap.middleware.remotting.impl.ServerRequestHandlerImpl;
 import br.ufrn.dimap.middleware.remotting.interfaces.ServerRequestHandler;
@@ -20,7 +21,8 @@ public class MiddlewareMain {
 
         	MiddlewareConfig.Interceptors.getInstance().registerInvocationInterceptor("logInterceptor", new GenerateLogInterceptor("unserialized.txt", true));
         	MiddlewareConfig.Interceptors.getInstance().registerRequestInterceptor("logSerialInterceptor", new GenerateLogSerializedInterceptor("serialized.txt", true));
-
+        	MiddlewareConfig.Interceptors.getInstance().registerInvocationInterceptor("invocationContextInterceptor", new VerifyContextInvokerInterceptor());
+        	
             ServerRequestHandler reqhander = new ServerRequestHandlerImpl(MIDDLEWARE_PORT);
 
             reqhander.init();

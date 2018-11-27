@@ -3,16 +3,18 @@ package br.ufrn.dimap.middleware.extension.impl;
 import br.ufrn.dimap.middleware.extension.interfaces.InvocationInterceptorUnserialized;
 import br.ufrn.dimap.middleware.remotting.impl.InvocationData;
 import br.ufrn.dimap.middleware.remotting.impl.RemoteError;
-
 /**
- * Interceptor in the Request side that insert a value in the Invocation Context that will be verified in the Invoker side.
+ * Interceptor in the Invoker side that verifies if a specific key on the Invocation Context has a specific value.
  * 
- * @author pedroarthur-mf
+ * @author Pedro Arthur Medeiros
  *
  */
-public class VerifyContexRequestInterceptor implements InvocationInterceptorUnserialized {
+public class VerifyContextInvokerInterceptor implements InvocationInterceptorUnserialized {
 
 	public void intercept(InvocationData invocationData, InvocationContext invocationContext) throws RemoteError {
-		invocationContext.add("verify message", true);
+		if (invocationContext.get("verify message") != (Boolean) true) {
+			System.out.println("User has send a message through invocationContext");
+		}
 	}
+
 }
