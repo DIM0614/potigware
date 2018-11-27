@@ -316,7 +316,11 @@ public class DefaultClientProtocol implements ClientProtocolPlugIn {
 		try {
 			ByteArrayInputStream inputStream = sendAndCache(host, port, msg, true);
 			try {
-				Object returnValue = this.marshaller.unmarshal(inputStream, Object.class);
+				Class<?> expectedType = pollObject.getResultType();
+				if (expectedType == null)
+					expectedType = Object.class;
+					
+				Object returnValue = this.marshaller.unmarshal(inputStream, expectedType);
 				if(returnValue instanceof VoidObject)
 					returnValue = null;
 				pollObject.storeResult(returnValue);
