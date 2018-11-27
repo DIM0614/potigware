@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import br.ufrn.dimap.middleware.MiddlewareConfig;
+import br.ufrn.dimap.middleware.config.client.interceptorConfig.InterceptorConfigImpl;
 import br.ufrn.dimap.middleware.identification.AbsoluteObjectReference;
 import br.ufrn.dimap.middleware.identification.ObjectId;
 import br.ufrn.dimap.middleware.identification.lookup.DefaultLookup;
@@ -33,7 +35,7 @@ public class LifecycleManagerImpl implements LifecycleManager {
 	private final StaticLifecycle staticLifecycle;
 	private final PerRequestLifecycle perRequestLifeCycle;
 	private final Lookup defaultLookup;
-
+	
 	private Map<AbsoluteObjectReference, Class<? extends Invoker>> loadedInvokerClasses;
 
 	/*
@@ -44,6 +46,11 @@ public class LifecycleManagerImpl implements LifecycleManager {
 		perRequestLifeCycle = new PerRequestLifecycleManager();
 		defaultLookup = DefaultLookup.getInstance();
 		loadedInvokerClasses = new HashMap<>();
+        
+		AbsoluteObjectReference configAor = MiddlewareConfig.getConfigaor();
+		
+		loadedInvokerClasses.put(configAor, InterceptorConfigImpl.class);
+		registerInvoker(configAor, InterceptorConfigImpl.class);
 	}
 
 	@SuppressWarnings("unchecked")

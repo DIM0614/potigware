@@ -26,6 +26,7 @@ public class DefaultServerProtocolUDP implements ServerProtocolPlugin {
 	private final ThreadPoolExecutor tasksExecutor;
 	private final Logger logger = Logger.getLogger(MiddlewareMain.class.getName());
 	private DatagramSocket server;
+	private int port;
 	
 	/**
 	 * Constructors set default maximum number of 
@@ -50,7 +51,7 @@ public class DefaultServerProtocolUDP implements ServerProtocolPlugin {
 	 */
 	@Override
 	public void listen(int port, ResponseHandler responseHandler) {
-
+		this.port = port;
 		try {
 			server = new DatagramSocket(port);
 		} catch (IOException e) {
@@ -94,6 +95,11 @@ public class DefaultServerProtocolUDP implements ServerProtocolPlugin {
 		try {
 			server.close();
 		} catch (Exception e) { }
+	}
+
+	@Override
+	public int getDefaultPort() {
+		return port;
 	}
 
 }
