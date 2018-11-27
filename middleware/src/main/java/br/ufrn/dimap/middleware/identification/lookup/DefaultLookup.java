@@ -2,7 +2,6 @@ package br.ufrn.dimap.middleware.identification.lookup;
 
 import java.io.*;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -206,6 +205,7 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 		DynamicClassLoader dynamicClassLoader = DynamicClassLoader.getDynamicClassLoader();
 		dynamicClassLoader.loadClassFromFile(getClassname(interfName), getClassFileLocation(InstallationConfig.getTargetDir(), MIDDLEWARE_FOLDER, interfName));
 		dynamicClassLoader.loadClassFromFile(getClassname(invokerName), getClassFileLocation(InstallationConfig.getTargetDir(), MIDDLEWARE_FOLDER, invokerName));
+		@SuppressWarnings("unchecked")
 		Class<? extends Invoker> implClass =  dynamicClassLoader.loadClassFromFile(getClassname(implName), getClassFileLocation(InstallationConfig.getTargetDir(), MIDDLEWARE_FOLDER, implName));
 
 		logger.log(Level.INFO, "Implementation saved in the middleware");
@@ -242,6 +242,7 @@ public class DefaultLookup implements Lookup, NamingInstaller {
 
 				oos.writeObject(data);
 				oos.flush();
+				socket.close();
 			}
 		}
 	}
